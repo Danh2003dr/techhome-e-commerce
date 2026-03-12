@@ -37,7 +37,7 @@ const Header: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-24 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-950 transition-all text-sm"
-                placeholder="Search for laptops, smart home, appliances..."
+                placeholder="Search for smartphones, tablets, accessories..."
               />
               <button
                 type="submit"
@@ -77,11 +77,7 @@ const Header: React.FC = () => {
             </Link>
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <Link to="/deals" className="hover:text-primary transition-colors">Top Deals</Link>
-            <Link to="/compare" className="hover:text-primary transition-colors">Compare</Link>
             <Link to="/search" className="hover:text-primary transition-colors">New Releases</Link>
-            <Link to="/search?category=computing" className="hover:text-primary transition-colors">Computing</Link>
-            <Link to="/search?category=cooling" className="hover:text-primary transition-colors">Appliances</Link>
-            <Link to="/search" className="hover:text-primary transition-colors">Gaming</Link>
             <Link to="/deals" className="text-red-500 font-bold hover:text-red-600 transition-colors">Outlet</Link>
           </div>
         </nav>

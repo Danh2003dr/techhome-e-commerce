@@ -118,7 +118,6 @@ const AccessoriesCategoryPage: React.FC = () => {
               <Link to="/search" className="hover:text-primary transition-colors">Computer & Laptops</Link>
               <Link to="/category/mobile" className="hover:text-primary transition-colors">Smartphones</Link>
               <span className="text-primary">Accessories</span>
-              <Link to="/search" className="hover:text-primary transition-colors">Gaming</Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

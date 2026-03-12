@@ -1,12 +1,10 @@
-import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, CoolingProduct, AccessoriesProduct, SmartHomeProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress, WishlistItem } from '@/types';
+import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress, WishlistItem } from '@/types';
 
 export const categories: Category[] = [
   { id: '1', name: 'Mobile', icon: 'smartphone', slug: 'mobile' },
   { id: '2', name: 'Tablets', icon: 'tablet', slug: 'tablets' },
-  { id: '3', name: 'Cooling', icon: 'ac_unit', slug: 'cooling' },
   { id: '4', name: 'Accessories', icon: 'keyboard', slug: 'accessories' },
   { id: '5', name: 'Audio', icon: 'headset', slug: 'audio' },
-  { id: '6', name: 'Smart Home', icon: 'tv', slug: 'smart-home' },
 ];
 
 export const products: Product[] = [
@@ -60,37 +58,6 @@ export const products: Product[] = [
     tag: 'In Stock',
   },
   {
-    id: 'smart-inverter-ac',
-    name: 'Smart Inverter AC 1.5 Ton',
-    category: 'Home Appliances',
-    price: 679,
-    oldPrice: 850,
-    rating: 4.5,
-    reviews: 432,
-    image: 'https://picsum.photos/400/400?random=3',
-    tag: '-20% OFF',
-  },
-  {
-    id: 'crystal-4k-tv',
-    name: 'Crystal 4K UHD Smart TV 55"',
-    category: 'Televisions',
-    price: 549.99,
-    rating: 4,
-    reviews: 2100,
-    image: 'https://picsum.photos/400/400?random=4',
-  },
-  {
-    id: 'samsung-windfree-ac',
-    name: 'Samsung WindFree™ Split Air Conditioner',
-    category: 'Cooling',
-    price: 899,
-    oldPrice: 1099,
-    rating: 4.8,
-    reviews: 320,
-    image: 'https://picsum.photos/400/400?random=ac1',
-    isBestSeller: true,
-  },
-  {
     id: 'ipad-pro-12',
     name: 'iPad Pro 12.9" M2',
     category: 'Tablets',
@@ -110,16 +77,6 @@ export const products: Product[] = [
     reviews: 289,
     image: 'https://picsum.photos/400/400?random=tab',
     tag: '-11% OFF',
-  },
-  {
-    id: 'gaming-laptop',
-    name: 'Red Stylish Gaming Laptop',
-    category: 'Laptops',
-    price: 1299,
-    rating: 4.7,
-    reviews: 445,
-    image: 'https://picsum.photos/400/400?random=laptop1',
-    isBestSeller: true,
   },
   {
     id: 'wireless-headphones',
@@ -151,36 +108,6 @@ export const products: Product[] = [
     image: 'https://picsum.photos/400/400?random=kb1',
   },
   {
-    id: 'smart-speaker',
-    name: 'Smart Speaker with Voice Assistant',
-    category: 'Smart Home',
-    price: 99,
-    rating: 4.5,
-    reviews: 2341,
-    image: 'https://picsum.photos/400/400?random=speaker',
-    isBestSeller: true,
-  },
-  {
-    id: 'smart-bulb-pack',
-    name: 'Smart LED Bulb 4-Pack',
-    category: 'Smart Home',
-    price: 49.99,
-    rating: 4.3,
-    reviews: 1876,
-    image: 'https://picsum.photos/400/400?random=bulb',
-  },
-  {
-    id: 'samsung-65-tv',
-    name: 'Samsung 65" QLED 4K TV',
-    category: 'Televisions',
-    price: 1299,
-    oldPrice: 1499,
-    rating: 4.8,
-    reviews: 654,
-    image: 'https://picsum.photos/400/400?random=tv2',
-    tag: '-13% OFF',
-  },
-  {
     id: 'pixel-8-pro',
     name: 'Google Pixel 8 Pro',
     category: 'Smartphones',
@@ -188,25 +115,6 @@ export const products: Product[] = [
     rating: 4.7,
     reviews: 423,
     image: 'https://picsum.photos/400/400?random=pixel',
-  },
-  {
-    id: 'macbook-air-m2',
-    name: 'MacBook Air M2 13"',
-    category: 'Laptops',
-    price: 1199,
-    rating: 4.9,
-    reviews: 2103,
-    image: 'https://picsum.photos/400/400?random=macbook',
-    isBestSeller: true,
-  },
-  {
-    id: 'portable-ac',
-    name: 'Portable Air Conditioner 12000 BTU',
-    category: 'Cooling',
-    price: 449,
-    rating: 4.2,
-    reviews: 312,
-    image: 'https://picsum.photos/400/400?random=ac2',
   },
   {
     id: 'noise-cancelling-earbuds',
@@ -227,33 +135,6 @@ export const products: Product[] = [
     rating: 4.4,
     reviews: 445,
     image: 'https://picsum.photos/400/400?random=webcam',
-  },
-  {
-    id: 'smart-thermostat',
-    name: 'Smart Thermostat',
-    category: 'Smart Home',
-    price: 249,
-    rating: 4.7,
-    reviews: 892,
-    image: 'https://picsum.photos/400/400?random=thermo',
-  },
-  {
-    id: 'robot-vacuum',
-    name: 'Robot Vacuum with Mapping',
-    category: 'Smart Home',
-    price: 399,
-    rating: 4.5,
-    reviews: 678,
-    image: 'https://picsum.photos/400/400?random=robot',
-  },
-  {
-    id: 'soundbar',
-    name: 'Soundbar 5.1 with Subwoofer',
-    category: 'Audio',
-    price: 349,
-    rating: 4.6,
-    reviews: 534,
-    image: 'https://picsum.photos/400/400?random=soundbar',
   },
 ];
 
@@ -656,8 +537,6 @@ export const footerSupportLinks: FooterLink[] = [
 
 export const footerCategoryLinks: FooterLink[] = [
   { label: 'Smartphones', href: '#' },
-  { label: 'Laptops', href: '#' },
-  { label: 'Home Appliances', href: '#' },
   { label: 'Accessories', href: '#' },
 ];
 
@@ -689,13 +568,8 @@ export function searchProducts(query: string): Product[] {
 const categorySlugToName: Record<string, string> = {
   mobile: 'Smartphones',
   tablets: 'Tablets',
-  cooling: 'Cooling',
   accessories: 'Accessories',
   audio: 'Audio',
-  'smart-home': 'Smart Home',
-  laptops: 'Laptops',
-  televisions: 'Televisions',
-  'home-appliances': 'Home Appliances',
 };
 
 export function getProductsByCategorySlug(slug: string): Product[] {
@@ -865,48 +739,6 @@ export function getProductDetailExtras(productId: string): ProductDetailExtras |
   };
 }
 
-// Cooling category page – products matching the provided UI
-export const coolingCategoryProducts: CoolingProduct[] = [
-  {
-    id: 'cooling-panasonic-inverter',
-    brand: 'Panasonic',
-    name: 'Inverter Split Air Conditioner',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzIv5D1Qty5wK2ee9W59JIEGmmO2ADWPOTLbYvSVUbpRBu3hxJ1y12cSozFhRSozAb8WG5xZxhqIdbgvXD8_XUZVkTgreM4d7DNeO9c17fb-6AljzW3SS4rLxK2lPyI8c6JOjycQYqEue6t7FwphTurRgJxHbVASNEm-a3r6wug0LwgrRxjtvqDVVYbKghuzWcK_JS1UcKr29NuY3fLkaYor289qUALQ_6GjlIusbVHMHVykqRvVdZ_pBLY_phCrgHW9JRbsD-tco',
-    price: 749,
-    oldPrice: 899,
-    rating: 4,
-    badges: ['5-STAR ENERGY', 'PROFESSIONAL INSTALLATION'],
-    btu: '12,000 BTU',
-    tech: 'Inverter',
-    techIcon: 'eco',
-  },
-  {
-    id: 'cooling-daikin-ftkm',
-    brand: 'Daikin',
-    name: 'FTKM Series Dual Inverter',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB70T19gMWbeWxgKGwpGHEul_ADDSiaj1bTGMD6XGiAk6KaKXBng99LwAaxBKt7QPTYRCKJIHu1uudogN4fTEodu3x5p1IrykWZahvONIzEniQ1V26xJvq7oNK3QuuPPD0r8Ghc8qfDEgedOg3dzfle6Epw-HdasXfImQCc-lA6oDkHnfKHJ6nP5D9NBFfkgobn9Z1ozys_tPCZ-WibH8pDYPlyFcjLegQQW4pWhgwgRAdgIFnLEebjspC46F6o7hPJnz7E6N06wNM',
-    price: 920,
-    rating: 5,
-    badges: ['5-STAR ENERGY'],
-    btu: '18,000 BTU',
-    tech: 'Dual Inverter',
-    techIcon: 'eco',
-    productDetailId: 'samsung-windfree-ac',
-  },
-  {
-    id: 'cooling-lg-portable',
-    brand: 'LG',
-    name: 'Portable Smart Cooling Unit',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAZ0gONuIRitcJrlF1ZHkCM43UdSbM4w9_wiVoq8rNANK5RCTER36jmU-VRfToqW0vLKGw_8xr0fja23IU_4XO5SxsK4OglRH5Bo9wm97d9QZ38KMqhg0gCu7ta6Xcfr2B74T-Uk0-UVvRqLKRMt_cfJn1MxLaOtnnwZ-Y0E0FKcv1Q32nZru-hC4ELThYtz5P1dUUCid7ZRg0A9WuelpAjlNhnqP8yDibYs3PchHYZTUYqPP06wFG0mI5diHd2kDuaaYK-FQr14M',
-    price: 545,
-    rating: 4,
-    badges: ['PORTABLE'],
-    btu: '9,000 BTU',
-    tech: 'App Control',
-    techIcon: 'wifi',
-    productDetailId: 'portable-ac',
-  },
-];
 
 // Accessories category page – products matching the provided UI
 export const accessoriesCategoryProducts: AccessoriesProduct[] = [
@@ -1040,84 +872,3 @@ export const audioCategoryProducts: AccessoriesProduct[] = [
   },
 ];
 
-// Smart Home category page – products matching the provided UI
-export const smartHomeCategoryProducts: SmartHomeProduct[] = [
-  {
-    id: 'sm-echosphere',
-    name: 'EchoSphere Gen 4',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBhtFh_mXrLr3RxqGXPaAxYQmoaYvtxwNTk1ufhLTR9_6IaChSahQWsAUT19nE73wXA-6PalQW2s0psNo2O-zl-rpFqf1yXzHEBBk7MRxEssmC7Q2Dfm1nbWdkplTz8dw0yel2cDr1NXcIXJOjDL_RH3SpC2X06EAgWoiglU5tMw-F-xOa2_M4PneKkD3rU7Je8-_36DDyAMWkc-mUDQGZKTxgsuJE0YpOnHFYJjDDeh7JeZ5Hr_d-8zYvZmuErsc31d9kW1EdQ0FY',
-    price: 129.99,
-    rating: 4.5,
-    reviews: 1242,
-    description: 'Premium high-fidelity audio with built-in smart hub.',
-    tags: [{ label: 'HomeKit', dotColor: 'bg-blue-500' }, { label: 'Alexa', dotColor: 'bg-orange-500' }],
-    subtitle: 'In Stock',
-    subtitleVariant: 'green',
-    productDetailId: 'smart-speaker',
-  },
-  {
-    id: 'sm-sentinel',
-    name: 'Sentinel 2K Outdoor',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDE5fCIdAAOAXeW6ASU-35r_4XvI1bvm1qkcVMwOkGi2lFB4Q_mTfvKC4lUC4rJZb8WlwzjebIevf37e8vaiw4BXRQCikPQPCkBzFOBYEdv0Yfl0YZI_oHJ_wVTK9fO80c13b--qnFgoK3EIZvY_iVYkSPcMRQ3hfC2CuHXNPJ48gP5tZb3F6tXT6VM_Q-696FSS6Av-nWB2iGzLiZfCZ1PykmkwFTNLpCDeufzTZx4-b-JJW0pl7ullBEzWdf0Ur49C__GsMpuF28',
-    price: 189.99,
-    oldPrice: 229,
-    rating: 5,
-    reviews: 850,
-    description: 'Weatherproof 2K security camera with human detection.',
-    tags: [{ label: 'Google', dotColor: 'bg-blue-400' }],
-    badge: 'Best Seller',
-    badgeVariant: 'primary',
-    productDetailId: 'smart-bulb-pack',
-  },
-  {
-    id: 'sm-aura-hub',
-    name: 'Aura Smart Hub Pro',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuALPLZHAKfisdDh_zsFn4yu_JuZkx6GFFsOhIvccIL4qabon6jzPllOlr50ivahoZ8JdL8U_1YIq_Y95dMpodmfPDVmHwl56fR-MlsCyQcd8ul8KYAl-QJ0BCxP4ozQkjhx6y9yv5lrlokM_qNaZT-nRWFNCeIQHUMCzCjW8Cn2CLETkO-ENpjGJsw_32H9P_OS08QmU70u8c3WknQUwhgpeg2yIaW-m2ox9aQUFhvBCGkZXZ0woL89JKu1nEbLAJn98Tn31GRAolc',
-    price: 79.99,
-    rating: 4,
-    reviews: 421,
-    description: 'Connect up to 50 smart bulbs with low-latency control.',
-    tags: [{ label: 'Zigbee', dotColor: 'bg-purple-500' }],
-    subtitle: 'Fast Delivery',
-    subtitleVariant: 'green',
-  },
-  {
-    id: 'sm-climategen',
-    name: 'ClimateGen Plus',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD66ddBNHPwaww3MHfIUBdvgVcamz5_k6UcHVlJMQ9vnqnCfRPBIVOcgix_kY0z1jq6pXz3cP-TQe8kyxZJ39sXkoCnOSDGhBIuo5S5p5ElOulTpATAV-YorRy9nfTXEchFXSSqxlvLT2usbzZbmecyKTVX4pBh0-bmpdIZriwgHFFIcYJ2HW0xN9-sYW_1BltoBWVOz3OE-KwjfMvnVqBSE88ZQtta9JMRW5lJ_5lAp9-ASP4dwY33IUqnkfrZkSqlsg7inAaL0D8',
-    price: 249.99,
-    rating: 5,
-    reviews: 2300,
-    description: 'Adaptive learning thermostat with multi-room sensors.',
-    tags: [{ label: 'HomeKit', dotColor: 'bg-blue-500' }],
-    subtitle: 'Free Setup',
-    subtitleVariant: 'primary',
-    productDetailId: 'smart-thermostat',
-  },
-  {
-    id: 'sm-cleanbot',
-    name: 'CleanBot Pro X1',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDP2htG0ZyESD4sNwoPc3rJ34OEkp8SPWj_7sUmr7AujKjUkZUOhAEQDieN4O_IqnFrPBLuLS-tE_ZD2T-oHJoHcxSRpb87X5sJlPItZB9CuRfaLNBiPy1CZMoGO29ci2qnKWcwRvovS_CJOqbjubOfEBx6D1KcU2lIhLRfKNxCeEhB2WSBdmLzEyd3allBThuSUR9MA8TSn3Ke4XYAQyQCnybWg3_Oo8qXL2EDiszPPnINbufz0l9ufMvcVVClmmkG-Wl1udef0lk',
-    price: 349.99,
-    oldPrice: 499,
-    rating: 4,
-    reviews: 1100,
-    description: 'Lidar navigation with automatic dust emptying base.',
-    tags: [],
-    badge: 'Hot Deal',
-    badgeVariant: 'red',
-    productDetailId: 'robot-vacuum',
-  },
-  {
-    id: 'sm-securelock',
-    name: 'SecureLock Elite',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwDYRYhgIL_JdViorVEikdiliknDmDYoya7ffJZ_-Y9uX0KeTcS4bfgP_A3eVUgBA74QDxMp87U3MdJi0v07MEdYUXbVFt-1pVGoQ8h5ykJgpi20ddUdVRt1dOnS0NCRtCtc39aP1vEsRYYTIB08WcyYvRgcQ7DnKXnfJy4W5XbxBlGoN-zmrQHMoJCU3VahbyBVcyDdTpdDJK60B_UdmtvTlnWq7YXIq8QHDDYFHXhZUENM7X1Hkl3kfkQY8X7bu1A5AZgWiVHrU',
-    price: 199.99,
-    rating: 5,
-    reviews: 589,
-    description: 'Biometric fingerprint access and remote locking.',
-    tags: [],
-    subtitle: 'In Stock',
-    subtitleVariant: 'green',
-  },
-];
