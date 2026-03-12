@@ -1,10 +1,13 @@
 import React from 'react';
 import { HashRouter } from 'react-router-dom';
+import { CheckoutProvider } from '@/context/CheckoutContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 const App: React.FC = () => (
   <HashRouter>
-    <AppRoutes />
+    <CheckoutProvider>
+      <AppRoutes />
+    </CheckoutProvider>
   </HashRouter>
 );
 

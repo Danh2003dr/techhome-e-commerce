@@ -15,6 +15,7 @@ import AccessoriesCategoryPage from '@/pages/store/AccessoriesCategoryPage';
 import AudioCategoryPage from '@/pages/store/AudioCategoryPage';
 import SmartHomeCategoryPage from '@/pages/store/SmartHomeCategoryPage';
 import OrderConfirmationPage from '@/pages/checkout/OrderConfirmationPage';
+import CheckoutPage from '@/pages/checkout/CheckoutPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import OrderHistoryPage from '@/pages/account/OrderHistoryPage';
 import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
@@ -58,6 +59,7 @@ const AppContent: React.FC = () => {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Routes>
       </main>
       <Footer />
@@ -73,6 +75,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/category/accessories" element={<AccessoriesCategoryPage />} />
     <Route path="/category/audio" element={<AudioCategoryPage />} />
     <Route path="/category/smart-home" element={<SmartHomeCategoryPage />} />
+    <Route path="/checkout" element={<CheckoutPage />} />
     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
     <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
     <Route path="/login" element={<LoginPage />} />

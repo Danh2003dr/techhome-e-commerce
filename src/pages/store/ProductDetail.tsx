@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getProductById, getProductDetailExtras, cartItems } from '@/data';
+import Breadcrumbs from '@/components/store/Breadcrumbs';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,14 +84,16 @@ const ProductDetail: React.FC = () => {
           </nav>
         </header>
         <main className="container mx-auto px-6 py-8">
-          <nav className="flex items-center gap-2 text-sm text-slate-500 mb-8">
-            <Link to="/" className="hover:text-primary">Home</Link>
-            <span className="material-icons text-xs">chevron_right</span>
-            <Link to="/search?category=mobile" className="hover:text-primary">Smartphones</Link>
-            <span className="material-icons text-xs">chevron_right</span>
-            {extras?.brand && <><Link to="/search" className="hover:text-primary">{extras.brand}</Link><span className="material-icons text-xs">chevron_right</span></>}
-            <span className="text-slate-900 dark:text-slate-200 font-medium">{product.name}</span>
-          </nav>
+          <Breadcrumbs
+            items={[
+              { label: 'Home', path: '/' },
+              { label: 'Catalog', path: '/search' },
+              { label: 'Smartphones', path: '/search?category=mobile' },
+              ...(extras?.brand ? [{ label: extras.brand, path: '/search' }] : []),
+              { label: product.name }
+            ]}
+            className="mb-8"
+          />
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
             <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4">
               <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto hide-scrollbar">
@@ -218,7 +221,7 @@ const ProductDetail: React.FC = () => {
           {extras!.relatedProducts.length > 0 && (
             <section className="mb-20">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold">Complete Your Setup</h2>
+                <h2 className="text-2xl font-bold">Related Products</h2>
                 <div className="flex gap-2">
                   <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_left</span></button>
                   <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_right</span></button>

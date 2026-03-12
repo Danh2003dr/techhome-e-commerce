@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listingProducts } from '@/data';
+import Breadcrumbs from '@/components/store/Breadcrumbs';
 
 const TOTAL_RESULTS = 348;
 const PER_PAGE = 12;
@@ -40,7 +41,16 @@ const ProductListingPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <Breadcrumbs 
+          items={[
+            { label: 'Home', path: '/' },
+            { label: 'Catalog', path: '/search' },
+            { label: 'Smartphones' }
+          ]}
+          className="mb-6"
+        />
+        <div className="flex gap-8">
         <aside className="w-64 flex-shrink-0 hidden lg:block">
           <div className="sticky top-24 space-y-8">
             <div>
@@ -169,6 +179,7 @@ const ProductListingPage: React.FC = () => {
             <button type="button" className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-primary hover:text-primary transition-colors">{TOTAL_PAGES}</button>
             <button type="button" className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-primary hover:text-primary transition-colors"><span className="material-icons">chevron_right</span></button>
           </div>
+        </div>
         </div>
       </main>
 

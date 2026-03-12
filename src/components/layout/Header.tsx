@@ -16,26 +16,6 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-2">
-        <div className="container mx-auto px-4 flex justify-between items-center text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-primary transition-colors">Find a Store</a>
-            <a href="#" className="hover:text-primary transition-colors">TechHome Plus</a>
-            <a href="#" className="hover:text-primary transition-colors">Support</a>
-          </div>
-          <div className="flex gap-6">
-            <span className="flex items-center gap-1">
-              <span className="material-icons text-sm">local_shipping</span>
-              Free Shipping over $35
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="material-icons text-sm">verified</span>
-              Price Match Guarantee
-            </span>
-          </div>
-        </div>
-      </div>
-
       <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-8">
           <Link to="/" className="flex-shrink-0 flex items-center gap-2">
