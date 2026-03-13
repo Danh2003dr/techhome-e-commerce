@@ -7,8 +7,12 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  // Chuẩn hóa ID: ưu tiên productDetailId, nếu không có thì dùng id
+  const productId = (product as any).productDetailId || product.id;
+  const productPath = `/product/${productId}`;
+
   return (
-    <Link to={`/product/${product.id}`} className="group bg-white p-4 rounded-2xl border border-gray-100 hover:border-indigo-100 transition-all hover:shadow-xl flex flex-col block">
+    <Link to={productPath} className="group bg-white p-4 rounded-2xl border border-gray-100 hover:border-indigo-100 transition-all hover:shadow-xl flex flex-col block">
       <div className="relative mb-4 aspect-square rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
         <img src={product.image} alt={product.name} className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500" />
         {product.isBestSeller && (
@@ -35,9 +39,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.oldPrice && <span className="text-xs line-through text-gray-400">${product.oldPrice.toFixed(2)}</span>}
           <span className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
         </div>
-        <Link to={`/product/${product.id}`} className="p-2.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl transition-all inline-flex" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="p-2.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl transition-all inline-flex z-20"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // TODO: Add to cart logic here
+          }}
+        >
           <span className="material-icons text-lg">add_shopping_cart</span>
-        </Link>
+        </button>
       </div>
     </Link>
   );

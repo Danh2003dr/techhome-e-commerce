@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accessoriesCategoryProducts } from '@/data';
 import type { AccessoriesProduct } from '@/types';
+import ProductCard from '@/features/products/components/ProductCard';
 
 const HERO_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCi1GpWnEhQSlHntiNLVve9xzux9Uvoto9E-Mw4dCOwR502O-eYrKgv20d47lGjmX0Fsn0gFdDcd8tqCBTRkNIvqZcW0uBuumshu6Rg5c2zf6cXEVNcANj1ZzFLq_3xDURsHq7NJt-RLN0YAVi8ft535Ct-Kxt9FUAqYuX0d6gGiHx5P2gTpggxpKUA_QW1Ep06u5P6O8WYHbCW_nr_tdn5OqfcF5k1h7yqKkW_iQ-q_iNXmagg9U4j3ivnwHdYBpTl_EZlRFPV5oY';
@@ -15,99 +16,6 @@ const SUB_CATEGORIES = [
   { label: 'Audio Gear', icon: 'headphones' },
 ];
 
-function StarRating({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return (
-    <div className="flex items-center gap-0.5">
-      {[...Array(5)].map((_, i) => {
-        if (i < full) return <span key={i} className="material-icons text-amber-400 text-sm">star</span>;
-        if (i === full && half) return <span key={i} className="material-icons text-amber-400 text-sm">star_half</span>;
-        return <span key={i} className="material-icons text-slate-200 text-sm">star</span>;
-      })}
-    </div>
-  );
-}
-
-function ProductCard({ product }: { product: AccessoriesProduct }) {
-  const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
-  return (
-    <Link
-      to={to}
-      className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 group hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col relative z-10"
-    >
-      <div className="relative aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        <button
-          type="button"
-          className="absolute top-3 right-3 p-2 bg-white/80 dark:bg-slate-900/80 rounded-full hover:text-primary transition-colors backdrop-blur-md z-20"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <span className={`material-icons text-xl ${product.isInWishlist ? 'text-primary' : ''}`}>
-            {product.isInWishlist ? 'favorite' : 'favorite_border'}
-          </span>
-        </button>
-        {product.badge && (
-          <div className={product.badgeVariant === 'red' ? 'absolute top-3 left-3' : 'absolute bottom-3 left-3'}>
-            <span
-              className={`text-[10px] px-2 py-1 rounded font-bold ${
-                product.badgeVariant === 'red' ? 'bg-red-500 text-white' : 'bg-primary/90 text-white'
-              }`}
-            >
-              {product.badge}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center gap-1 mb-2">
-          <StarRating rating={product.rating} />
-          <span className="text-xs text-slate-400 ml-1">({product.reviews})</span>
-        </div>
-        <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">{product.name}</h3>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {product.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full font-medium"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-primary">
-              ${product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-            {product.oldPrice && (
-              <span className="text-xs text-slate-400 line-through">
-                ${product.oldPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            className="bg-primary hover:bg-blue-600 text-white p-2.5 rounded-lg flex items-center justify-center transition-colors z-20"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <span className="material-icons">add_shopping_cart</span>
-          </button>
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 const AccessoriesCategoryPage: React.FC = () => {
   const [activeSub, setActiveSub] = useState('Charging & Cables');
@@ -268,9 +176,7 @@ const AccessoriesCategoryPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {accessoriesCategoryProducts.map((product) => (
-                <React.Fragment key={product.id}>
-                  <ProductCard product={product} />
-                </React.Fragment>
+                <ProductCard key={product.id} product={product as any} />
               ))}
             </div>
 

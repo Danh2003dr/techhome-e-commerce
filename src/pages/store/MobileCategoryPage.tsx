@@ -219,18 +219,26 @@ const MobileCategoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {mobileCategoryProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
-                >
+              {mobileCategoryProducts.map((product) => {
+                const productId = product.productDetailId || product.id;
+                const productPath = `/product/${productId}`;
+                return (
+                  <Link
+                    key={product.id}
+                    to={productPath}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
+                  >
                   <div className="relative p-6 h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50">
                     {product.badge && (
                       <Badge label={product.badge} variant={getBadgeVariant(product.badge)} />
                     )}
                     <button
                       type="button"
-                      className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                      className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
                     >
                       <span className="material-icons text-lg">favorite_border</span>
                     </button>
@@ -262,17 +270,23 @@ const MobileCategoryPage: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <Link
-                        to={product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`}
-                        className="w-full bg-primary text-white py-3 rounded font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                      <button
+                        type="button"
+                        className="w-full bg-primary text-white py-3 rounded font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 z-20"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // TODO: Add to cart logic here
+                        }}
                       >
                         <span className="material-icons text-sm">shopping_cart</span>
                         Add to Cart
-                      </Link>
+                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Pagination */}
