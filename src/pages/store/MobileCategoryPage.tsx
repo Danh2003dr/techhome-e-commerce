@@ -64,46 +64,7 @@ const MobileCategoryPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300 min-h-screen">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                  <span className="material-icons text-white text-xl">devices</span>
-                </div>
-                <span className="text-xl font-bold tracking-tight text-primary">TechHome</span>
-              </Link>
-              <nav className="hidden md:flex space-x-8 text-sm font-medium">
-                <Link to="/search" className="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Computers</Link>
-                <span className="text-primary font-bold">Mobile</span>
-                <Link to="/search?category=audio" className="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Audio</Link>
-                <Link to="/search?category=accessories" className="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Accessories</Link>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="relative hidden lg:block">
-                <input
-                  className="w-64 pl-10 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                  placeholder="Search devices..."
-                  type="text"
-                />
-                <span className="material-icons absolute left-3 top-2 text-slate-400 text-sm">search</span>
-              </div>
-              <Link to="/cart" className="p-2 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
-                <span className="material-icons">shopping_cart</span>
-              </Link>
-              <Link to="/profile" className="p-2 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
-                <span className="material-icons">person_outline</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
           <Link to="/" className="hover:text-primary">Home</Link>
@@ -258,18 +219,26 @@ const MobileCategoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {mobileCategoryProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
-                >
+              {mobileCategoryProducts.map((product) => {
+                const productId = product.productDetailId || product.id;
+                const productPath = `/product/${productId}`;
+                return (
+                  <Link
+                    key={product.id}
+                    to={productPath}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
+                  >
                   <div className="relative p-6 h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50">
                     {product.badge && (
                       <Badge label={product.badge} variant={getBadgeVariant(product.badge)} />
                     )}
                     <button
                       type="button"
-                      className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                      className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
                     >
                       <span className="material-icons text-lg">favorite_border</span>
                     </button>
@@ -301,17 +270,23 @@ const MobileCategoryPage: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <Link
-                        to={product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`}
-                        className="w-full bg-primary text-white py-3 rounded font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                      <button
+                        type="button"
+                        className="w-full bg-primary text-white py-3 rounded font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 z-20"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // TODO: Add to cart logic here
+                        }}
                       >
                         <span className="material-icons text-sm">shopping_cart</span>
                         Add to Cart
-                      </Link>
+                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -355,79 +330,6 @@ const MobileCategoryPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-20 pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                  <span className="material-icons text-white text-xl">devices</span>
-                </div>
-                <span className="text-xl font-bold tracking-tight text-primary">TechHome</span>
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-                Your premier destination for the latest technology and smart gadgets. Quality guaranteed since 2010.
-              </p>
-              <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all">
-                  <span className="material-icons text-xl">facebook</span>
-                </a>
-                <a href="#" className="w-10 h-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all">
-                  <span className="material-icons text-xl">share</span>
-                </a>
-                <a href="#" className="w-10 h-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all">
-                  <span className="material-icons text-xl">language</span>
-                </a>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Quick Links</h4>
-              <ul className="space-y-4 text-sm text-slate-500 dark:text-slate-400">
-                <li><a href="#" className="hover:text-primary transition-colors">New Releases</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Trade-in Program</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">TechHome Care+</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Order Tracking</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Customer Support</h4>
-              <ul className="space-y-4 text-sm text-slate-500 dark:text-slate-400">
-                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Shipping Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Returns & Refunds</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Newsletter</h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Get the latest tech news and deals straight to your inbox.
-              </p>
-              <form className="flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  className="px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 focus:ring-primary outline-none"
-                  placeholder="Your email address"
-                  type="email"
-                />
-                <button type="submit" className="bg-primary text-white py-2 rounded font-bold hover:bg-blue-600 transition-colors">
-                  Subscribe
-                </button>
-              </form>
-            </div>
-          </div>
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-slate-400">© 2024 TechHome Inc. All rights reserved.</p>
-            <div className="flex gap-6 text-xs text-slate-400">
-              <a href="#" className="hover:text-primary">Privacy Policy</a>
-              <a href="#" className="hover:text-primary">Terms of Service</a>
-              <a href="#" className="hover:text-primary">Cookie Settings</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

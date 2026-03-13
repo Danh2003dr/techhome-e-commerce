@@ -38,6 +38,16 @@ const Footer: React.FC = () => {
               <li><a href="#" className="hover:text-primary">Order Status</a></li>
               <li><a href="#" className="hover:text-primary">Store Locator</a></li>
             </ul>
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span className="material-icons text-sm text-primary">local_shipping</span>
+                <span>Free Shipping over $35</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span className="material-icons text-sm text-primary">verified</span>
+                <span>Price Match Guarantee</span>
+              </div>
+            </div>
           </div>
           <div>
             <h5 className="font-bold text-slate-900 dark:text-white mb-6 uppercase tracking-wider text-xs">About Us</h5>

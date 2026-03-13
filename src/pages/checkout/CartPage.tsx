@@ -1,12 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cartItems } from '@/data';
 
 const CartPage: React.FC = () => {
+  const navigate = useNavigate();
   const items = cartItems;
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shipping = 0;
+  const shipping: number = 0;
   const taxRate = 0.08;
   const tax = subtotal * taxRate;
   const total = subtotal + shipping + tax;
@@ -76,6 +77,22 @@ const CartPage: React.FC = () => {
         <aside className="w-full lg:w-96 space-y-6">
           <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm sticky top-24">
             <h2 className="text-xl font-bold mb-8">Order Summary</h2>
+            
+            {/* Coupon Code Input */}
+            <div className="mb-6 pb-6 border-b border-gray-50">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Coupon Code</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter coupon code"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm transition-colors">
+                  Apply
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-4 text-sm text-gray-500 border-b border-gray-50 pb-6 mb-6">
               <div className="flex justify-between">
                 <span>Subtotal ({totalItems} items)</span>
@@ -94,7 +111,10 @@ const CartPage: React.FC = () => {
               <span className="font-bold text-gray-900">Total</span>
               <span className="text-3xl font-black text-indigo-600">${total.toFixed(2)}</span>
             </div>
-            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 group">
+            <button
+              onClick={() => navigate('/checkout')}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 group"
+            >
               Proceed to Checkout <span className="material-icons group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </button>
           </div>
