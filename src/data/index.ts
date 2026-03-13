@@ -456,7 +456,7 @@ export const cartItems: CartItem[] = [
 
 export const navItems: NavItem[] = [
   { label: 'My Profile', icon: 'person', path: '/profile' },
-  { label: 'Order History', icon: 'shopping_bag', path: '/dashboard' },
+  { label: 'Order History', icon: 'shopping_bag', path: '/orders' },
   { label: 'Warranty & Installation', icon: 'build', path: '/warranty' },
   { label: 'Address Book', icon: 'location_on', path: '/addresses' },
   { label: 'Wishlist', icon: 'favorite', path: '/wishlist' },

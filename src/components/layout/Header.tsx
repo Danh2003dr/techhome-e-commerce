@@ -53,7 +53,7 @@ const Header: React.FC = () => {
               <span className="material-icons">person_outline</span>
               <span className="text-[10px] font-bold uppercase">Account</span>
             </Link>
-            <Link to="/dashboard" className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+            <Link to="/orders" className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
               <span className="material-icons">history</span>
               <span className="text-[10px] font-bold uppercase">Orders</span>
             </Link>

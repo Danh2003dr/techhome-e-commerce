@@ -1,8 +1,6 @@
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import { getProductDetailExtras } from '@/data';
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/store/HomePage';
 import SearchResults from '@/pages/store/SearchResults';
 import ProductDetail from '@/pages/store/ProductDetail';
@@ -24,60 +22,34 @@ import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
-const AppContent: React.FC = () => {
-  const location = useLocation();
-  const isDealsPage = location.pathname === '/deals';
-  const isProfilePage = location.pathname === '/profile';
-  const isMobileCategoryPage = location.pathname === '/category/mobile';
-  const isAccessoriesCategoryPage = location.pathname === '/category/accessories';
-  const isAudioCategoryPage = location.pathname === '/category/audio';
-  const productIdMatch = location.pathname.match(/^\/product\/(.+)$/);
-  const productId = productIdMatch?.[1];
-  const hasFullProductLayout = productId != null && getProductDetailExtras(productId) != null;
-
-  if (isDealsPage) return <ProductListingPage />;
-  if (isProfilePage) return <ProfilePage />;
-  if (isMobileCategoryPage) return <MobileCategoryPage />;
-  if (isAccessoriesCategoryPage) return <AccessoriesCategoryPage />;
-  if (isAudioCategoryPage) return <AudioCategoryPage />;
-  if (hasFullProductLayout) return <ProductDetail />;
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      <Header />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchResults />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
-  );
-};
-
 const AppRoutes: React.FC = () => (
   <Routes>
-    <Route path="/deals" element={<ProductListingPage />} />
-    <Route path="/category/mobile" element={<MobileCategoryPage />} />
-    <Route path="/category/accessories" element={<AccessoriesCategoryPage />} />
-    <Route path="/category/audio" element={<AudioCategoryPage />} />
-    <Route path="/checkout" element={<CheckoutPage />} />
+    {/* Routes với MainLayout (có Header/Footer) */}
+    <Route element={<MainLayout />}>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/search" element={<SearchResults />} />
+      <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/deals" element={<ProductListingPage />} />
+      <Route path="/category/mobile" element={<MobileCategoryPage />} />
+      <Route path="/category/accessories" element={<AccessoriesCategoryPage />} />
+      <Route path="/category/audio" element={<AudioCategoryPage />} />
+    </Route>
+
+    {/* Routes không có MainLayout (auth pages, account pages có AccountHeader riêng) */}
+    <Route path="/profile" element={<ProfilePage />} />
     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
     <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/signup" element={<SignUpPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-    <Route path="/dashboard" element={<OrderHistoryPage />} />
+    <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
-    <Route path="/*" element={<AppContent />} />
+    <Route path="/*" element={<NotFoundPage />} />
   </Routes>
 );
 

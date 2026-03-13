@@ -16,7 +16,7 @@ const OrderDetailsPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark font-display">
         <div className="text-center">
           <p className="text-slate-500 mb-4">Order not found.</p>
-          <Link to="/dashboard" className="text-primary font-semibold hover:underline">Back to Order History</Link>
+          <Link to="/orders" className="text-primary font-semibold hover:underline">Back to Order History</Link>
         </div>
       </div>
     );
@@ -36,7 +36,7 @@ const OrderDetailsPage: React.FC = () => {
               items={[
                 { label: 'Home', path: '/' },
                 { label: 'Account', path: '/profile' },
-                { label: 'Order History', path: '/dashboard' },
+                { label: 'Order History', path: '/orders' },
                 { label: `#${order.orderId}` },
               ]}
             />

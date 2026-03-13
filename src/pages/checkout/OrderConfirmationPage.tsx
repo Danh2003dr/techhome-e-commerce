@@ -39,14 +39,14 @@ const OrderConfirmationPage: React.FC = () => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Link
-            to="/dashboard"
+            to="/orders"
             className="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
           >
             <span className="material-icons text-sm">local_shipping</span>
             Track Order
           </Link>
           <Link
-            to="/dashboard"
+            to="/orders"
             className="px-8 py-3 bg-white dark:bg-slate-800 border-2 border-primary/20 hover:border-primary text-primary font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
           >
             <span className="material-icons text-sm">receipt_long</span>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { accessoriesCategoryProducts, cartItems } from '@/data';
+import { accessoriesCategoryProducts } from '@/data';
 import type { AccessoriesProduct } from '@/types';
 
 const HERO_IMAGE =
@@ -102,49 +102,9 @@ const AccessoriesCategoryPage: React.FC = () => {
   const [activeSub, setActiveSub] = useState('Charging & Cables');
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const [page, setPage] = useState(1);
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2">
-              <span className="material-icons text-3xl">terminal</span>
-              TechHome
-            </Link>
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
-              <Link to="/search" className="hover:text-primary transition-colors">Computer & Laptops</Link>
-              <Link to="/category/mobile" className="hover:text-primary transition-colors">Smartphones</Link>
-              <span className="text-primary">Accessories</span>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
-              <input
-                className="w-64 pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="Search accessories..."
-                type="text"
-              />
-              <span className="material-icons absolute left-3 top-2 text-slate-400 text-lg">search</span>
-            </div>
-            <Link to="/cart" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative">
-              <span className="material-icons">shopping_cart</span>
-              {cartCount > 0 && (
-                <span className="absolute top-1 right-1 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  {cartCount > 99 ? '99+' : cartCount}
-                </span>
-              )}
-            </Link>
-            <Link to="/profile" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-              <span className="material-icons">person_outline</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6">
           <Link to="/" className="hover:text-primary">Home</Link>
@@ -342,75 +302,6 @@ const AccessoriesCategoryPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pt-16 pb-8">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            <div>
-              <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2 mb-6">
-                <span className="material-icons text-3xl">terminal</span>
-                TechHome
-              </Link>
-              <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                Your premier destination for high-quality tech accessories and setup essentials. We curate the best gear for modern professionals.
-              </p>
-              <div className="flex items-center gap-4">
-                <a href="#" className="w-10 h-10 bg-slate-100 dark:bg-slate-800 flex items-center justify-center rounded-lg hover:text-primary transition-colors">
-                  <span className="material-icons">facebook</span>
-                </a>
-                <a href="#" className="w-10 h-10 bg-slate-100 dark:bg-slate-800 flex items-center justify-center rounded-lg hover:text-primary transition-colors">
-                  <span className="material-icons">photo_camera</span>
-                </a>
-                <a href="#" className="w-10 h-10 bg-slate-100 dark:bg-slate-800 flex items-center justify-center rounded-lg hover:text-primary transition-colors">
-                  <span className="material-icons">alternate_email</span>
-                </a>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6">Quick Links</h4>
-              <ul className="space-y-4 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-primary transition-colors">New Arrivals</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Best Sellers</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Gift Guides</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Student Discount</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6">Support</h4>
-              <ul className="space-y-4 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-primary transition-colors">Shipping Info</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Returns & Exchanges</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Warranty Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6">Newsletter</h4>
-              <p className="text-sm text-slate-500 mb-4">Stay updated with latest deals and releases.</p>
-              <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50"
-                  placeholder="Your email"
-                  type="email"
-                />
-                <button type="submit" className="bg-primary hover:bg-blue-600 text-white px-4 rounded-lg transition-colors">
-                  <span className="material-icons">send</span>
-                </button>
-              </form>
-            </div>
-          </div>
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <p>© 2024 TechHome Accessories. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-300">Privacy Policy</a>
-              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-300">Terms of Service</a>
-              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-300">Cookie Settings</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

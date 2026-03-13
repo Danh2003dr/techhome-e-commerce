@@ -27,7 +27,7 @@ const AccountFooter: React.FC = () => {
               </a>
             </li>
             <li>
-              <Link to="/dashboard" className="hover:text-primary transition-colors">
+              <Link to="/orders" className="hover:text-primary transition-colors">
                 Track Order
               </Link>
             </li>

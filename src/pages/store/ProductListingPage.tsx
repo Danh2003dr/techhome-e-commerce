@@ -14,34 +14,7 @@ const ProductListingPage: React.FC = () => {
   const [powerOpen, setPowerOpen] = useState(false);
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
-      <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-8">
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
-              <span className="material-icons">devices</span>
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">TechHome</span>
-          </Link>
-          <div className="flex-grow max-w-2xl relative">
-            <input className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-sm" placeholder="Search for electronics, brands, or categories..." type="text" />
-            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link to="/dashboard" className="flex items-center gap-1 hover:text-primary transition-colors">
-              <span className="material-icons">person_outline</span>
-              <span className="text-sm font-medium hidden md:inline">Account</span>
-            </Link>
-            <Link to="/cart" className="flex items-center gap-1 hover:text-primary transition-colors relative">
-              <span className="material-icons">shopping_cart</span>
-              <span className="text-sm font-medium hidden md:inline">Cart</span>
-              <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">3</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 w-full">
         <Breadcrumbs 
           items={[
             { label: 'Home', path: '/' },
@@ -181,26 +154,6 @@ const ProductListingPage: React.FC = () => {
           </div>
         </div>
         </div>
-      </main>
-
-      <footer className="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-12">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white"><span className="material-icons text-sm">devices</span></div>
-              <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-white">TechHome</span>
-            </div>
-            <p className="text-sm text-slate-500 leading-relaxed">Your one-stop destination for premium electronics and smart home solutions.</p>
-          </div>
-          <div><h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Quick Links</h4><ul className="space-y-2 text-sm text-slate-500"><li><a className="hover:text-primary" href="#">About Us</a></li><li><a className="hover:text-primary" href="#">Track Order</a></li><li><a className="hover:text-primary" href="#">Shipping Policy</a></li><li><a className="hover:text-primary" href="#">Returns & Exchanges</a></li></ul></div>
-          <div><h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Customer Support</h4><ul className="space-y-2 text-sm text-slate-500"><li><a className="hover:text-primary" href="#">Help Center</a></li><li><a className="hover:text-primary" href="#">Contact Us</a></li><li><a className="hover:text-primary" href="#">Live Chat</a></li><li><a className="hover:text-primary" href="#">Warranty Information</a></li></ul></div>
-          <div><h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Newsletter</h4><p className="text-sm text-slate-500 mb-4">Subscribe to get special offers and once-in-a-lifetime deals.</p><div className="flex gap-2"><input type="email" placeholder="Your email" className="flex-grow bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary" /><button type="button" className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">Join</button></div></div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-slate-400">© 2024 TechHome E-Commerce. All rights reserved.</p>
-          <div className="flex gap-4"><div className="w-8 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm" /><div className="w-8 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm" /><div className="w-8 h-5 bg-slate-200 dark:bg-slate-700 rounded-sm" /></div>
-        </div>
-      </footer>
     </div>
   );
 };
