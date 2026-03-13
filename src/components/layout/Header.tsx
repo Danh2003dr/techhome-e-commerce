@@ -77,7 +77,7 @@ const Header: React.FC = () => {
             </Link>
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <Link to="/deals" className="hover:text-primary transition-colors">Top Deals</Link>
-            <Link to="/search" className="hover:text-primary transition-colors">New Releases</Link>
+            <Link to="/search?sort=newest" className="hover:text-primary transition-colors">New Releases</Link>
           </div>
         </nav>
       </header>

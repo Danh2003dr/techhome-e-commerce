@@ -1,18 +1,42 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '@/features/products/components/ProductCard';
-import { searchProducts, getPopularProducts, getProductsByCategorySlug } from '@/data';
+import { searchProducts, getPopularProducts, getProductsByCategorySlug, products } from '@/data';
 
 const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || searchParams.get('query') || '';
   const categorySlug = searchParams.get('category') || '';
+  const sort = searchParams.get('sort') || '';
 
   const results = useMemo(() => {
-    if (categorySlug) return getProductsByCategorySlug(categorySlug);
-    if (query) return searchProducts(query);
-    return [];
-  }, [query, categorySlug]);
+    let filteredProducts: typeof products = [];
+    
+    if (categorySlug) {
+      filteredProducts = getProductsByCategorySlug(categorySlug);
+    } else if (query) {
+      filteredProducts = searchProducts(query);
+    } else if (sort === 'newest') {
+      // New Releases: Filter products with "New Release" tag
+      filteredProducts = products.filter((p) => p.tag === 'New Release');
+    } else {
+      // Shop Categories: Show all products when no query/category
+      filteredProducts = products;
+    }
+    
+    // Apply sorting
+    if (sort === 'newest') {
+      return [...filteredProducts].sort((a, b) => {
+        // Sort by "New Release" tag first, then by reviews (newer products might have fewer reviews initially)
+        const aIsNew = a.tag === 'New Release' ? 1 : 0;
+        const bIsNew = b.tag === 'New Release' ? 1 : 0;
+        if (aIsNew !== bIsNew) return bIsNew - aIsNew;
+        return b.reviews - a.reviews; // More reviews = newer (assuming)
+      });
+    }
+    
+    return filteredProducts;
+  }, [query, categorySlug, sort]);
   const popularProducts = getPopularProducts(4);
   const hasResults = results.length > 0;
 
@@ -20,17 +44,29 @@ const SearchResults: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="mb-12">
         <h1 className="text-3xl font-bold text-gray-900">
-          {categorySlug ? (
+          {sort === 'newest' ? (
+            <>New Releases</>
+          ) : categorySlug ? (
             <>{results.length} product{results.length !== 1 ? 's' : ''} in category</>
           ) : query ? (
             <>{(results.length)} result{results.length !== 1 ? 's' : ''} for <span className="text-indigo-600 italic">&quot;{query}&quot;</span></>
           ) : (
-            'Search products'
+            'Shop Categories'
           )}
         </h1>
         {query && !hasResults && (
           <p className="text-gray-500 mt-2">
             Did you mean: <Link to="/search?q=samsung" className="text-indigo-600 font-semibold hover:underline underline-offset-4">Samsung</Link>?
+          </p>
+        )}
+        {sort === 'newest' && (
+          <p className="text-gray-500 mt-2">
+            Discover the latest products and newest arrivals
+          </p>
+        )}
+        {!query && !categorySlug && !sort && (
+          <p className="text-gray-500 mt-2">
+            Browse all our product categories
           </p>
         )}
       </div>
