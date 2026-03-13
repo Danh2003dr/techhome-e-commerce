@@ -29,7 +29,10 @@ function StarRating({ rating }: { rating: number }) {
 function TrendingCard({ product }: { product: TrendingProductType }) {
   const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
   return (
-    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all flex flex-col group">
+    <Link
+      to={to}
+      className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all flex flex-col group relative z-10"
+    >
       <div className="relative mb-4 h-48 overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
         <img
           src={product.image}
@@ -37,17 +40,20 @@ function TrendingCard({ product }: { product: TrendingProductType }) {
           className="max-h-full transition-transform group-hover:scale-110 object-contain"
         />
         {product.isBestSeller && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded">
+          <span className="absolute top-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded z-20">
             BEST SELLER
           </span>
         )}
-        <Link
-          to={to}
-          className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-red-500 transition-colors"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          type="button"
+          className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <span className="material-icons text-xl">favorite_border</span>
-        </Link>
+        </button>
       </div>
       <div className="flex-grow">
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category}</span>
@@ -68,15 +74,18 @@ function TrendingCard({ product }: { product: TrendingProductType }) {
             </span>
           )}
         </div>
-        <Link
-          to={to}
-          className="bg-primary text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          type="button"
+          className="bg-primary text-white p-2 rounded-lg hover:bg-blue-600 transition-colors z-20"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <span className="material-icons">add_shopping_cart</span>
-        </Link>
+        </button>
       </div>
-    </div>
+    </Link>
   );
 }
 

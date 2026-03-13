@@ -31,7 +31,10 @@ function StarRating({ rating }: { rating: number }) {
 function ProductCard({ product }: { product: AccessoriesProduct }) {
   const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 group hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col">
+    <Link
+      to={to}
+      className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 group hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col relative z-10"
+    >
       <div className="relative aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <img
           src={product.image}
@@ -40,7 +43,11 @@ function ProductCard({ product }: { product: AccessoriesProduct }) {
         />
         <button
           type="button"
-          className="absolute top-3 right-3 p-2 bg-white/80 dark:bg-slate-900/80 rounded-full hover:text-primary transition-colors backdrop-blur-md"
+          className="absolute top-3 right-3 p-2 bg-white/80 dark:bg-slate-900/80 rounded-full hover:text-primary transition-colors backdrop-blur-md z-20"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <span className={`material-icons text-xl ${product.isInWishlist ? 'text-primary' : ''}`}>
             {product.isInWishlist ? 'favorite' : 'favorite_border'}
@@ -85,15 +92,19 @@ function ProductCard({ product }: { product: AccessoriesProduct }) {
               </span>
             )}
           </div>
-          <Link
-            to={to}
-            className="bg-primary hover:bg-blue-600 text-white p-2.5 rounded-lg flex items-center justify-center transition-colors"
+          <button
+            type="button"
+            className="bg-primary hover:bg-blue-600 text-white p-2.5 rounded-lg flex items-center justify-center transition-colors z-20"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
             <span className="material-icons">add_shopping_cart</span>
-          </Link>
+          </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
