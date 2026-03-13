@@ -23,18 +23,18 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 const AppRoutes: React.FC = () => (
-  <Routes>
+        <Routes>
     {/* Routes với MainLayout (có Header/Footer) */}
     <Route element={<MainLayout />}>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/search" element={<SearchResults />} />
-      <Route path="/product/:id" element={<ProductDetail />} />
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/deals" element={<ProductListingPage />} />
-      <Route path="/category/mobile" element={<MobileCategoryPage />} />
-      <Route path="/category/accessories" element={<AccessoriesCategoryPage />} />
-      <Route path="/category/audio" element={<AudioCategoryPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+    <Route path="/deals" element={<ProductListingPage />} />
+    <Route path="/category/mobile" element={<MobileCategoryPage />} />
+    <Route path="/category/accessories" element={<AccessoriesCategoryPage />} />
+    <Route path="/category/audio" element={<AudioCategoryPage />} />
     </Route>
 
     {/* Routes không có MainLayout (auth pages, account pages có AccountHeader riêng) */}
@@ -47,7 +47,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
     <Route path="/warranty" element={<WarrantyPage />} />
-    <Route path="/addresses" element={<SavedAddressesPage />} />
+    <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>
