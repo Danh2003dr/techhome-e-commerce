@@ -108,39 +108,62 @@ const ProductListingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {listingProducts.map((product) => (
-              <div key={product.id} className="product-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden group flex flex-col">
-                <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800/50">
-                  <img alt={product.name} src={product.image} className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-500" />
-                  {product.dealOfTheDay && <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold uppercase px-2 py-1 rounded">Deal of the Day</div>}
-                  <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
-                    <span className="material-icons text-lg">favorite_border</span>
-                  </button>
-                </div>
-                <div className="p-5 flex flex-col flex-grow">
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => {
-                      const full = Math.floor(product.rating);
-                      const half = product.rating % 1 >= 0.5 && i === full;
-                      const filled = i < full || half;
-                      return <span key={i} className={`material-icons text-sm ${filled ? 'text-amber-400' : 'text-slate-300'}`}>{i < full ? 'star' : half ? 'star_half' : 'star'}</span>;
-                    })}
-                    <span className="text-xs text-slate-400 ml-1">({product.reviews.toLocaleString()})</span>
+            {listingProducts.map((product) => {
+              const productId = product.productDetailId || product.id;
+              const productPath = `/product/${productId}`;
+              return (
+                <Link
+                  key={product.id}
+                  to={productPath}
+                  className="product-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden group flex flex-col hover:shadow-xl transition-all relative z-10"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800/50">
+                    <img alt={product.name} src={product.image} className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-500" />
+                    {product.dealOfTheDay && <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold uppercase px-2 py-1 rounded z-10">Deal of the Day</div>}
+                    <button
+                      type="button"
+                      className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors z-20"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <span className="material-icons text-lg">favorite_border</span>
+                    </button>
                   </div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2">{product.name}</h3>
-                  <div className="mt-auto pt-4 flex items-end justify-between">
-                    <div>
-                      <span className="text-xl font-bold text-slate-900 dark:text-white">${product.price.toFixed(2)}</span>
-                      {product.oldPrice && <span className="block text-sm text-slate-400 line-through">${product.oldPrice.toFixed(2)}</span>}
+                  <div className="p-5 flex flex-col flex-grow">
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => {
+                        const full = Math.floor(product.rating);
+                        const half = product.rating % 1 >= 0.5 && i === full;
+                        const filled = i < full || half;
+                        return <span key={i} className={`material-icons text-sm ${filled ? 'text-amber-400' : 'text-slate-300'}`}>{i < full ? 'star' : half ? 'star_half' : 'star'}</span>;
+                      })}
+                      <span className="text-xs text-slate-400 ml-1">({product.reviews.toLocaleString()})</span>
                     </div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
+                    <div className="mt-auto pt-4 flex items-end justify-between">
+                      <div>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">${product.price.toFixed(2)}</span>
+                        {product.oldPrice && <span className="block text-sm text-slate-400 line-through">${product.oldPrice.toFixed(2)}</span>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="w-full mt-4 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors z-20"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // TODO: Add to cart logic here
+                      }}
+                    >
+                      <span className="material-icons text-lg">add_shopping_cart</span>
+                      Add to Cart
+                    </button>
                   </div>
-                  <Link to={`/product/${product.productDetailId ?? product.id}`} className="w-full mt-4 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                    <span className="material-icons text-lg">add_shopping_cart</span>
-                    Add to Cart
-                  </Link>
-                </div>
-              </div>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="mt-12 flex items-center justify-center gap-2">
