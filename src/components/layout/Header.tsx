@@ -78,7 +78,6 @@ const Header: React.FC = () => {
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <Link to="/deals" className="hover:text-primary transition-colors">Top Deals</Link>
             <Link to="/search" className="hover:text-primary transition-colors">New Releases</Link>
-            <Link to="/deals" className="text-red-500 font-bold hover:text-red-600 transition-colors">Outlet</Link>
           </div>
         </nav>
       </header>

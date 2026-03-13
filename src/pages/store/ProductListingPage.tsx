@@ -92,7 +92,7 @@ const ProductListingPage: React.FC = () => {
         <div className="flex-grow">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Electronic Deals</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Top Deals</h1>
               <p className="text-sm text-slate-500">Showing 1-12 of {TOTAL_RESULTS} results</p>
             </div>
             <div className="flex items-center gap-4">
