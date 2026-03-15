@@ -1,16 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { orderHistoryCards } from '@/data';
 import type { OrderHistoryCardItem, OrderStatus } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { getOrders } from '@/services/backend';
+import { isApiConfigured } from '@/services/api';
+import type { OrderDto } from '@/types/api';
+import { formatDate } from '@/utils/formatDate';
+import { formatVND } from '@/utils';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
+const PLACEHOLDER_IMG = 'https://picsum.photos/100/100?random=order';
+
+function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
+  const first = dto.items[0];
+  const dateFormatted = formatDate(dto.createdAt);
+  return {
+    id: String(dto.id),
+    date: dateFormatted,
+    total: dto.totalPrice,
+    status: (dto.status as OrderStatus) || 'Processing',
+    productImage: first?.productImage || PLACEHOLDER_IMG,
+    productName: first ? first.productName : 'Đơn hàng',
+    specs: first ? `SL: ${first.quantity} · ${formatVND(first.priceAtOrder)}` : '',
+    extraLine: '',
+    extraType: 'return',
+    secondaryAction: 'buy_again',
+  };
+}
+
 function StatusBadge({ status }: { status: OrderStatus }) {
-  const config = {
+  const config: Record<string, { bg: string; text: string; dot: string }> = {
     Delivered: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', dot: 'bg-green-500' },
     Processing: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
+    PENDING: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
     Shipped: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
     Shipping: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
     Cancelled: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-400' },
@@ -26,7 +52,21 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 
 const OrderHistoryPage: React.FC = () => {
   const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState('All Orders');
+  const [filter, setFilter] = useState('Tất cả đơn hàng');
+  const [apiOrders, setApiOrders] = useState<OrderHistoryCardItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isApiConfigured() || !isAuthenticated) return;
+    setLoading(true);
+    getOrders()
+      .then((list) => setApiOrders(list.map(mapOrderDtoToCard)))
+      .catch(() => setApiOrders([]))
+      .finally(() => setLoading(false));
+  }, [isAuthenticated]);
+
+  const orders = isApiConfigured() && isAuthenticated ? apiOrders : orderHistoryCards;
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -40,16 +80,19 @@ const OrderHistoryPage: React.FC = () => {
           <div>
             <Breadcrumb
               items={[
-                { label: 'Home', path: '/' },
-                { label: 'Account', path: '/profile' },
-                { label: 'Order History' },
+                { label: 'Trang chủ', path: '/' },
+                { label: 'Tài khoản', path: '/profile' },
+                { label: 'Lịch sử đơn hàng' },
               ]}
             />
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Order History</h1>
-                <p className="text-slate-500 mt-1.5">View and manage your recent electronic purchases.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Lịch sử đơn hàng</h1>
+                <p className="text-slate-500 mt-1.5">Xem và quản lý các đơn hàng gần đây.</p>
               </div>
+              {(isApiConfigured() && isAuthenticated && loading) && (
+                <p className="text-sm text-slate-500">Đang tải đơn hàng...</p>
+              )}
               <div className="flex gap-3">
                 <div className="relative">
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">filter_list</span>
@@ -58,8 +101,8 @@ const OrderHistoryPage: React.FC = () => {
                     onChange={(e) => setFilter(e.target.value)}
                     className="pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary appearance-none min-w-[160px]"
                   >
-                    <option>All Orders</option>
-                    <option>Last 30 days</option>
+                    <option>Tất cả đơn hàng</option>
+                    <option>30 ngày qua</option>
                     <option>2023</option>
                     <option>2022</option>
                   </select>
@@ -69,7 +112,10 @@ const OrderHistoryPage: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            {orderHistoryCards.map((order) => (
+            {orders.length === 0 && !loading && (
+              <p className="text-slate-500 py-8 text-center">Chưa có đơn hàng nào.</p>
+            )}
+            {orders.map((order) => (
               <div
                 key={order.id}
                 className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.03)] overflow-hidden"
@@ -78,17 +124,17 @@ const OrderHistoryPage: React.FC = () => {
                 <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
                   <div className="flex gap-8">
                     <div>
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Order Date</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Ngày đặt</p>
                       <p className="text-sm font-bold mt-1 text-slate-900 dark:text-white">{order.date}</p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Total Amount</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Tổng tiền</p>
                       <p className="text-sm font-bold mt-1 text-primary">
-                        ${order.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatVND(order.total)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Order ID</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Mã đơn hàng</p>
                       <p className="text-sm font-bold mt-1 text-slate-900 dark:text-white">#{order.id}</p>
                     </div>
                   </div>
@@ -98,7 +144,7 @@ const OrderHistoryPage: React.FC = () => {
                       to={`/order/${order.id}`}
                       className="px-5 py-2 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-blue-600 transition-colors"
                     >
-                      View Details
+                      Xem chi tiết
                     </Link>
                   </div>
                 </div>
@@ -135,9 +181,9 @@ const OrderHistoryPage: React.FC = () => {
                         type="button"
                         className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-[12px] font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                       >
-                        {order.secondaryAction === 'buy_again' && 'Buy Again'}
-                        {order.secondaryAction === 'track' && 'Track Package'}
-                        {order.secondaryAction === 'reorder' && 'Re-order'}
+                        {order.secondaryAction === 'buy_again' && 'Mua lại'}
+                        {order.secondaryAction === 'track' && 'Theo dõi đơn'}
+                        {order.secondaryAction === 'reorder' && 'Đặt lại'}
                       </button>
                     </div>
                   </div>

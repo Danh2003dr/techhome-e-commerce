@@ -455,11 +455,11 @@ export const cartItems: CartItem[] = [
 ];
 
 export const navItems: NavItem[] = [
-  { label: 'My Profile', icon: 'person', path: '/profile' },
-  { label: 'Order History', icon: 'shopping_bag', path: '/orders' },
-  { label: 'Warranty & Installation', icon: 'build', path: '/warranty' },
-  { label: 'Address Book', icon: 'location_on', path: '/account/addresses' },
-  { label: 'Wishlist', icon: 'favorite', path: '/wishlist' },
+  { label: 'Hồ sơ cá nhân', icon: 'person', path: '/profile' },
+  { label: 'Lịch sử đơn hàng', icon: 'shopping_bag', path: '/orders' },
+  { label: 'Bảo hành & Lắp đặt', icon: 'build', path: '/warranty' },
+  { label: 'Sổ địa chỉ', icon: 'location_on', path: '/account/addresses' },
+  { label: 'Yêu thích', icon: 'favorite', path: '/wishlist' },
 ];
 
 export const banners: Banner[] = [

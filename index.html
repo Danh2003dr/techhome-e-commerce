@@ -35,7 +35,11 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        /* Text font for whole page (fixes Vietnamese/icon font clash) */
+        body, #root { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+        /* Restrict icon font to icon elements only so text is never rendered with it */
+        .material-icons { font-family: 'Material Icons' !important; }
+        .material-icons-round { font-family: 'Material Icons Round' !important; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .product-card:hover { transform: translateY(-4px); transition: all 0.3s ease; }
     </style>

@@ -15,6 +15,8 @@ export interface Product {
   inStock?: boolean;
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];
+  /** JSON string from API (backend product specs: manHinh, cameraSau, ...) */
+  specifications?: string | null;
 }
 
 export type OrderStatus = 'Processing' | 'Delivered' | 'Shipping' | 'Shipped' | 'Cancelled';

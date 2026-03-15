@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ShippingMethod } from '@/context/CheckoutContext';
+import { formatVND } from '@/utils';
 
 interface ShippingMethodCardProps {
   method: ShippingMethod;
@@ -46,7 +47,7 @@ const ShippingMethodCard: React.FC<ShippingMethodCardProps> = ({
         </div>
         <div className="text-right">
           <span className="text-2xl font-bold text-slate-900 dark:text-white">
-            {method.price === 0 ? 'FREE' : `$${method.price.toFixed(2)}`}
+            {method.price === 0 ? 'FREE' : formatVND(method.price)}
           </span>
         </div>
       </div>

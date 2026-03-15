@@ -65,7 +65,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
               <button
                 onClick={onEdit}
                 className="p-2 text-slate-400 hover:text-primary transition-colors"
-                title="Edit address"
+                title="Sửa địa chỉ"
               >
                 <span className="material-icons text-xl">edit</span>
               </button>
@@ -74,7 +74,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
               <button
                 onClick={onDelete}
                 className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                title="Delete address"
+                title="Xóa địa chỉ"
               >
                 <span className="material-icons text-xl">delete</span>
               </button>

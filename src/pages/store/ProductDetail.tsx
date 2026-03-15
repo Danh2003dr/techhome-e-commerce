@@ -1,40 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getProductById, getProductDetailExtras } from '@/data';
+import { useApiProduct } from '@/hooks/useProductApi';
+import { isApiConfigured } from '@/services/api';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { formatVND } from '@/utils';
 import Breadcrumbs from '@/components/store/Breadcrumbs';
+
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
+
+const DEFAULT_IPHONE_COLORS = [
+  { name: 'Đen', hex: '#1d1d1f' },
+  { name: 'Xanh dương', hex: '#407ec9' },
+  { name: 'Xanh lá', hex: '#34c759' },
+  { name: 'Hồng', hex: '#f8b4c4' },
+  { name: 'Vàng', hex: '#f5e6d3' },
+];
+const DEFAULT_IPHONE_STORAGE = ['128GB', '256GB', '512GB'];
+const DEFAULT_SAMSUNG_COLORS = [
+  { name: 'Đen Onyx', hex: '#1a1a1a' },
+  { name: 'Tím Violet', hex: '#8b5cf6' },
+  { name: 'Vàng Amber', hex: '#f59e0b' },
+  { name: 'Xanh Marble', hex: '#0ea5e9' },
+];
+const DEFAULT_SAMSUNG_STORAGE = ['256GB', '512GB'];
+const DEFAULT_IPAD_COLORS = [
+  { name: 'Xám Space Gray', hex: '#6e6e73' },
+  { name: 'Bạc Silver', hex: '#e8e8ed' },
+];
+const DEFAULT_IPAD_STORAGE = ['256GB', '512GB', '1TB'];
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const product = id ? getProductById(id) : undefined;
+  const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
+  const mockProduct = id ? getProductById(id) : undefined;
+  const product = isApiConfigured() && apiProduct ? apiProduct : mockProduct;
   const extras = id ? getProductDetailExtras(id) : null;
 
+  const { addItem } = useCart();
+  const { toggleItem, isInWishlist } = useWishlist();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addInstallation, setAddInstallation] = useState(false);
+  const [justAddedToCart, setJustAddedToCart] = useState(false);
+  const [failedThumbIndices, setFailedThumbIndices] = useState<Set<number>>(() => new Set());
+
+  const colors = useMemo(() => {
+    if (!product) return [];
+    if (product.colors?.length) return product.colors;
+    const name = product.name || '';
+    if (name.startsWith('iPhone')) return DEFAULT_IPHONE_COLORS;
+    if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_COLORS;
+    if (name.includes('iPad')) return DEFAULT_IPAD_COLORS;
+    return [];
+  }, [product?.colors, product?.name]);
+
+  const storageOptions = useMemo(() => {
+    if (!product) return [];
+    if (product.storageOptions?.length) return product.storageOptions;
+    const name = product.name || '';
+    if (name.startsWith('iPhone')) return DEFAULT_IPHONE_STORAGE;
+    if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_STORAGE;
+    if (name.includes('iPad')) return DEFAULT_IPAD_STORAGE;
+    return [];
+  }, [product?.storageOptions, product?.name]);
 
   useEffect(() => {
-    if (product) {
-      if (product.colors?.length) setSelectedColor(product.colors[0].name);
-      if (product.storageOptions?.length) setSelectedSize(product.storageOptions[1] ?? product.storageOptions[0]);
-    }
+    setFailedThumbIndices(new Set());
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return;
+    if (product.colors?.length) setSelectedColor(product.colors[0].name);
+    else if (product.name?.startsWith('iPhone')) setSelectedColor(DEFAULT_IPHONE_COLORS[0].name);
+    else if (product.name?.includes('Samsung Galaxy S24')) setSelectedColor(DEFAULT_SAMSUNG_COLORS[0].name);
+    else if (product.name?.includes('iPad')) setSelectedColor(DEFAULT_IPAD_COLORS[0].name);
+    if (product.storageOptions?.length) setSelectedSize(product.storageOptions[1] ?? product.storageOptions[0]);
+    else if (product.name?.startsWith('iPhone')) setSelectedSize(DEFAULT_IPHONE_STORAGE[1] ?? DEFAULT_IPHONE_STORAGE[0]);
+    else if (product.name?.includes('Samsung Galaxy S24')) setSelectedSize(DEFAULT_SAMSUNG_STORAGE[0]);
+    else if (product.name?.includes('iPad')) setSelectedSize(DEFAULT_IPAD_STORAGE[1] ?? DEFAULT_IPAD_STORAGE[0]);
+  }, [product?.id, product?.name, product?.colors, product?.storageOptions]);
+
+  if (isApiConfigured() && apiLoading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center">
+        <div className="text-center text-slate-500">Đang tải sản phẩm...</div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Product not found</h1>
-          <Link to="/" className="text-primary hover:underline">Back to Home</Link>
+          <Link to="/" className="text-primary hover:underline">Về trang chủ</Link>
         </div>
       </div>
     );
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
-  const colors = product.colors ?? [];
-  const storageOptions = product.storageOptions ?? [];
   const mainImage = images[selectedImageIndex] ?? images[0];
+  const mainImageSrc = failedThumbIndices.has(selectedImageIndex) ? PLACEHOLDER_IMAGE : mainImage;
+  const thumbSrc = (idx: number) => (failedThumbIndices.has(idx) ? PLACEHOLDER_IMAGE : (images[idx] ?? ''));
 
   const renderStars = (rating: number, size = 'text-sm') => {
     const full = Math.floor(rating);
@@ -67,7 +138,7 @@ const ProductDetail: React.FC = () => {
       <main className="container mx-auto px-6 py-8">
         <Breadcrumbs
           items={[
-            { label: 'Home', path: '/' },
+            { label: 'Trang chủ', path: '/' },
             { label: 'Catalog', path: '/search' },
             { label: product.category, path: getCategoryPath() },
             ...(extras?.brand ? [{ label: extras.brand, path: '/search' }] : []),
@@ -80,12 +151,12 @@ const ProductDetail: React.FC = () => {
               <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto hide-scrollbar">
                 {images.slice(0, 5).map((img, num) => (
                   <button key={num} type="button" onClick={() => setSelectedImageIndex(num)} className={`w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer transition-colors ${selectedImageIndex === num ? 'border-2 border-primary' : 'border border-slate-200 dark:border-slate-800 hover:border-primary/50'}`}>
-                    <img alt={`Thumbnail ${num + 1}`} src={img} className="w-full h-full object-cover" />
+                    <img alt={`Thumbnail ${num + 1}`} src={thumbSrc(num)} className="w-full h-full object-cover" onError={() => setFailedThumbIndices((prev) => new Set(prev).add(num))} />
                   </button>
                 ))}
               </div>
               <div className="flex-grow bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center relative group">
-                <img alt={product.name} src={mainImage} className="w-full h-auto object-contain p-8" />
+                <img alt={product.name} src={mainImageSrc} className="w-full h-auto object-contain p-8" onError={() => setFailedThumbIndices((prev) => new Set(prev).add(selectedImageIndex))} />
                 <button type="button" className="absolute bottom-4 right-4 bg-white/80 dark:bg-black/40 backdrop-blur p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-icons">zoom_in</span></button>
               </div>
             </div>
@@ -101,14 +172,14 @@ const ProductDetail: React.FC = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-white">${product.price.toFixed(2)}</span>
-                  {product.oldPrice && <span className="text-lg text-slate-400 line-through">${product.oldPrice.toFixed(2)}</span>}
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white">{formatVND(product.price)}</span>
+                  {product.oldPrice && <span className="text-lg text-slate-400 line-through">{formatVND(product.oldPrice)}</span>}
                 </div>
                 <p className={`text-sm font-medium mt-1 ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>{product.inStock !== false ? 'In Stock - Ready to ship' : 'Out of Stock'}</p>
               </div>
               {colors.length > 0 && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold mb-3">Color: <span className="text-slate-500 font-normal">{selectedColor || colors[0]?.name}</span></label>
+                  <label className="block text-sm font-semibold mb-3">Màu sắc: <span className="text-slate-500 font-normal">{selectedColor || colors[0]?.name}</span></label>
                   <div className="flex gap-3">
                     {colors.map((color) => (
                       <button key={color.name} type="button" onClick={() => setSelectedColor(color.name)} className={`w-8 h-8 rounded-full flex-shrink-0 transition-all ${selectedColor === color.name ? 'ring-2 ring-offset-2 ring-primary ring-offset-white dark:ring-offset-background-dark' : 'ring-1 ring-slate-200 dark:ring-slate-700'}`} style={{ backgroundColor: color.hex }} />
@@ -118,7 +189,7 @@ const ProductDetail: React.FC = () => {
               )}
               {storageOptions.length > 0 && (
                 <div className="mb-8">
-                  <label className="block text-sm font-semibold mb-3">Storage Capacity</label>
+                  <label className="block text-sm font-semibold mb-3">Phiên bản / Dung lượng</label>
                   <div className="grid grid-cols-4 gap-2">
                     {storageOptions.map((size) => (
                       <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${selectedSize === size ? 'border-2 border-primary bg-primary/5 text-primary font-bold' : 'border border-slate-200 dark:border-slate-700 hover:border-primary'}`}>{size}</button>
@@ -127,8 +198,46 @@ const ProductDetail: React.FC = () => {
                 </div>
               )}
               <div className="flex gap-4 mb-8">
-                <button type="button" disabled={product.inStock === false} className="flex-grow bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2"><span className="material-icons">shopping_bag</span> Add to Cart</button>
-                <button type="button" className="px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">favorite_border</span></button>
+                <button
+                  type="button"
+                  disabled={product.inStock === false}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addItem({
+                      productId: String(product.id),
+                      name: product.name,
+                      price: Number(product.price),
+                      image: Array.isArray(product.images) && product.images[0] ? product.images[0] : (product.image || ''),
+                      variant: [selectedColor, selectedSize].filter(Boolean).join(', ') || undefined,
+                    });
+                    setJustAddedToCart(true);
+                    setTimeout(() => setJustAddedToCart(false), 2000);
+                  }}
+                  className="flex-grow bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer relative z-10"
+                >
+                  <span className="material-icons">{justAddedToCart ? 'check_circle' : 'shopping_bag'}</span>
+                  {justAddedToCart ? ' Đã thêm vào giỏ' : ' Thêm vào giỏ'}
+                </button>
+                <button
+                  type="button"
+                  className={`px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${product && isInWishlist(product.id) ? 'text-red-500' : ''}`}
+                  onClick={() =>
+                    product &&
+                    toggleItem({
+                      productId: product.id,
+                      name: product.name,
+                      image: product.image || '',
+                      price: product.price,
+                      oldPrice: product.oldPrice,
+                      rating: product.rating,
+                      reviews: product.reviews ?? 0,
+                    })
+                  }
+                  aria-label={product && isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                >
+                  <span className="material-icons">{product && isInWishlist(product.id) ? 'favorite' : 'favorite_border'}</span>
+                </button>
               </div>
               <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
                 <div className="flex items-start gap-3"><span className="material-icons text-primary">local_shipping</span><div><p className="text-sm font-semibold">Free Express Shipping</p><p className="text-xs text-slate-500">Order within 4 hrs to get it tomorrow</p></div></div>
@@ -136,23 +245,138 @@ const ProductDetail: React.FC = () => {
               </div>
             </div>
           </section>
-        {extras && extras.specs.length > 0 && (
-          <section className="mb-20">
-            <h2 className="text-2xl font-bold mb-8">Technical Specifications</h2>
-            <div className="overflow-hidden border border-slate-200 dark:border-slate-800 rounded-xl">
-              <table className="w-full text-left">
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {extras.specs.map((spec, idx) => (
-                    <tr key={spec.label} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50'}>
-                      <td className="py-4 px-6 font-semibold text-sm w-1/3">{spec.label}</td>
-                      <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">{spec.value}</td>
-                    </tr>
+        {(() => {
+          const specSectionLabels: Record<string, string> = {
+            manHinh: 'Màn hình',
+            cameraSau: 'Camera sau',
+            cameraTruoc: 'Camera trước',
+            viXuLyDoHoa: 'Vi xử lý & đồ họa',
+            giaoTiepKetNoi: 'Giao tiếp & kết nối',
+            ramLuuTru: 'RAM & Lưu trữ',
+            pinSac: 'Pin & Sạc',
+            kichThuocTrongLuong: 'Kích thước & Trọng lượng',
+            thietKe: 'Thiết kế',
+            thongSoKhac: 'Thông số khác',
+            gocSieurong: 'Góc siêu rộng',
+            telephoto1: 'Tele 5x',
+            telephoto2: 'Tele 3x',
+          };
+          const specRowLabels: Record<string, string> = {
+            kichThuocManHinh: 'Kích thước',
+            congNgheManHinh: 'Công nghệ',
+            doPhanGiai: 'Độ phân giải',
+            tinhNangManHinh: 'Tính năng',
+            tanSoQuet: 'Tần số quét',
+            kieuManHinh: 'Kiểu màn hình',
+            cameraChinh: 'Camera chính',
+            gocSieuRong: 'Góc siêu rộng',
+            telephoto: 'Telephoto',
+            quayVideo: 'Quay video',
+            tinhNangCamera: 'Tính năng camera',
+            cameraTruoc: 'Camera trước',
+            quayVideoTruoc: 'Quay video trước',
+            tinhNangCameraTruoc: 'Tính năng camera trước',
+            chipset: 'Chipset',
+            gpu: 'GPU',
+            loaiCpu: 'CPU',
+            nfc: 'NFC',
+            sim: 'SIM',
+            mang: 'Mạng',
+            gps: 'GPS',
+            wifi: 'Wi-Fi',
+            bluetooth: 'Bluetooth',
+            ram: 'RAM',
+            boNhoTrong: 'Bộ nhớ trong',
+            pin: 'Pin',
+            congNgheSac: 'Công nghệ sạc',
+            congSac: 'Cổng sạc',
+            kichThuoc: 'Kích thước',
+            trongLuong: 'Trọng lượng',
+            chatLieuMatLung: 'Chất liệu mặt lưng',
+            chatLieuKhungVien: 'Chất liệu khung viền',
+            matTruoc: 'Mặt trước',
+            khangNuocBui: 'Kháng nước & bụi',
+            congNgheTienIch: 'Công nghệ tiện ích',
+          };
+          function renderSpecValue(v: unknown): React.ReactNode {
+            if (v == null) return '—';
+            if (Array.isArray(v)) return v.join(', ');
+            if (typeof v === 'object') {
+              return (
+                <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400">
+                  {Object.entries(v).map(([k, val]) => (
+                    <li key={k}>
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{specRowLabels[k] || k}:</span>{' '}
+                      {Array.isArray(val) ? val.join(', ') : String(val)}
+                    </li>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
+                </ul>
+              );
+            }
+            return String(v);
+          }
+          let apiSpecs: Record<string, unknown> | null = null;
+          if (product.specifications && typeof product.specifications === 'string') {
+            try {
+              apiSpecs = JSON.parse(product.specifications) as Record<string, unknown>;
+            } catch {
+              apiSpecs = null;
+            }
+          }
+          if (apiSpecs && Object.keys(apiSpecs).length > 0) {
+            return (
+              <section className="mb-20" key="api-specs">
+                <h2 className="text-2xl font-bold mb-8">Thông số kỹ thuật</h2>
+                <div className="space-y-8">
+                  {Object.entries(apiSpecs).map(([key, block]) => {
+                    if (key === 'tenSanPham' || block == null) return null;
+                    const title = specSectionLabels[key] || key;
+                    const isObj = block && typeof block === 'object' && !Array.isArray(block);
+                    const rows = isObj ? Object.entries(block as Record<string, unknown>) : [];
+                    return (
+                      <div key={key} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                        <h3 className="bg-slate-50 dark:bg-slate-800/50 px-6 py-3 font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800">
+                          {title}
+                        </h3>
+                        <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                          {rows.map(([rowKey, value], idx) => (
+                            <div
+                              key={rowKey}
+                              className={`flex flex-col sm:flex-row sm:gap-4 px-6 py-4 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}`}
+                            >
+                              <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300 min-w-[140px]">{specRowLabels[rowKey] || rowKey}</dt>
+                              <dd className="text-sm text-slate-600 dark:text-slate-400 mt-1 sm:mt-0">{renderSpecValue(value)}</dd>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          }
+          if (extras && extras.specs.length > 0) {
+            return (
+              <section className="mb-20" key="mock-specs">
+                <h2 className="text-2xl font-bold mb-8">Technical Specifications</h2>
+                <div className="overflow-hidden border border-slate-200 dark:border-slate-800 rounded-xl">
+                  <table className="w-full text-left">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                      {extras.specs.map((spec, idx) => (
+                        <tr key={spec.label} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50'}>
+                          <td className="py-4 px-6 font-semibold text-sm w-1/3">{spec.label}</td>
+                          <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">{spec.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          }
+          return null;
+        })()}
         {extras && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
@@ -219,11 +443,29 @@ const ProductDetail: React.FC = () => {
                 <Link key={item.id} to={`/product/${item.id}`} className="group">
                   <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 mb-4 overflow-hidden relative">
                     <img alt={item.name} src={item.image} className="w-full h-48 object-contain transition-transform group-hover:scale-105" />
-                    <button type="button" className="absolute top-4 right-4 bg-white/80 dark:bg-black/40 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><span className="material-icons text-sm">favorite_border</span></button>
+                    <button
+                      type="button"
+                      className={`absolute top-4 right-4 bg-white/80 dark:bg-black/40 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${isInWishlist(item.id) ? 'opacity-100 text-red-500' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleItem({
+                          productId: item.id,
+                          name: item.name,
+                          image: item.image || '',
+                          price: item.price,
+                          rating: 0,
+                          reviews: 0,
+                        });
+                      }}
+                      aria-label={isInWishlist(item.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                    >
+                      <span className="material-icons text-sm">{isInWishlist(item.id) ? 'favorite' : 'favorite_border'}</span>
+                    </button>
                   </div>
                   <h4 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{item.name}</h4>
                   <p className="text-slate-500 text-xs mb-2">{item.subtitle}</p>
-                  <p className="font-bold text-primary">${item.price.toFixed(2)}</p>
+                  <p className="font-bold text-primary">{formatVND(item.price)}</p>
                 </Link>
               ))}
             </div>

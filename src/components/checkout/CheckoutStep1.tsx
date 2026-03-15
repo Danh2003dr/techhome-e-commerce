@@ -23,7 +23,7 @@ const defaultForm = {
   city: '',
   state: '',
   zipCode: '',
-  country: 'United States',
+  country: 'Việt Nam',
   isDefault: false,
 };
 
@@ -96,7 +96,7 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Shipping Address</h2>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Địa chỉ giao hàng</h2>
 
       <div className="space-y-4 mb-8">
         {addresses.map((address) => (
@@ -117,7 +117,7 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
           className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
         >
           <span className="material-icons">add</span>
-          Add New Address
+          Thêm địa chỉ mới
         </button>
       </div>
 
@@ -126,14 +126,14 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
           onClick={onBack}
           className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
-          Back
+          Quay lại
         </button>
         <button
           onClick={handleContinue}
           disabled={!selectedAddressId}
           className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          Tiếp tục
         </button>
       </div>
 
@@ -150,15 +150,15 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
             <div className="px-8 pt-8 pb-4 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
               <div>
                 <h2 id="address-modal-title" className="text-2xl font-bold text-slate-900 dark:text-white">
-                  Add New Address
+                  Thêm địa chỉ mới
                 </h2>
-                <p className="text-sm text-slate-500 mt-1">Add a new delivery address below.</p>
+                <p className="text-sm text-slate-500 mt-1">Thêm địa chỉ giao hàng mới bên dưới.</p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
                 className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
-                aria-label="Close"
+                aria-label="Đóng"
               >
                 <span className="material-icons text-2xl">close</span>
               </button>
@@ -183,10 +183,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Full Name</label>
+                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Họ và tên</label>
                   <input
                     className={FORM_INPUT_CLASS}
-                    placeholder="e.g. Alex Johnson"
+                    placeholder="VD: Nguyễn Văn A"
                     type="text"
                     value={form.fullName}
                     onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
@@ -194,10 +194,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Phone Number</label>
+                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Số điện thoại</label>
                   <input
                     className={FORM_INPUT_CLASS}
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="0901234567"
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
@@ -206,10 +206,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Street Address</label>
+                <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Địa chỉ</label>
                 <input
                   className={FORM_INPUT_CLASS}
-                  placeholder="House number and street name"
+                  placeholder="Số nhà, tên đường"
                   type="text"
                   value={form.street}
                   onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))}
@@ -218,11 +218,11 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
               </div>
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">
-                  Apartment, suite, etc. (Optional)
+                  Căn hộ, tòa nhà (tùy chọn)
                 </label>
                 <input
                   className={FORM_INPUT_CLASS}
-                  placeholder="Apartment, suite, unit, etc."
+                  placeholder="Căn hộ, tòa nhà..."
                   type="text"
                   value={form.apartment}
                   onChange={(e) => setForm((f) => ({ ...f, apartment: e.target.value }))}
@@ -230,10 +230,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
               </div>
               <div className="grid grid-cols-3 gap-5">
                 <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">City</label>
+                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Thành phố / Tỉnh</label>
                   <input
                     className={FORM_INPUT_CLASS}
-                    placeholder="City"
+                    placeholder="Thành phố"
                     type="text"
                     value={form.city}
                     onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
@@ -241,10 +241,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">State</label>
+                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Quận / Huyện</label>
                   <input
                     className={FORM_INPUT_CLASS}
-                    placeholder="State/Prov"
+                    placeholder="Quận / Huyện"
                     type="text"
                     value={form.state}
                     onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
@@ -252,10 +252,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Zip Code</label>
+                  <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Mã bưu điện</label>
                   <input
                     className={FORM_INPUT_CLASS}
-                    placeholder="Zip code"
+                    placeholder="Mã bưu điện"
                     type="text"
                     value={form.zipCode}
                     onChange={(e) => setForm((f) => ({ ...f, zipCode: e.target.value }))}
@@ -264,17 +264,17 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Country</label>
+                <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">Quốc gia</label>
                 <select
                   className={FORM_INPUT_CLASS}
                   value={form.country}
                   onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
                   required
                 >
+                  <option>Việt Nam</option>
                   <option>United States</option>
                   <option>Canada</option>
                   <option>United Kingdom</option>
-                  <option>Germany</option>
                 </select>
               </div>
               <div className="flex items-center gap-3 pt-2">
@@ -286,7 +286,7 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                   className="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary dark:bg-slate-800"
                 />
                 <label htmlFor="default-addr" className="text-sm font-medium text-slate-600 dark:text-slate-400 select-none cursor-pointer">
-                  Set as default shipping address
+                  Đặt làm địa chỉ giao hàng mặc định
                 </label>
               </div>
             </form>
@@ -296,14 +296,14 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
                 onClick={closeModal}
                 className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 type="submit"
                 form="address-form"
                 className="px-8 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:bg-blue-600 hover:-translate-y-0.5 transition-all"
               >
-                Save Address
+                Lưu địa chỉ
               </button>
             </div>
           </div>

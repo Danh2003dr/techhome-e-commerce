@@ -160,13 +160,13 @@ const SavedAddressesPage: React.FC = () => {
           <div>
             <Breadcrumb
               items={[
-                { label: 'Home', path: '/' },
-                { label: 'Account', path: '/profile' },
-                { label: 'Saved Addresses' },
+                { label: 'Trang chủ', path: '/' },
+                { label: 'Tài khoản', path: '/profile' },
+                { label: 'Sổ địa chỉ' },
               ]}
             />
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Saved Addresses</h1>
-            <p className="text-slate-500 mt-1.5">Manage your shipping addresses for a faster checkout experience.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Sổ địa chỉ</h1>
+            <p className="text-slate-500 mt-1.5">Quản lý địa chỉ giao hàng để thanh toán nhanh hơn.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -178,7 +178,7 @@ const SavedAddressesPage: React.FC = () => {
               <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900 shadow-md flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                 <span className="material-icons text-2xl font-bold">add</span>
               </div>
-              <span className="font-bold text-slate-600 dark:text-slate-300 group-hover:text-primary">Add New Address</span>
+              <span className="font-bold text-slate-600 dark:text-slate-300 group-hover:text-primary">Thêm địa chỉ mới</span>
             </button>
 
             {addresses.map((addr) => (
@@ -213,11 +213,11 @@ const SavedAddressesPage: React.FC = () => {
                 <div className="flex items-center gap-4 mt-8 pt-6 border-t border-slate-50 dark:border-slate-800">
                   <button type="button" onClick={() => openEdit(addr)} className="flex items-center gap-1.5 text-primary text-sm font-bold hover:underline transition-all">
                     <span className="material-icons text-lg">edit</span>
-                    Edit
+                    Sửa
                   </button>
                   <button type="button" onClick={() => openDelete(addr)} className="flex items-center gap-1.5 text-red-500 text-sm font-bold hover:underline transition-all">
                     <span className="material-icons text-lg">delete</span>
-                    Delete
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -229,9 +229,9 @@ const SavedAddressesPage: React.FC = () => {
               <span className="material-icons text-primary text-3xl">local_shipping</span>
             </div>
             <div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Need multiple shipping locations?</h4>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Cần nhiều địa chỉ giao hàng?</h4>
               <p className="text-slate-600 dark:text-slate-400 text-sm mt-1 leading-relaxed">
-                You can save up to 10 different addresses. Having multiple addresses saved makes it easy to send gifts to friends and family or receive orders at work.
+                Bạn có thể lưu tối đa 10 địa chỉ. Nhiều địa chỉ giúp gửi quà cho người thân hoặc nhận hàng tại cơ quan dễ dàng hơn.
               </p>
             </div>
           </section>
@@ -251,17 +251,17 @@ const SavedAddressesPage: React.FC = () => {
             <div className="px-8 pt-8 pb-4 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
               <div>
                 <h2 id="address-modal-title" className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {isEdit ? 'Edit Address' : 'Add New Address'}
+                  {isEdit ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới'}
                 </h2>
                 <p className="text-sm text-slate-500 mt-1">
-                  {isEdit ? 'Update your delivery information below.' : 'Add a new delivery address below.'}
+                  {isEdit ? 'Cập nhật thông tin giao hàng bên dưới.' : 'Thêm địa chỉ giao hàng mới bên dưới.'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
                 className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
-                aria-label="Close"
+                aria-label="Đóng"
               >
                 <span className="material-icons text-2xl">close</span>
               </button>
@@ -418,7 +418,7 @@ const SavedAddressesPage: React.FC = () => {
                     <span className="material-icons text-2xl">delete_forever</span>
                   </div>
                   <div>
-                    <h2 id="delete-address-title" className="text-xl font-bold text-slate-900 dark:text-white">Delete Address?</h2>
+                    <h2 id="delete-address-title" className="text-xl font-bold text-slate-900 dark:text-white">Xóa địa chỉ?</h2>
                     <p className="text-sm text-slate-500">This action cannot be undone.</p>
                   </div>
                 </div>
@@ -446,14 +446,14 @@ const SavedAddressesPage: React.FC = () => {
                     onClick={closeDeleteModal}
                     className="flex-1 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="button"
                     onClick={confirmDelete}
                     className="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-600/20 transition-all"
                   >
-                    Delete Address
+                    Xóa địa chỉ
                   </button>
                 </div>
               </div>

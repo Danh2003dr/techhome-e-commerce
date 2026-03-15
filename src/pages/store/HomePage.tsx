@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { categories, banners, trendingProducts } from '@/data';
+import { categories as mockCategories, banners, trendingProducts as mockTrendingProducts } from '@/data';
+import { useApiCategories, useApiFeaturedProducts } from '@/hooks/useProductApi';
+import { isApiConfigured } from '@/services/api';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { formatVND } from '@/utils';
 import type { TrendingProduct as TrendingProductType } from '@/types';
+
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
 const categoryIcons: Record<string, string> = {
   smartphone: 'smartphone',
@@ -26,8 +33,36 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function TrendingCard({ product }: { product: TrendingProductType }) {
+function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
+  const { addItem } = useCart();
+  const { toggleItem, isInWishlist } = useWishlist();
   const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
+  const productId = product.productDetailId ?? product.id;
+  const imgSrc = imageError || !product.image ? PLACEHOLDER_IMAGE : product.image;
+  const inWishlist = isInWishlist(productId);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      addItem({ productId, name: product.name, price: product.price, image: product.image || '' });
+    } catch (_) {}
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleItem({
+      productId,
+      name: product.name,
+      image: product.image || '',
+      price: product.price,
+      oldPrice: product.oldPrice,
+      rating: product.rating,
+      reviews: product.reviews ?? 0,
+    });
+  };
+
   return (
     <Link
       to={to}
@@ -35,24 +70,24 @@ function TrendingCard({ product }: { product: TrendingProductType }) {
     >
       <div className="relative mb-4 h-48 overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
         <img
-          src={product.image}
+          src={imgSrc}
           alt={product.name}
           className="max-h-full transition-transform group-hover:scale-110 object-contain"
+          onError={onImageError}
         />
         {product.isBestSeller && (
           <span className="absolute top-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded z-20">
-            BEST SELLER
+            BÁN CHẠY
           </span>
         )}
         <button
           type="button"
           className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={handleWishlistToggle}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-label={inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
         >
-          <span className="material-icons text-xl">favorite_border</span>
+          <span className={`material-icons text-xl ${inWishlist ? 'text-red-500' : ''}`}>{inWishlist ? 'favorite' : 'favorite_border'}</span>
         </button>
       </div>
       <div className="flex-grow">
@@ -66,21 +101,19 @@ function TrendingCard({ product }: { product: TrendingProductType }) {
       <div className="mt-4 flex items-center justify-between">
         <div>
           <span className="block text-2xl font-black text-slate-900 dark:text-white">
-            ${product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatVND(product.price)}
           </span>
           {product.oldPrice && (
             <span className="text-xs text-slate-400 line-through">
-              ${product.oldPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatVND(product.oldPrice)}
             </span>
           )}
         </div>
         <button
           type="button"
           className="bg-primary text-white p-2 rounded-lg hover:bg-blue-600 transition-colors z-20"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={handleAddToCart}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <span className="material-icons">add_shopping_cart</span>
         </button>
@@ -95,6 +128,21 @@ const PROMO_IMAGE =
 const HomePage: React.FC = () => {
   const [heroBanner, ...smallerBanners] = banners;
   const [activeTab, setActiveTab] = useState<'new' | 'bestseller' | 'featured'>('new');
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
+  const { data: apiCategories, loading: categoriesLoading } = useApiCategories();
+  const { data: apiFeaturedProducts, loading: featuredLoading } = useApiFeaturedProducts();
+
+  const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
+
+  const categories = useMemo(
+    () => (isApiConfigured() && apiCategories.length > 0 ? apiCategories : mockCategories),
+    [apiCategories]
+  );
+  const trendingProducts = useMemo(
+    () => (isApiConfigured() && apiFeaturedProducts.length > 0 ? apiFeaturedProducts : mockTrendingProducts),
+    [apiFeaturedProducts]
+  );
+  const isUsingApiProducts = isApiConfigured() && apiFeaturedProducts.length > 0;
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">
@@ -196,11 +244,11 @@ const HomePage: React.FC = () => {
                 className="group text-center"
               >
                 <div className="w-full aspect-square rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-8 transition-all hover:border-primary hover:shadow-lg mb-4">
-                  <span className="material-icons text-5xl text-slate-700 dark:text-slate-300 group-hover:text-primary">
+                  <span className="material-icons text-5xl text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
                     {categoryIcons[cat.icon] || cat.icon}
                   </span>
                 </div>
-                <p className="font-semibold text-sm group-hover:text-primary">{cat.name}</p>
+                <p className="font-semibold text-sm group-hover:text-primary font-display" style={{ fontFamily: "inherit" }}>{cat.name}</p>
               </Link>
             ))}
           </div>
@@ -255,18 +303,22 @@ const HomePage: React.FC = () => {
             {trendingProducts
               .filter((product) => {
                 if (activeTab === 'new') {
-                  // New Arrival: products with tag "New Release" or recently added
+                  // New Arrival: from API show all; from mock use tag / !isBestSeller
+                  if (isUsingApiProducts) return true;
                   return product.tag === 'New Release' || !product.isBestSeller;
                 } else if (activeTab === 'bestseller') {
-                  // Bestseller: products with isBestSeller flag
                   return product.isBestSeller === true;
                 } else {
-                  // Featured: all products (default)
                   return true;
                 }
               })
               .map((product) => (
-                <TrendingCard key={product.id} product={product} />
+                <TrendingCard
+                  key={product.id}
+                  product={product}
+                  imageError={failedImageIds.has(product.id)}
+                  onImageError={() => markImageError(product.id)}
+                />
               ))}
           </div>
         </section>
@@ -287,23 +339,28 @@ const HomePage: React.FC = () => {
               .filter((product) => product.oldPrice && product.oldPrice > product.price)
               .slice(0, 4)
               .map((product) => (
-                <TrendingCard key={product.id} product={product} />
+                <TrendingCard
+                  key={product.id}
+                  product={product}
+                  imageError={failedImageIds.has(product.id)}
+                  onImageError={() => markImageError(product.id)}
+                />
               ))}
           </div>
         </section>
 
         <section className="mb-16 bg-slate-900 rounded-2xl overflow-hidden text-white flex flex-col md:flex-row items-center">
           <div className="p-12 md:w-1/2">
-            <h3 className="text-3xl font-bold mb-4">TechHome Plus Members Save More</h3>
+            <h3 className="text-3xl font-bold mb-4">Thành viên TechHome Plus tiết kiệm hơn</h3>
             <p className="text-slate-400 mb-8 text-lg">
-              Join today for exclusive access to weekly deals, free next-day delivery, and 24/7 technical support.
+              Tham gia ngay để nhận ưu đãi hàng tuần, giao hàng ngày hôm sau miễn phí và hỗ trợ kỹ thuật 24/7.
             </p>
             <div className="flex gap-4">
               <a href="#" className="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                Join Now
+                Tham gia ngay
               </a>
               <a href="#" className="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                Learn More
+                Tìm hiểu thêm
               </a>
             </div>
           </div>

@@ -25,9 +25,9 @@ const AudioCategoryPage: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6">
-          <Link to="/" className="hover:text-primary">Home</Link>
+          <Link to="/" className="hover:text-primary">Trang chủ</Link>
           <span className="material-icons text-xs">chevron_right</span>
-          <Link to="/search" className="hover:text-primary">Shop by Category</Link>
+          <Link to="/search" className="hover:text-primary">Mua theo danh mục</Link>
           <span className="material-icons text-xs">chevron_right</span>
           <span className="text-slate-900 dark:text-slate-200 font-semibold">Audio</span>
         </nav>
@@ -40,21 +40,21 @@ const AudioCategoryPage: React.FC = () => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background-dark/80 via-background-dark/40 to-transparent flex flex-col justify-center px-8 md:px-16">
-            <span className="text-primary font-bold tracking-widest text-sm mb-2">PREMIUM SOUND</span>
+            <span className="text-primary font-bold tracking-widest text-sm mb-2">ÂM THANH CAO CẤP</span>
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Immersive Sound
+              Trải nghiệm
               <br />
-              Experiences
+              âm thanh sống động
             </h1>
             <p className="text-slate-300 max-w-md mb-6 hidden md:block">
-              Explore our curated collection of high-fidelity headphones and professional speakers designed for the ultimate listening experience.
+              Khám phá tai nghe và loa chuyên nghiệp chất lượng cao, thiết kế cho trải nghiệm nghe tuyệt vời.
             </p>
             <div>
               <Link
                 to="/search?category=audio"
                 className="inline-block bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20"
               >
-                Shop Audio
+                Mua âm thanh
               </Link>
             </div>
           </div>

@@ -32,7 +32,7 @@ const AccountSidebar: React.FC = () => {
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 font-semibold transition-all"
         >
           <span className="material-icons text-[22px]">logout</span>
-          <span>Sign Out</span>
+          <span>Đăng xuất</span>
         </Link>
       </div>
     </aside>

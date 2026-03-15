@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
+import { useAuth } from '@/context/AuthContext';
+import { createOrder } from '@/services/backend';
+import { isApiConfigured } from '@/services/api';
+import { ApiError } from '@/services/api';
 import PaymentTabs, { type PaymentMethodType } from './PaymentTabs';
 import CreditCardForm from './CreditCardForm';
 import CheckoutSummary from './CheckoutSummary';
@@ -12,6 +16,7 @@ interface CheckoutStep3Props {
 const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   const navigate = useNavigate();
   const { checkoutData, updateCheckoutData } = useCheckout();
+  const { isAuthenticated } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('credit_card');
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -21,6 +26,8 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const [placing, setPlacing] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -48,11 +55,9 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePlaceOrder = () => {
-    if (!validateForm()) {
-      return;
-    }
-
+  const handlePlaceOrder = async () => {
+    if (!validateForm()) return;
+    setOrderError(null);
     updateCheckoutData({
       paymentMethod: {
         type: paymentMethod,
@@ -66,8 +71,38 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
       agreeToTerms: true,
     });
 
-    // Navigate to order confirmation
-    navigate('/order-confirmation');
+    const useBackend = isApiConfigured() && isAuthenticated && checkoutData.items.length > 0;
+    const items = checkoutData.items;
+    const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+    if (useBackend) {
+      const productIdsValid = items.every((i) => !Number.isNaN(Number(i.productId)));
+      if (!productIdsValid) {
+        setOrderError('Cart contains items that cannot be ordered via API. Please sign in and add products from the catalog.');
+        return;
+      }
+      setPlacing(true);
+      try {
+        const order = await createOrder({
+          totalPrice,
+          items: items.map((i) => ({
+            productId: Number(i.productId),
+            quantity: i.quantity,
+            price: i.price,
+          })),
+        });
+        navigate('/order-confirmation', { state: { orderId: order.id, fromApi: true } });
+      } catch (err) {
+        setOrderError(err instanceof ApiError ? err.message : 'Failed to create order.');
+        if (err instanceof ApiError && err.status === 401) {
+          setOrderError('Please sign in to place an order.');
+        }
+      } finally {
+        setPlacing(false);
+      }
+    } else {
+      navigate('/order-confirmation');
+    }
   };
 
   return (
@@ -101,6 +136,12 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
             <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
               Continue with PayPal Credit
             </button>
+          </div>
+        )}
+
+        {orderError && (
+          <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+            {orderError}
           </div>
         )}
 
@@ -139,9 +180,10 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
           </button>
           <button
             onClick={handlePlaceOrder}
-            className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+            disabled={placing}
+            className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-70 disabled:pointer-events-none"
           >
-            Place Order
+            {placing ? 'Placing order...' : 'Place Order'}
           </button>
         </div>
       </div>

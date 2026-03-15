@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
-import { cartItems } from '@/data';
+import { useCart } from '@/context/CartContext';
 import CheckoutStepper from '@/components/checkout/CheckoutStepper';
 import CheckoutStep1 from '@/components/checkout/CheckoutStep1';
 import CheckoutStep2 from '@/components/checkout/CheckoutStep2';
@@ -9,17 +9,15 @@ import CheckoutStep3 from '@/components/checkout/CheckoutStep3';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const { items: cartItems } = useCart();
   const { currentStep, nextStep, previousStep, updateCheckoutData } = useCheckout();
 
   useEffect(() => {
-    // Load cart items into checkout data
     updateCheckoutData({ items: cartItems });
-
-    // Redirect to cart if cart is empty
     if (cartItems.length === 0) {
       navigate('/cart');
     }
-  }, [navigate, updateCheckoutData]);
+  }, [navigate, updateCheckoutData, cartItems]);
 
   const handleNext = () => {
     nextStep();

@@ -1,2 +1,2 @@
-export { formatCurrency } from './formatCurrency';
+export { formatCurrency, formatVND } from './formatCurrency';
 export { formatDate } from './formatDate';

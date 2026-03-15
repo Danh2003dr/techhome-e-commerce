@@ -26,9 +26,9 @@ const ForgotPasswordPage: React.FC = () => {
               <span className="material-icons text-4xl">devices</span>
               <span className="text-3xl font-bold tracking-tight">TechHome</span>
             </div>
-            <h1 className="text-5xl font-extrabold mb-6 leading-tight">Your security is our top priority.</h1>
+            <h1 className="text-5xl font-extrabold mb-6 leading-tight">Bảo mật của bạn là ưu tiên hàng đầu.</h1>
             <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-              We use industry-standard encryption and multi-factor authentication to keep your electronics shopping experience safe and sound.
+              Chúng tôi sử dụng mã hóa chuẩn và xác thực đa yếu tố để đảm bảo trải nghiệm mua sắm an toàn.
             </p>
             <div className="flex items-center gap-4">
               <div className="flex -space-x-2">
@@ -40,7 +40,7 @@ const ForgotPasswordPage: React.FC = () => {
                 </div>
                 <div className="h-10 w-10 rounded-full border-2 border-primary bg-blue-600 flex items-center justify-center overflow-hidden text-xs font-bold">+10k</div>
               </div>
-              <span className="text-sm font-medium">Trusted by millions of tech enthusiasts</span>
+              <span className="text-sm font-medium">Được hàng triệu người yêu công nghệ tin dùng</span>
             </div>
           </div>
         </div>
@@ -56,15 +56,15 @@ const ForgotPasswordPage: React.FC = () => {
               <div className="w-20 h-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/5">
                 <span className="material-icons text-primary text-4xl">lock_reset</span>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Forgot Password?</h2>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Quên mật khẩu?</h2>
               <p className="text-slate-600 dark:text-slate-400">
-                No worries! Enter your registered email or phone number and we&apos;ll send you a code to reset your password.
+                Nhập email hoặc số điện thoại đã đăng ký, chúng tôi sẽ gửi mã để đặt lại mật khẩu.
               </p>
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="recovery_identifier">Email or Phone Number</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="recovery_identifier">Email hoặc số điện thoại</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span className="material-icons text-slate-400 text-xl">contact_mail</span>
@@ -73,13 +73,13 @@ const ForgotPasswordPage: React.FC = () => {
                     id="recovery_identifier"
                     name="recovery_identifier"
                     type="text"
-                    placeholder="name@example.com or +1 (555) 000-0000"
+                    placeholder="email@vd.vn hoặc 0901234567"
                     className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
               </div>
               <button type="submit" className="w-full bg-primary hover:bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
-                <span>Send Code</span>
+                <span>Gửi mã</span>
                 <span className="material-icons text-lg">arrow_forward</span>
               </button>
             </form>
@@ -87,19 +87,19 @@ const ForgotPasswordPage: React.FC = () => {
             <div className="mt-8 text-center">
               <Link to="/login" className="inline-flex items-center gap-2 text-primary hover:text-blue-700 font-medium transition-colors">
                 <span className="material-icons text-sm">arrow_back</span>
-                Back to Login
+                Quay lại đăng nhập
               </Link>
             </div>
 
             <div className="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 text-center">
               <p className="text-sm text-slate-500">
-                Need additional help? <a href="#" className="text-primary hover:underline">Contact Support</a>
+                Cần thêm hỗ trợ? <a href="#" className="text-primary hover:underline">Liên hệ</a>
               </p>
             </div>
           </div>
 
           <div className="absolute bottom-6 right-6 lg:left-auto lg:right-6">
-            <button type="button" className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors" aria-label="Toggle theme">
+            <button type="button" className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors" aria-label="Đổi giao diện">
               <span className="material-icons">dark_mode</span>
             </button>
           </div>

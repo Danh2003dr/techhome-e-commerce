@@ -1,10 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { cartItems } from '@/data';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
+import { useAvatar } from '@/context/AvatarContext';
 import { DEFAULT_PROFILE_IMAGE, DEFAULT_USER_NAME, DEFAULT_USER_TIER } from '@/constants/user';
 
 const AccountHeader: React.FC = () => {
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const { user } = useAuth();
+  const { avatarUrl } = useAvatar();
+  const { totalCount: cartCount } = useCart();
+  const displayName = user?.name ?? DEFAULT_USER_NAME;
+  const displayAvatar = avatarUrl ?? DEFAULT_PROFILE_IMAGE;
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
@@ -59,10 +65,10 @@ const AccountHeader: React.FC = () => {
               <img
                 alt="Profile"
                 className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                src={DEFAULT_PROFILE_IMAGE}
+                src={displayAvatar}
               />
               <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold leading-none text-slate-900 dark:text-white">{DEFAULT_USER_NAME}</p>
+                <p className="text-xs font-bold leading-none text-slate-900 dark:text-white">{displayName}</p>
                 <p className="text-[10px] text-slate-500 mt-0.5">{DEFAULT_USER_TIER}</p>
               </div>
             </Link>

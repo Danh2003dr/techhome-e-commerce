@@ -1,10 +1,10 @@
 import React from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
-import { cartItems } from '@/data';
+import { formatVND } from '@/utils';
 
 const CheckoutSummary: React.FC = () => {
   const { checkoutData } = useCheckout();
-  const items = checkoutData.items.length > 0 ? checkoutData.items : cartItems;
+  const items = checkoutData.items;
   
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = checkoutData.shippingMethod?.price || 0;
@@ -36,11 +36,11 @@ const CheckoutSummary: React.FC = () => {
                   {item.name}
                 </p>
                 <p className="text-xs text-slate-500">
-                  Qty: {item.quantity} × ${item.price.toFixed(2)}
+                  Qty: {item.quantity} × {formatVND(item.price)}
                 </p>
               </div>
               <div className="text-sm font-bold text-slate-900 dark:text-white">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatVND(item.price * item.quantity)}
               </div>
             </div>
           ))}
@@ -83,22 +83,22 @@ const CheckoutSummary: React.FC = () => {
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
           <span>Subtotal</span>
           <span className="font-semibold text-slate-900 dark:text-white">
-            ${subtotal.toFixed(2)}
+            {formatVND(subtotal)}
           </span>
         </div>
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
           <span>Estimated Tax</span>
-          <span className="font-semibold text-slate-900 dark:text-white">${tax.toFixed(2)}</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{formatVND(tax)}</span>
         </div>
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
           <span>Estimated Shipping & Handling</span>
           <span className="font-semibold text-slate-900 dark:text-white">
-            {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+            {shipping === 0 ? 'FREE' : formatVND(shipping)}
           </span>
         </div>
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
           <span className="text-lg font-bold text-slate-900 dark:text-white">Total</span>
-          <span className="text-2xl font-black text-primary">${total.toFixed(2)}</span>
+          <span className="text-2xl font-black text-primary">{formatVND(total)}</span>
         </div>
       </div>
     </div>

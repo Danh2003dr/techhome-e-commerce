@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mobileCategoryProducts } from '@/data';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { formatVND } from '@/utils';
+
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
 const SUB_CATEGORIES = ['iOS', 'Android', 'Feature Phones', 'Refurbished', 'All Products'];
 const BRANDS = [
@@ -49,11 +54,15 @@ function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' |
 }
 
 const MobileCategoryPage: React.FC = () => {
+  const { addItem } = useCart();
+  const { toggleItem, isInWishlist } = useWishlist();
   const [sortBy, setSortBy] = useState('Most Relevant');
   const [selectedSub, setSelectedSub] = useState('All Products');
   const [selectedRam, setSelectedRam] = useState<string | null>('12 GB');
   const [storage, setStorage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
+  const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
 
   const getBadgeVariant = (badge: string): 'primary' | 'red' | 'slate' | 'green' => {
     if (badge === 'New Arrival') return 'primary';
@@ -67,9 +76,9 @@ const MobileCategoryPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
-          <Link to="/" className="hover:text-primary">Home</Link>
+          <Link to="/" className="hover:text-primary">Trang chủ</Link>
           <span className="material-icons text-xs">chevron_right</span>
-          <Link to="/search" className="hover:text-primary">Shop by Category</Link>
+          <Link to="/search" className="hover:text-primary">Mua theo danh mục</Link>
           <span className="material-icons text-xs">chevron_right</span>
           <span className="text-primary font-medium">Mobile</span>
         </nav>
@@ -80,17 +89,17 @@ const MobileCategoryPage: React.FC = () => {
           <div className="relative flex flex-col md:flex-row items-center justify-between px-8 py-12 md:px-16 md:py-16">
             <div className="max-w-lg mb-8 md:mb-0 text-white z-10 text-center md:text-left">
               <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-                Limited Edition
+                Phiên bản giới hạn
               </span>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">The Future in Your Hands</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">Tương lai trong tay bạn</h1>
               <p className="text-lg text-blue-100 mb-8 font-light">
-                Experience the latest in smartphone innovation. Upgrade to the new flagship models today with exclusive TechHome trade-in offers.
+                Trải nghiệm công nghệ smartphone mới nhất. Nâng cấp flagship với ưu đãi thu cũ đổi mới từ TechHome.
               </p>
               <Link
                 to="/search?category=mobile"
                 className="inline-block bg-white text-primary font-bold px-8 py-3 rounded-lg hover:bg-slate-50 transition-colors shadow-lg shadow-blue-900/20"
               >
-                Shop Now
+                Mua ngay
               </Link>
             </div>
             <div className="relative w-full md:w-1/2 flex justify-center md:justify-end">
@@ -153,8 +162,8 @@ const MobileCategoryPage: React.FC = () => {
                   className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">$0</span>
-                  <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">$2,000+</span>
+                  <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">0 ₫</span>
+                  <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">50.000.000+ ₫</span>
                 </div>
               </div>
               <div className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
@@ -234,24 +243,36 @@ const MobileCategoryPage: React.FC = () => {
                     )}
                     <button
                       type="button"
-                      className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
+                      className={`absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full transition-colors z-20 ${isInWishlist(productId) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        toggleItem({
+                          productId,
+                          name: product.name,
+                          image: product.image || '',
+                          price: product.price,
+                          oldPrice: product.oldPrice,
+                          rating: product.rating,
+                          reviews: product.reviews ?? 0,
+                        });
                       }}
+                      aria-label={isInWishlist(productId) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
                     >
-                      <span className="material-icons text-lg">favorite_border</span>
+                      <span className="material-icons text-lg">{isInWishlist(productId) ? 'favorite' : 'favorite_border'}</span>
                     </button>
                     <img
                       className="h-48 group-hover:scale-105 transition-transform duration-300 object-contain"
-                      src={product.image}
+                      src={failedImageIds.has(product.id) || !product.image ? PLACEHOLDER_IMAGE : product.image}
                       alt={product.name}
+                      onError={() => markImageError(product.id)}
                     />
                   </div>
                   <div className="p-6 flex-grow flex flex-col">
                     <div className="flex items-center gap-1 mb-2">
                       <StarRating rating={product.rating} />
-                      <span className="text-xs text-slate-400 ml-1">({product.reviews} reviews)</span>
+                      <span className="text-xs text-slate-400 ml-1">({product.reviews} đánh giá)</span>
                     </div>
                     <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
                       {product.name}
@@ -262,25 +283,33 @@ const MobileCategoryPage: React.FC = () => {
                     <div className="mt-auto">
                       <div className="flex items-baseline gap-2 mb-4">
                         <span className="text-xl font-bold text-slate-900 dark:text-white">
-                          ${product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {formatVND(product.price)}
                         </span>
                         {product.oldPrice && (
                           <span className="text-sm text-slate-400 line-through">
-                            ${product.oldPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {formatVND(product.oldPrice)}
                           </span>
                         )}
                       </div>
                       <button
                         type="button"
                         className="w-full bg-primary text-white py-3 rounded font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 z-20"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          // TODO: Add to cart logic here
+                          try {
+                            addItem({
+                              productId: product.productDetailId ?? product.id,
+                              name: product.name,
+                              price: product.price,
+                              image: product.image || '',
+                            });
+                          } catch (_) {}
                         }}
                       >
                         <span className="material-icons text-sm">shopping_cart</span>
-                        Add to Cart
+                        Thêm vào giỏ
                       </button>
                     </div>
                   </div>
