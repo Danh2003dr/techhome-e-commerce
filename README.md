@@ -2,19 +2,44 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# TechHome E‑commerce
 
-This contains everything you need to run your app locally.
+Dự án gồm **frontend** (React/Vite) và **backend** (API) trong cùng một repo.
 
-View your app in AI Studio: https://ai.studio/apps/temp/1
+## Cấu trúc
 
-## Run Locally
+| Thư mục | Mô tả |
+|--------|--------|
+| **Gốc (./)** | Frontend: React, Vite, TypeScript. Chạy tại `http://localhost:3000`. |
+| **backend/** | Backend API (ví dụ Spring Boot). Chạy tại `http://localhost:8080`. Đặt code backend vào đây. |
 
-**Prerequisites:**  Node.js
+## Chạy dự án
 
+### 1. Frontend
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Yêu cầu:** Node.js
+
+```bash
+npm install
+npm run dev
+```
+
+Mở trình duyệt tại `http://localhost:3000`. Có thể cấu hình API qua file `.env` (xem [.env.example](.env.example)).
+
+### 2. Backend
+
+Vào thư mục `backend/` và chạy backend (Maven/Gradle/…). Ví dụ với Spring Boot:
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+API base URL: `http://localhost:8080/api`. Frontend mặc định gọi URL này; cần bật CORS cho origin `http://localhost:3000` (và 3001 nếu dùng).
+
+### Chạy đồng thời
+
+- Terminal 1: `cd backend && mvn spring-boot:run`
+- Terminal 2: `npm run dev`
+
+Xem thêm [backend/README.md](backend/README.md) để biết cách đặt code backend vào repo.

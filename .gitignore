@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backend (Java / Maven / Gradle)
+backend/target/
+backend/build/
+backend/.gradle/
+backend/*.iml
+backend/.idea/
+backend/out/
