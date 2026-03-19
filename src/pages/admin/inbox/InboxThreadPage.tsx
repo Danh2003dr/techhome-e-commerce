@@ -96,8 +96,20 @@ const InboxThreadPage: React.FC = () => {
         </aside>
 
         <div className="admin-card admin-chat-thread">
-          <div style={{ padding: '12px 16px', fontWeight: 800 }}>
-            {headerName}
+          <div className="admin-chat-header">
+            <div style={{ fontWeight: 900, color: '#2a3448' }}>{headerName}</div>
+            <div className="admin-chat-header-actions" aria-label="Conversation actions">
+              <button type="button" className="admin-icon-btn" aria-label="Archive">
+                <span className="material-icons" aria-hidden>
+                  archive
+                </span>
+              </button>
+              <button type="button" className="admin-icon-btn" aria-label="Delete">
+                <span className="material-icons" aria-hidden>
+                  delete
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="admin-message-list" aria-label="Message list">

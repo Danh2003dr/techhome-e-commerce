@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 type FilterModal = null | 'date' | 'type' | 'status';
 
@@ -17,16 +16,38 @@ const orderTypeOptions = [
 const orderStatusOptions = ['Completed', 'Processing', 'Rejected', 'On Hold', 'In Transit'];
 const orderDates = ['14 Feb 2019', '15 Feb 2019', '16 Feb 2019', '17 Feb 2019', '18 Feb 2019'];
 
-const OrderListPage: React.FC = () => {
-  const [openModal, setOpenModal] = useState<FilterModal>(null);
-  const [dateFilter, setDateFilter] = useState<string | null>('14 Feb 2019');
-  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(() => new Set());
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(() => new Set());
+export type OrderListInitialVariant = {
+  openModal?: FilterModal;
+  dateFilter?: string | null;
+  selectedTypes?: string[];
+  selectedStatuses?: string[];
+  draftDate?: string;
+  draftTypes?: string[];
+  draftStatuses?: string[];
+};
+
+type OrderListPageProps = {
+  initialVariant?: OrderListInitialVariant;
+};
+
+const OrderListPage: React.FC<OrderListPageProps> = ({ initialVariant }) => {
+  const [openModal, setOpenModal] = useState<FilterModal>(initialVariant?.openModal ?? null);
+  const [dateFilter, setDateFilter] = useState<string | null>(initialVariant?.dateFilter ?? null);
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(
+    () => new Set(initialVariant?.selectedTypes ?? [])
+  );
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
+    () => new Set(initialVariant?.selectedStatuses ?? [])
+  );
 
   // Draft states for popup "Apply Now"
-  const [draftDate, setDraftDate] = useState<string>(() => orderDates[0]);
-  const [draftTypes, setDraftTypes] = useState<Set<string>>(() => new Set());
-  const [draftStatuses, setDraftStatuses] = useState<Set<string>>(() => new Set());
+  const [draftDate, setDraftDate] = useState<string>(() => initialVariant?.draftDate ?? orderDates[0]);
+  const [draftTypes, setDraftTypes] = useState<Set<string>>(
+    () => new Set(initialVariant?.draftTypes ?? [])
+  );
+  const [draftStatuses, setDraftStatuses] = useState<Set<string>>(
+    () => new Set(initialVariant?.draftStatuses ?? [])
+  );
 
   const selectedTypesLabel = useMemo(() => {
     if (selectedTypes.size === 0) return 'Any';
@@ -79,15 +100,27 @@ const OrderListPage: React.FC = () => {
       <h1 className="admin-page-title">Order Lists</h1>
       <section className="admin-card">
         <div className="admin-toolbar">
+          <div className="admin-order-filter-title">
+            <span className="material-icons" aria-hidden>
+              filter_list
+            </span>
+            <span>Filter By</span>
+          </div>
+
           <button type="button" className="admin-filter-button" onClick={openDateModal}>
-            Filter by <span className="admin-filter-subtle">{dateFilter ?? 'Any date'}</span>
+            {dateFilter ?? 'Select date'}
           </button>
+
           <button type="button" className="admin-filter-button" onClick={openTypeModal}>
-            Order Type <span className="admin-filter-subtle">{selectedTypesLabel}</span>
+            <span style={{ fontWeight: 800 }}>Order Type</span>
+            <span className="admin-filter-subtle"> {selectedTypesLabel}</span>
           </button>
+
           <button type="button" className="admin-filter-button" onClick={openStatusModal}>
-            Order Status <span className="admin-filter-subtle">{selectedStatusesLabel}</span>
+            <span style={{ fontWeight: 800 }}>Order Status</span>
+            <span className="admin-filter-subtle"> {selectedStatusesLabel}</span>
           </button>
+
           <button className="admin-btn secondary" type="button" onClick={resetAll}>
             Reset Filter
           </button>
@@ -102,7 +135,6 @@ const OrderListPage: React.FC = () => {
               <th>Date</th>
               <th>Type</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -115,11 +147,6 @@ const OrderListPage: React.FC = () => {
               <td>
                 <span className="admin-badge completed">Completed</span>
               </td>
-              <td>
-                <Link className="admin-btn secondary" to="/admin/orders/00001">
-                  View
-                </Link>
-              </td>
             </tr>
             <tr>
               <td>00002</td>
@@ -130,11 +157,6 @@ const OrderListPage: React.FC = () => {
               <td>
                 <span className="admin-badge processing">Processing</span>
               </td>
-              <td>
-                <Link className="admin-btn secondary" to="/admin/orders/00002">
-                  View
-                </Link>
-              </td>
             </tr>
             <tr>
               <td>00003</td>
@@ -144,11 +166,6 @@ const OrderListPage: React.FC = () => {
               <td>Medicine</td>
               <td>
                 <span className="admin-badge rejected">Rejected</span>
-              </td>
-              <td>
-                <Link className="admin-btn secondary" to="/admin/orders/00003">
-                  View
-                </Link>
               </td>
             </tr>
           </tbody>

@@ -28,8 +28,10 @@ import ProductFormPage from '@/pages/admin/products/ProductFormPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
+import OrderListsVariantPage from '@/pages/admin/orders/OrderListsVariantPage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 import InboxPage from '@/pages/admin/inbox/InboxPage';
+import InboxListVariantPage from '@/pages/admin/inbox/InboxListVariantPage';
 import CalendarPage from '@/pages/admin/calendar/CalendarPage';
 import TodoListPage from '@/pages/admin/todo/TodoListPage';
 import PrivateRoute from '@/routes/PrivateRoute';
@@ -71,12 +73,17 @@ const AppRoutes: React.FC = () => (
       <Route path="products" element={<ProductListPage />} />
       <Route path="products/new" element={<ProductFormPage />} />
       <Route path="products/:id" element={<ProductFormPage />} />
-      <Route path="orders" element={<OrderListPage />} />
+      <Route
+        path="orders"
+        element={<OrderListPage initialVariant={{ openModal: null, dateFilter: '14 Feb 2019', selectedTypes: [], selectedStatuses: [] }} />}
+      />
+      <Route path="orders/dash/:variantId" element={<OrderListsVariantPage />} />
       <Route path="orders/:orderId" element={<OrderDetailPage />} />
       <Route path="orders/:orderId/invoice" element={<InvoicePage />} />
       <Route path="seo" element={<SEOSettingsPage />} />
       <Route path="inbox" element={<InboxPage />} />
       <Route path="inbox/:threadId" element={<InboxThreadPage />} />
+      <Route path="inbox/dash/:variantId" element={<InboxListVariantPage />} />
       <Route path="calendar" element={<CalendarPage />} />
       <Route path="calendar/new" element={<CalendarEventFormPage />} />
       <Route path="todo" element={<TodoListPage />} />

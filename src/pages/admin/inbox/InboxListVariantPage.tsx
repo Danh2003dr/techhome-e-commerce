@@ -1,7 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
-const InboxPage: React.FC = () => {
+const InboxListVariantPage: React.FC = () => {
+  const { variantId } = useParams();
+  const id = Number(variantId);
+
+  // #6: no row selected
+  // #7: select one row to show the template interaction state
+  const selectedRow = id === 7 ? '2' : null;
+
   return (
     <div className="admin-content-grid">
       <h1 className="admin-page-title">Inbox</h1>
@@ -78,6 +85,7 @@ const InboxPage: React.FC = () => {
           <div className="admin-toolbar">
             <input type="text" placeholder="Search mail" />
           </div>
+
           <table className="admin-table">
             <thead>
               <tr>
@@ -90,54 +98,50 @@ const InboxPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <input type="checkbox" aria-label="Select message" />
-                </td>
-                <td style={{ textAlign: 'center' }}>☆</td>
-                <td>
-                  <Link to="/admin/inbox/1" className="admin-btn link">
-                    Minerva Barnett
-                  </Link>
-                </td>
-                <td>
-                  <span className="admin-badge completed">Primary</span>
-                </td>
-                <td>Our Bachelor of Commerce program is ACBSP-accredited.</td>
-                <td>8:38 AM</td>
-              </tr>
-              <tr>
-                <td>
-                  <input type="checkbox" aria-label="Select message" />
-                </td>
-                <td style={{ textAlign: 'center' }}>★</td>
-                <td>
-                  <Link to="/admin/inbox/2" className="admin-btn link">
-                    Peter Lewis
-                  </Link>
-                </td>
-                <td>
-                  <span className="admin-badge processing">Friends</span>
-                </td>
-                <td>Vacation Home Rental Success</td>
-                <td>7:52 PM</td>
-              </tr>
-              <tr>
-                <td>
-                  <input type="checkbox" aria-label="Select message" />
-                </td>
-                <td style={{ textAlign: 'center' }}>☆</td>
-                <td>
-                  <Link to="/admin/inbox/3" className="admin-btn link">
-                    Cecile Webster
-                  </Link>
-                </td>
-                <td>
-                  <span className="admin-badge rejected">Social</span>
-                </td>
-                <td>Always Look On The Bright Side Of Life</td>
-                <td>3:52 PM</td>
-              </tr>
+              {[
+                {
+                  rowId: '1',
+                  to: '/admin/inbox/1',
+                  sender: 'Minerva Barnett',
+                  label: <span className="admin-badge completed">Primary</span>,
+                  message: 'Our Bachelor of Commerce program is ACBSP-accredited.',
+                  time: '8:38 AM',
+                  star: '☆',
+                },
+                {
+                  rowId: '2',
+                  to: '/admin/inbox/2',
+                  sender: 'Peter Lewis',
+                  label: <span className="admin-badge processing">Friends</span>,
+                  message: 'Vacation Home Rental Success',
+                  time: '7:52 PM',
+                  star: '★',
+                },
+                {
+                  rowId: '3',
+                  to: '/admin/inbox/3',
+                  sender: 'Cecile Webster',
+                  label: <span className="admin-badge rejected">Social</span>,
+                  message: 'Always Look On The Bright Side Of Life',
+                  time: '3:52 PM',
+                  star: '☆',
+                },
+              ].map((row) => (
+                <tr key={row.rowId} className={selectedRow === row.rowId ? 'admin-inbox-row-selected' : undefined}>
+                  <td>
+                    <input type="checkbox" aria-label="Select message" />
+                  </td>
+                  <td style={{ textAlign: 'center' }}>{row.star}</td>
+                  <td>
+                    <Link to={row.to} className="admin-btn link">
+                      {row.sender}
+                    </Link>
+                  </td>
+                  <td>{row.label}</td>
+                  <td>{row.message}</td>
+                  <td>{row.time}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -146,4 +150,5 @@ const InboxPage: React.FC = () => {
   );
 };
 
-export default InboxPage;
+export default InboxListVariantPage;
+

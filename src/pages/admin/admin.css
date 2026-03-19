@@ -434,6 +434,16 @@
   margin-left: 6px;
 }
 
+.admin-order-filter-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #2a3448;
+  font-size: 13px;
+  margin-right: 2px;
+}
+
 .admin-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -455,6 +465,68 @@
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 14px;
+}
+
+.admin-inbox-sidebar-title {
+  font-weight: 800;
+  font-size: 12px;
+  color: #6a748b;
+  margin: 12px 4px 6px;
+}
+
+.admin-folder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a3448;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.admin-folder-item.active {
+  background: #2f6ef7;
+  color: #ffffff;
+}
+
+.admin-folder-count {
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.admin-label-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a3448;
+  margin-bottom: 6px;
+}
+
+.admin-label-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dbeafe;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.admin-label-row {
+  display: flex;
+  align-items: center;
+}
+
+.admin-inbox-row-selected td {
+  background: #edf2ff;
 }
 
 .admin-list {
@@ -545,6 +617,37 @@
   padding: 10px 12px;
   font-size: 14px;
   background: #ffffff;
+}
+
+.admin-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f8;
+}
+
+.admin-chat-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid #e3e9f4;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6a748b;
+}
+
+.admin-icon-btn:hover {
+  background: #f8faff;
+  color: #2f6ef7;
 }
 
 @media (max-width: 1100px) {
