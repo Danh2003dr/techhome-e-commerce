@@ -327,6 +327,7 @@
 .admin-toolbar input,
 .admin-toolbar select,
 .admin-form-grid input,
+.admin-form-grid select,
 .admin-form-grid textarea {
   border: 1px solid #e3e9f4;
   border-radius: 10px;
@@ -681,5 +682,229 @@
   .admin-kpi-grid,
   .admin-form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* --- Admin: Products (image upload / specs) --- */
+.admin-product-form-sections {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-upload-dropzone {
+  position: relative;
+  border: 1px dashed #cdd8f6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f7f9ff 0%, #ecf2ff 100%);
+  padding: 18px;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.admin-upload-dropzone input[type='file'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.admin-upload-title {
+  font-weight: 900;
+  color: #2a3448;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.admin-upload-sub {
+  color: #6a748b;
+  font-size: 13px;
+}
+
+.admin-upload-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-upload-preview {
+  border: 1px solid #e9edf5;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.admin-upload-preview img {
+  width: 100%;
+  height: 92px;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-specs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-specs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-specs-title {
+  font-weight: 900;
+  color: #2a3448;
+}
+
+.admin-specs-table th:nth-child(3),
+.admin-specs-table td:nth-child(3) {
+  text-align: center;
+}
+
+.admin-table input[type='text'],
+.admin-table input[type='number'],
+.admin-table input[type='email'],
+.admin-table input,
+.admin-table select {
+  width: 100%;
+  border: 1px solid #e3e9f4;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+}
+
+/* --- Admin: Products list chips --- */
+.admin-product-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #e9edf5;
+  background: linear-gradient(180deg, #f7f9ff 0%, #ecf2ff 100%);
+}
+
+.admin-color-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-color-chip {
+  border-radius: 999px;
+  border: 1px solid #e3e9f4;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #2a3448;
+  background: #ffffff;
+}
+
+/* --- Admin: Invoice blocks --- */
+.admin-invoice-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 8px 4px 14px;
+  border-bottom: 1px solid #eef2f8;
+}
+
+.admin-invoice-meta-title {
+  font-size: 12px;
+  color: #6a748b;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.admin-invoice-meta-value {
+  font-weight: 900;
+  color: #2a3448;
+  margin-bottom: 4px;
+}
+
+.admin-invoice-meta-sub {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.35;
+}
+
+.admin-invoice-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 14px;
+}
+
+.admin-invoice-total {
+  text-align: right;
+}
+
+/* --- Admin: SEO logo --- */
+.admin-logo-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.admin-logo-preview {
+  width: 180px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px dashed #cdd8f6;
+  background: #f7f9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #5a73c5;
+  font-size: 13px;
+}
+
+.admin-logo-choose {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-logo-choose input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* --- Responsive tweaks for new blocks --- */
+@media (max-width: 1000px) {
+  .admin-product-form-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-invoice-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-invoice-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

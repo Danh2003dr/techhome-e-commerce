@@ -1,4 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import { OrderStatusBadge, type OrderStatus } from '@/components/admin/OrderStatusBadge';
 
 type FilterModal = null | 'date' | 'type' | 'status';
 
@@ -13,7 +16,7 @@ const orderTypeOptions = [
   'Accessories',
 ];
 
-const orderStatusOptions = ['Completed', 'Processing', 'Rejected', 'On Hold', 'In Transit'];
+const orderStatusOptions: OrderStatus[] = ['Completed', 'Processing', 'Rejected', 'On Hold', 'In Transit'];
 const orderDates = ['14 Feb 2019', '15 Feb 2019', '16 Feb 2019', '17 Feb 2019', '18 Feb 2019'];
 
 export type OrderListInitialVariant = {
@@ -135,6 +138,7 @@ const OrderListPage: React.FC<OrderListPageProps> = ({ initialVariant }) => {
               <th>Date</th>
               <th>Type</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -145,7 +149,12 @@ const OrderListPage: React.FC<OrderListPageProps> = ({ initialVariant }) => {
               <td>04 Sep 2019</td>
               <td>Electric</td>
               <td>
-                <span className="admin-badge completed">Completed</span>
+                <OrderStatusBadge status="Completed" />
+              </td>
+              <td>
+                <Link to="/admin/orders/00001" className="admin-btn secondary">
+                  View
+                </Link>
               </td>
             </tr>
             <tr>
@@ -155,7 +164,12 @@ const OrderListPage: React.FC<OrderListPageProps> = ({ initialVariant }) => {
               <td>28 May 2019</td>
               <td>Book</td>
               <td>
-                <span className="admin-badge processing">Processing</span>
+                <OrderStatusBadge status="Processing" />
+              </td>
+              <td>
+                <Link to="/admin/orders/00002" className="admin-btn secondary">
+                  View
+                </Link>
               </td>
             </tr>
             <tr>
@@ -165,7 +179,12 @@ const OrderListPage: React.FC<OrderListPageProps> = ({ initialVariant }) => {
               <td>23 Nov 2019</td>
               <td>Medicine</td>
               <td>
-                <span className="admin-badge rejected">Rejected</span>
+                <OrderStatusBadge status="Rejected" />
+              </td>
+              <td>
+                <Link to="/admin/orders/00003" className="admin-btn secondary">
+                  View
+                </Link>
               </td>
             </tr>
           </tbody>

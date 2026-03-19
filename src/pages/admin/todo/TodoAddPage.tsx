@@ -11,6 +11,17 @@ const defaultTodos = [
 
 const TodoAddPage: React.FC = () => {
   const [draft, setDraft] = useState('');
+  const [todos, setTodos] = useState(defaultTodos);
+
+  const addTodo = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setTodos((prev) => [
+      ...prev,
+      { id: `t_${Math.random().toString(16).slice(2)}`, text, done: false, starred: false },
+    ]);
+    setDraft('');
+  };
 
   return (
     <div className="admin-content-grid">
@@ -24,17 +35,39 @@ const TodoAddPage: React.FC = () => {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Write your task name here"
           />
-          <button className="admin-btn" type="button">
-            Save
+          <button className="admin-btn" type="button" onClick={addTodo}>
+            Add
           </button>
         </div>
 
-        {defaultTodos.map((t) => (
+        {todos.map((t) => (
           <div className="admin-todo-item" key={t.id}>
             <div>
-              <input type="checkbox" checked={t.done} readOnly /> <span>{t.text}</span>
+              <input
+                type="checkbox"
+                checked={t.done}
+                onChange={() => setTodos((prev) => prev.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)))}
+              />{' '}
+              <span>{t.text}</span>
             </div>
-            <div>{t.starred ? '★' : '☆'} | Delete</div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button
+                type="button"
+                className="admin-icon-btn"
+                aria-label="Toggle star"
+                onClick={() => setTodos((prev) => prev.map((x) => (x.id === t.id ? { ...x, starred: !x.starred } : x)))}
+              >
+                {t.starred ? '★' : '☆'}
+              </button>
+              <button
+                type="button"
+                className="admin-icon-btn"
+                aria-label="Delete todo"
+                onClick={() => setTodos((prev) => prev.filter((x) => x.id !== t.id))}
+              >
+                ×
+              </button>
+            </div>
           </div>
         ))}
       </section>

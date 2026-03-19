@@ -1,6 +1,9 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
+import ProductImageUpload from './ProductImageUpload';
+import ProductSpecsManager from './ProductSpecsManager';
+
 const ProductFormPage: React.FC = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -15,16 +18,26 @@ const ProductFormPage: React.FC = () => {
           <input placeholder="Category" defaultValue={isEdit ? 'Digital Product' : ''} />
           <input placeholder="Price" defaultValue={isEdit ? '699.00' : ''} />
           <input placeholder="Stock quantity" defaultValue={isEdit ? '63' : ''} />
-          <textarea placeholder="Short description" />
-          <textarea placeholder="Specifications (key-value, one per line)" />
+          <select defaultValue={isEdit ? 'yes' : 'no'}>
+            <option value="yes">Featured</option>
+            <option value="no">Not Featured</option>
+          </select>
+          <textarea placeholder="Short description" defaultValue={isEdit ? 'Placeholder short description for UI alignment.' : ''} />
+          <textarea placeholder="Available colors (comma-separated)" defaultValue={isEdit ? 'Black, Silver, Blue' : ''} />
         </div>
-        <div className="admin-form-actions">
+
+        <div className="admin-form-actions" style={{ justifyContent: 'space-between' }}>
           <button className="admin-btn secondary" type="button">
-            Upload Images
+            Save Draft
           </button>
           <button className="admin-btn" type="button">
-            Save Product
+            {isEdit ? 'Update Product' : 'Save Product'}
           </button>
+        </div>
+
+        <div className="admin-product-form-sections">
+          <ProductImageUpload />
+          <ProductSpecsManager />
         </div>
       </section>
     </div>
