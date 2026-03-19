@@ -21,6 +21,17 @@ import WishlistPage from '@/pages/account/WishlistPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import ProductListPage from '@/pages/admin/products/ProductListPage';
+import ProductFormPage from '@/pages/admin/products/ProductFormPage';
+import OrderListPage from '@/pages/admin/orders/OrderListPage';
+import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
+import InvoicePage from '@/pages/admin/orders/InvoicePage';
+import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
+import InboxPage from '@/pages/admin/inbox/InboxPage';
+import CalendarPage from '@/pages/admin/calendar/CalendarPage';
+import TodoListPage from '@/pages/admin/todo/TodoListPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -49,6 +60,22 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
+
+    {/* Admin routes (DashStack UI - static first, logic wired later) */}
+    <Route path="/admin" element={<AdminLayout />}>
+      <Route index element={<AdminDashboardPage />} />
+      <Route path="products" element={<ProductListPage />} />
+      <Route path="products/new" element={<ProductFormPage />} />
+      <Route path="products/:id" element={<ProductFormPage />} />
+      <Route path="orders" element={<OrderListPage />} />
+      <Route path="orders/:orderId" element={<OrderDetailPage />} />
+      <Route path="orders/:orderId/invoice" element={<InvoicePage />} />
+      <Route path="seo" element={<SEOSettingsPage />} />
+      <Route path="inbox" element={<InboxPage />} />
+      <Route path="calendar" element={<CalendarPage />} />
+      <Route path="todo" element={<TodoListPage />} />
+    </Route>
+
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>
 );
