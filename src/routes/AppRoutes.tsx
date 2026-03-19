@@ -32,6 +32,10 @@ import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 import InboxPage from '@/pages/admin/inbox/InboxPage';
 import CalendarPage from '@/pages/admin/calendar/CalendarPage';
 import TodoListPage from '@/pages/admin/todo/TodoListPage';
+import PrivateRoute from '@/routes/PrivateRoute';
+import InboxThreadPage from '@/pages/admin/inbox/InboxThreadPage';
+import CalendarEventFormPage from '@/pages/admin/calendar/CalendarEventFormPage';
+import TodoAddPage from '@/pages/admin/todo/TodoAddPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -62,7 +66,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/wishlist" element={<WishlistPage />} />
 
     {/* Admin routes (DashStack UI - static first, logic wired later) */}
-    <Route path="/admin" element={<AdminLayout />}>
+    <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
       <Route index element={<AdminDashboardPage />} />
       <Route path="products" element={<ProductListPage />} />
       <Route path="products/new" element={<ProductFormPage />} />
@@ -72,8 +76,11 @@ const AppRoutes: React.FC = () => (
       <Route path="orders/:orderId/invoice" element={<InvoicePage />} />
       <Route path="seo" element={<SEOSettingsPage />} />
       <Route path="inbox" element={<InboxPage />} />
+      <Route path="inbox/:threadId" element={<InboxThreadPage />} />
       <Route path="calendar" element={<CalendarPage />} />
+      <Route path="calendar/new" element={<CalendarEventFormPage />} />
       <Route path="todo" element={<TodoListPage />} />
+      <Route path="todo/new" element={<TodoAddPage />} />
     </Route>
 
     <Route path="/*" element={<NotFoundPage />} />

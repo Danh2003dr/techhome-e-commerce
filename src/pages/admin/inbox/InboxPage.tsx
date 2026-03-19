@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const InboxPage: React.FC = () => {
   return (
@@ -25,7 +26,11 @@ const InboxPage: React.FC = () => {
           <table className="admin-table">
             <tbody>
               <tr>
-                <td>Minerva Barnett</td>
+                <td>
+                  <Link to="/admin/inbox/1" className="admin-btn link">
+                    Minerva Barnett
+                  </Link>
+                </td>
                 <td>
                   <span className="admin-badge completed">Primary</span>
                 </td>
@@ -33,7 +38,11 @@ const InboxPage: React.FC = () => {
                 <td>8:38 AM</td>
               </tr>
               <tr>
-                <td>Peter Lewis</td>
+                <td>
+                  <Link to="/admin/inbox/2" className="admin-btn link">
+                    Peter Lewis
+                  </Link>
+                </td>
                 <td>
                   <span className="admin-badge processing">Friends</span>
                 </td>
@@ -41,7 +50,11 @@ const InboxPage: React.FC = () => {
                 <td>7:52 PM</td>
               </tr>
               <tr>
-                <td>Cecile Webster</td>
+                <td>
+                  <Link to="/admin/inbox/3" className="admin-btn link">
+                    Cecile Webster
+                  </Link>
+                </td>
                 <td>
                   <span className="admin-badge rejected">Social</span>
                 </td>

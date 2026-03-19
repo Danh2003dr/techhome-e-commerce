@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const todoList = [
   'Meeting with CEO',
@@ -15,10 +16,9 @@ const TodoListPage: React.FC = () => {
       <h1 className="admin-page-title">To-Do List</h1>
       <section className="admin-card">
         <div className="admin-toolbar">
-          <input type="text" placeholder="Write your task name here" />
-          <button className="admin-btn" type="button">
-            Save
-          </button>
+          <Link to="/admin/todo/new" className="admin-btn" aria-label="Add New Task">
+            Add New Task
+          </Link>
         </div>
 
         {todoList.map((todo) => (
