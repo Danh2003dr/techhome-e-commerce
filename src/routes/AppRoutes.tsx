@@ -21,6 +21,8 @@ import WishlistPage from '@/pages/account/WishlistPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import DashboardPage from '@/pages/admin/DashboardPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -49,6 +51,9 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
+    <Route element={<AdminLayout />}>
+      <Route path="/admin" element={<DashboardPage />} />
+    </Route>
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>
 );
