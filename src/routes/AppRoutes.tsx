@@ -23,6 +23,11 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
+import ProductListPage from '@/pages/admin/products/ProductListPage';
+import ProductFormPage from '@/pages/admin/products/ProductFormPage';
+import OrderListPage from '@/pages/admin/orders/OrderListPage';
+import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
+import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -53,6 +58,14 @@ const AppRoutes: React.FC = () => (
     <Route path="/wishlist" element={<WishlistPage />} />
     <Route element={<AdminLayout />}>
       <Route path="/admin" element={<DashboardPage />} />
+      <Route path="/admin/products" element={<ProductListPage />} />
+      <Route path="/admin/products/new" element={<ProductFormPage />} />
+      <Route path="/admin/products/:id" element={<ProductFormPage />} />
+
+      <Route path="/admin/orders" element={<OrderListPage />} />
+      <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
+
+      <Route path="/admin/seo" element={<SEOSettingsPage />} />
     </Route>
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>

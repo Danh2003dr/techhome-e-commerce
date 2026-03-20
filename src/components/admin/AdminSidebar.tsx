@@ -26,7 +26,7 @@ const navGroups: Array<{
       { label: 'UI Elements', path: '/admin/ui-elements', icon: 'widgets' },
       { label: 'Team', path: '/admin/team', icon: 'groups' },
       { label: 'Table', path: '/admin/table', icon: 'table_chart' },
-      { label: 'Settings', path: '/admin/settings', icon: 'settings' },
+      { label: 'SEO', path: '/admin/seo', icon: 'settings' },
       { label: 'Logout', path: '/login', icon: 'logout' },
     ],
   },
