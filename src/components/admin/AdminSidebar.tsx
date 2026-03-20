@@ -7,7 +7,7 @@ const navGroups: Array<{
 }> = [
   {
     items: [
-      { label: 'Dashboard', path: '/admin', icon: 'dashboard' },
+      { label: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
       { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
       { label: 'Favorites', path: '/admin/favorites', icon: 'favorite_border' },
       { label: 'Inbox', path: '/admin/inbox', icon: 'mail_outline' },
@@ -77,7 +77,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed = false }) => {
 
             <div className="space-y-1">
               {group.items.map((item) => {
-                const isActive = item.path === '/admin' ? currentPath === '/admin' : currentPath.startsWith(item.path);
+                const isActive =
+                  item.path === '/admin/dashboard'
+                    ? currentPath === '/admin/dashboard'
+                    : currentPath.startsWith(item.path);
                 return (
                   <Link
                     key={item.path}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/store/HomePage';
 import SearchResults from '@/pages/store/SearchResults';
@@ -57,7 +57,8 @@ const AppRoutes: React.FC = () => (
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
     <Route element={<AdminLayout />}>
-      <Route path="/admin" element={<DashboardPage />} />
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin/dashboard" element={<DashboardPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
       <Route path="/admin/products/:id" element={<ProductFormPage />} />

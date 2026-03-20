@@ -11,7 +11,7 @@ const SEOSettingsPage: React.FC = () => {
         </div>
 
         <Link
-          to="/admin"
+          to="/admin/dashboard"
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <span className="material-icons text-[18px]">arrow_back</span>
