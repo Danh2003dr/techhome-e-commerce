@@ -145,25 +145,25 @@ const HomePage: React.FC = () => {
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <main className="container mx-auto px-4 py-8">
         {/* Hero Banner - Full Width */}
-        <section className="mb-12">
-          <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[500px] md:h-[600px]">
+        <section className="mb-10 md:mb-12">
+          <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[240px] sm:h-[300px] md:h-[360px] lg:h-[400px]">
             <img
               src={heroBanner.image}
               alt={heroBanner.title}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent flex items-center p-12">
-              <div className="max-w-md text-white">
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent flex items-center p-6 sm:p-8 md:p-10">
+              <div className="max-w-[320px] md:max-w-md text-white">
                 <span className="inline-block bg-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded mb-4">
                   {heroBanner.subtitle}
                 </span>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{heroBanner.title}</h2>
-                <p className="text-slate-200 mb-8 font-medium text-lg">
+                <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold mb-3 md:mb-4 leading-tight">{heroBanner.title}</h2>
+                <p className="text-slate-200 mb-5 md:mb-7 font-medium text-sm sm:text-base md:text-lg">
                   Experience lightning-fast performance and crystal clear displays.
                 </p>
                 <Link
                   to={heroBanner.link}
-                  className="inline-block bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg"
+                  className="inline-block bg-primary hover:bg-blue-600 text-white font-bold py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg text-sm md:text-base"
                 >
                   {heroBanner.linkText}
                 </Link>
@@ -172,9 +172,9 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        <section className="mb-16">
-          <h3 className="text-xl font-bold mb-8 text-slate-900 dark:text-white">Shop by Category</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+        <section className="mb-14 md:mb-16">
+          <h3 className="text-xl font-bold mb-6 md:mb-7 text-slate-900 dark:text-white">Shop by Category</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 sm:gap-5">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -193,8 +193,8 @@ const HomePage: React.FC = () => {
                 }
                 className="group text-center"
               >
-                <div className="w-full aspect-square rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-8 transition-all hover:border-primary hover:shadow-lg mb-4">
-                  <span className="material-icons text-5xl text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
+                <div className="w-[88px] h-[88px] sm:w-[92px] sm:h-[92px] mx-auto rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-5 sm:p-6 transition-all hover:border-primary hover:shadow-lg mb-3">
+                  <span className="material-icons text-[30px] sm:text-[32px] text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
                     {categoryIcons[cat.icon] || cat.icon}
                   </span>
                 </div>
