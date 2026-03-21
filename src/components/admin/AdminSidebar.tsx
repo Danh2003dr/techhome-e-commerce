@@ -85,7 +85,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed = false }) => {
                 const isActive =
                   item.path === '/admin/dashboard'
                     ? currentPath === '/admin/dashboard'
-                    : currentPath.startsWith(item.path);
+                    : item.path === '/admin/products'
+                      ? currentPath === '/admin/products' ||
+                        (currentPath.startsWith('/admin/products/') &&
+                          !currentPath.startsWith('/admin/products/stock'))
+                      : item.path === '/admin/products/stock'
+                        ? currentPath === '/admin/products/stock'
+                        : currentPath.startsWith(item.path);
                 return (
                   <Link
                     key={item.path}

@@ -25,6 +25,7 @@ import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
+import ProductStockPage from '@/pages/admin/products/ProductStockPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
@@ -60,6 +61,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
+      <Route path="/admin/products/stock" element={<ProductStockPage />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
       <Route path="/admin/products/:id" element={<ProductFormPage />} />
 
