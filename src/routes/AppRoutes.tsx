@@ -28,6 +28,7 @@ import ProductFormPage from '@/pages/admin/products/ProductFormPage';
 import ProductStockPage from '@/pages/admin/products/ProductStockPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
+import InvoicePage from '@/pages/admin/orders/InvoicePage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 
 const AppRoutes: React.FC = () => (
@@ -67,6 +68,7 @@ const AppRoutes: React.FC = () => (
 
       <Route path="/admin/orders" element={<OrderListPage />} />
       <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
+      <Route path="/admin/orders/invoice" element={<InvoicePage />} />
 
       <Route path="/admin/seo" element={<SEOSettingsPage />} />
     </Route>
