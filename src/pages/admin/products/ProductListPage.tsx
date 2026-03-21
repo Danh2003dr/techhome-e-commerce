@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+
+const PAGE_SIZE = 20;
 
 /** Mock data — thay bằng API khi có backend */
 type AdminProductCardModel = {
@@ -13,13 +15,9 @@ type AdminProductCardModel = {
   initialFavorite?: boolean;
 };
 
-const MOCK_PRODUCTS: AdminProductCardModel[] = [
+const BASE_MOCK_TEMPLATES: Omit<AdminProductCardModel, 'id' | 'name' | 'reviewCount' | 'priceUsd'>[] = [
   {
-    id: '1',
-    name: 'Apple Watch Series 4',
-    priceUsd: 120,
     rating: 5,
-    reviewCount: 131,
     images: [
       'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&h=600&fit=crop&auto=format',
@@ -27,11 +25,7 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: true,
   },
   {
-    id: '2',
-    name: 'Air-Max-270',
-    priceUsd: 60,
     rating: 4,
-    reviewCount: 98,
     images: [
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&h=600&fit=crop&auto=format',
@@ -39,11 +33,7 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: false,
   },
   {
-    id: '3',
-    name: 'Minimal Chair Tool',
-    priceUsd: 89,
     rating: 5,
-    reviewCount: 64,
     images: [
       'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1503602642458-232111445657?w=600&h=600&fit=crop&auto=format',
@@ -51,11 +41,7 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: false,
   },
   {
-    id: '4',
-    name: 'Wireless Earbuds Pro',
-    priceUsd: 149,
     rating: 5,
-    reviewCount: 210,
     images: [
       'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=600&h=600&fit=crop&auto=format',
@@ -63,11 +49,7 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: true,
   },
   {
-    id: '5',
-    name: 'Desk Lamp Minimal',
-    priceUsd: 45,
     rating: 5,
-    reviewCount: 88,
     images: [
       'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=600&fit=crop&auto=format',
@@ -75,11 +57,7 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: false,
   },
   {
-    id: '6',
-    name: 'Smart Speaker Mini',
-    priceUsd: 79,
     rating: 5,
-    reviewCount: 142,
     images: [
       'https://images.unsplash.com/photo-1589492477829-5e65395b96cc?w=600&h=600&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&fit=crop&auto=format',
@@ -87,6 +65,55 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = [
     initialFavorite: false,
   },
 ];
+
+const PRODUCT_NAME_PREFIXES = [
+  'Apple Watch Series 4',
+  'Air-Max-270',
+  'Minimal Chair Tool',
+  'Wireless Earbuds Pro',
+  'Desk Lamp Minimal',
+  'Smart Speaker Mini',
+];
+
+/** ~45 bản ghi demo để thử phân trang (thay bằng tổng từ API) */
+const MOCK_PRODUCTS: AdminProductCardModel[] = Array.from({ length: 45 }, (_, i) => {
+  const t = BASE_MOCK_TEMPLATES[i % BASE_MOCK_TEMPLATES.length];
+  const nameBase = PRODUCT_NAME_PREFIXES[i % PRODUCT_NAME_PREFIXES.length];
+  return {
+    ...t,
+    id: String(i + 1),
+    name: `${nameBase} #${i + 1}`,
+    priceUsd: 45 + (i % 12) * 10 + (i % 3) * 5,
+    reviewCount: 60 + i * 3,
+  };
+});
+
+/** Số trang hiển thị dạng 1,2,3,…,10 */
+function getPaginationPages(current: number, total: number): (number | 'ellipsis')[] {
+  if (total <= 0) return [];
+  if (total <= 9) {
+    return Array.from({ length: total }, (_, idx) => idx + 1);
+  }
+  const pages: (number | 'ellipsis')[] = [];
+  pages.push(1);
+
+  let left = Math.max(2, current - 1);
+  let right = Math.min(total - 1, current + 1);
+
+  if (current <= 3) {
+    left = 2;
+    right = 4;
+  } else if (current >= total - 2) {
+    left = total - 3;
+    right = total - 1;
+  }
+
+  if (left > 2) pages.push('ellipsis');
+  for (let p = left; p <= right; p++) pages.push(p);
+  if (right < total - 1) pages.push('ellipsis');
+  pages.push(total);
+  return pages;
+}
 
 const formatUsd = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -184,7 +211,87 @@ const ProductCard: React.FC<{ product: AdminProductCardModel }> = ({ product }) 
   );
 };
 
+const paginationBtnBase =
+  'min-w-[36px] h-9 px-2 inline-flex items-center justify-center rounded-md border text-sm font-semibold transition-colors';
+const paginationInactive = `${paginationBtnBase} border-slate-200 bg-white text-slate-800 hover:bg-slate-50`;
+const paginationActive = `${paginationBtnBase} border-primary bg-primary text-white font-bold hover:bg-blue-600`;
+
+type PaginationBarProps = {
+  page: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+};
+
+const PaginationBar: React.FC<PaginationBarProps> = ({ page, totalPages, onPageChange }) => {
+  const items = useMemo(() => getPaginationPages(page, totalPages), [page, totalPages]);
+
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="flex w-full justify-center pt-6">
+      <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang danh sách sản phẩm">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          aria-label="Trang trước"
+          className={`${paginationInactive} disabled:opacity-40 disabled:pointer-events-none disabled:hover:bg-white`}
+        >
+          <span className="material-icons text-[20px] leading-none">chevron_left</span>
+        </button>
+
+        {items.map((item, idx) =>
+          item === 'ellipsis' ? (
+            <span
+              key={`ellipsis-${idx}`}
+              className="min-w-[36px] h-9 inline-flex items-center justify-center text-slate-500 select-none text-sm font-semibold"
+              aria-hidden
+            >
+              ...
+            </span>
+          ) : (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onPageChange(item)}
+              aria-label={`Trang ${item}`}
+              aria-current={item === page ? 'page' : undefined}
+              className={item === page ? paginationActive : paginationInactive}
+            >
+              {item}
+            </button>
+          ),
+        )}
+
+        <button
+          type="button"
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          aria-label="Trang sau"
+          className={`${paginationInactive} disabled:opacity-40 disabled:pointer-events-none disabled:hover:bg-white`}
+        >
+          <span className="material-icons text-[20px] leading-none">chevron_right</span>
+        </button>
+      </nav>
+    </div>
+  );
+};
+
 const ProductListPage: React.FC = () => {
+  const totalPages = Math.max(1, Math.ceil(MOCK_PRODUCTS.length / PAGE_SIZE));
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return MOCK_PRODUCTS.slice(start, start + PAGE_SIZE);
+  }, [page]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -205,10 +312,12 @@ const ProductListPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {MOCK_PRODUCTS.map((p) => (
+        {pageItems.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
       </div>
+
+      <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };

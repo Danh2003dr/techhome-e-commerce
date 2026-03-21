@@ -50,13 +50,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed = false }) => {
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
-      <div className={`px-4 pt-6 pb-4 transition-all duration-300 ${collapsed ? 'px-0' : 'px-6'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/90 flex items-center justify-center text-white">
-            <span className="material-icons text-[22px]">dashboard</span>
+      {/* Cùng cấu trúc padding với <nav> (px-4) + mỗi Link (px-3) để icon/logo thẳng hàng khi sidebar thu gọn */}
+      <div className="px-4 pt-6 pb-4 transition-all duration-300">
+        <div className="flex items-center gap-3 px-3">
+          <div
+            className={`bg-primary/90 flex items-center justify-center text-white shrink-0 ${
+              collapsed ? 'w-6 h-6 rounded-lg' : 'w-10 h-10 rounded-xl'
+            }`}
+          >
+            <span className={`material-icons ${collapsed ? 'text-[18px]' : 'text-[22px]'}`}>dashboard</span>
           </div>
           {!collapsed && (
-            <div className="leading-tight">
+            <div className="leading-tight min-w-0">
               <div className="text-sm font-semibold text-slate-900">DashStack</div>
               <div className="text-[11px] font-medium uppercase tracking-wider text-slate-500">TechHome Admin</div>
             </div>
