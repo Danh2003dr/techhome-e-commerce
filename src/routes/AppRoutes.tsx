@@ -30,6 +30,7 @@ import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
+import CalendarPage from '@/pages/admin/CalendarPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -61,6 +62,7 @@ const AppRoutes: React.FC = () => (
     <Route element={<AdminLayout />}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
+      <Route path="/admin/calendar" element={<CalendarPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/products/stock" element={<ProductStockPage />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
