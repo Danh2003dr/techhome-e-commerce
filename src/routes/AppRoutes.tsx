@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/store/HomePage';
 import SearchResults from '@/pages/store/SearchResults';
@@ -21,6 +21,16 @@ import WishlistPage from '@/pages/account/WishlistPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import DashboardPage from '@/pages/admin/DashboardPage';
+import ProductListPage from '@/pages/admin/products/ProductListPage';
+import ProductFormPage from '@/pages/admin/products/ProductFormPage';
+import ProductStockPage from '@/pages/admin/products/ProductStockPage';
+import OrderListPage from '@/pages/admin/orders/OrderListPage';
+import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
+import InvoicePage from '@/pages/admin/orders/InvoicePage';
+import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
+import CalendarPage from '@/pages/admin/CalendarPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -49,6 +59,22 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
+    <Route element={<AdminLayout />}>
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin/dashboard" element={<DashboardPage />} />
+      <Route path="/admin/calendar" element={<CalendarPage />} />
+      <Route path="/admin/products" element={<ProductListPage />} />
+      <Route path="/admin/products/stock" element={<ProductStockPage />} />
+      <Route path="/admin/products/new" element={<ProductFormPage />} />
+      <Route path="/admin/products/:id" element={<ProductFormPage />} />
+
+      {/* Static path must be before :orderId so "invoice" is not captured as orderId */}
+      <Route path="/admin/orders/invoice" element={<InvoicePage />} />
+      <Route path="/admin/orders" element={<OrderListPage />} />
+      <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
+
+      <Route path="/admin/seo" element={<SEOSettingsPage />} />
+    </Route>
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>
 );
