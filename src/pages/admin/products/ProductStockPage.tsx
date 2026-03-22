@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
 import ProductStockModal from './components/ProductStockModal';
 import ProductStockTable from './components/ProductStockTable';
 import { INITIAL_STOCK_PRODUCTS, type StockProduct } from './productStockMock';
@@ -64,6 +65,8 @@ const ProductStockPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AdminProductsTabs />
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Product Stock</h1>

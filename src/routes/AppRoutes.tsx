@@ -66,9 +66,10 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin/products/new" element={<ProductFormPage />} />
       <Route path="/admin/products/:id" element={<ProductFormPage />} />
 
+      {/* Static path must be before :orderId so "invoice" is not captured as orderId */}
+      <Route path="/admin/orders/invoice" element={<InvoicePage />} />
       <Route path="/admin/orders" element={<OrderListPage />} />
       <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
-      <Route path="/admin/orders/invoice" element={<InvoicePage />} />
 
       <Route path="/admin/seo" element={<SEOSettingsPage />} />
     </Route>

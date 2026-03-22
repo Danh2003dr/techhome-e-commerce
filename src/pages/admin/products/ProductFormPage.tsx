@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
 
 const ProductFormPage: React.FC = () => {
   const params = useParams();
@@ -8,6 +9,8 @@ const ProductFormPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <AdminProductsTabs />
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">{isEdit ? 'Edit Product' : 'New Product'}</h1>

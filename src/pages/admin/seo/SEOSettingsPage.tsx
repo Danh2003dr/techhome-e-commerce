@@ -6,7 +6,7 @@ const SEOSettingsPage: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900">SEO Settings</h1>
+          <h1 className="text-xl font-extrabold text-slate-900">Settings</h1>
           <p className="text-xs font-semibold text-slate-500">Trống (sẽ nối API + save)</p>
         </div>
 
@@ -21,7 +21,7 @@ const SEOSettingsPage: React.FC = () => {
 
       <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
-          <div className="text-sm font-bold text-slate-900">SEO Form (placeholder)</div>
+          <div className="text-sm font-bold text-slate-900">Settings form (placeholder)</div>
           <div className="text-xs font-semibold text-slate-500">Title / Description / Keywords / Meta tags</div>
         </div>
 

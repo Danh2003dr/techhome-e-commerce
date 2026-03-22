@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 type InvoiceParty = {
   name: string;
@@ -42,6 +43,18 @@ const MOCK_INVOICE: InvoiceData = {
 const formatCurrency = (value: number) => `$${value}`;
 
 const InvoicePage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('orderId');
+  const autoprint = searchParams.get('autoprint') === '1';
+
+  useEffect(() => {
+    if (!autoprint) return;
+    const t = window.setTimeout(() => {
+      window.print();
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [autoprint]);
+
   const rows = useMemo(
     () =>
       MOCK_INVOICE.items.map((item) => ({
@@ -73,8 +86,22 @@ const InvoicePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[32px] leading-[44px] font-semibold tracking-tight text-[#202224]">Invoice</h1>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-[32px] leading-[44px] font-semibold tracking-tight text-[#202224]">Invoice</h1>
+          {orderId && (
+            <p className="text-sm font-semibold text-slate-500 mt-1">
+              Order ID: <span className="text-slate-800">{orderId}</span>
+            </p>
+          )}
+        </div>
+        <Link
+          to="/admin/orders"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <span className="material-icons text-[18px]">arrow_back</span>
+          Back to Orders
+        </Link>
       </div>
 
       <section className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 md:p-7 lg:p-8">

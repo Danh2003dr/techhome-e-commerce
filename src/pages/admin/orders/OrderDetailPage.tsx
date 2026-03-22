@@ -1,13 +1,24 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 const OrderDetailPage: React.FC = () => {
   const params = useParams();
   const orderId = params.orderId;
+  const navigate = useNavigate();
+
+  const invoiceHref =
+    orderId != null
+      ? `/admin/orders/invoice?orderId=${encodeURIComponent(orderId)}`
+      : '/admin/orders/invoice';
+
+  const handleDownloadPdf = () => {
+    if (orderId == null) return;
+    navigate(`/admin/orders/invoice?orderId=${encodeURIComponent(orderId)}&autoprint=1`);
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Order Detail</h1>
           <p className="text-xs font-semibold text-slate-500">
@@ -15,13 +26,34 @@ const OrderDetailPage: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/admin/orders"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <span className="material-icons text-[18px]">arrow_back</span>
-          Back
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {orderId != null && (
+            <>
+              <Link
+                to={invoiceHref}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <span className="material-icons text-[18px]">description</span>
+                Generate Invoice
+              </Link>
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+              >
+                <span className="material-icons text-[18px]">picture_as_pdf</span>
+                Download PDF
+              </button>
+            </>
+          )}
+          <Link
+            to="/admin/orders"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <span className="material-icons text-[18px]">arrow_back</span>
+            Back
+          </Link>
+        </div>
       </div>
 
       <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
 
 const PAGE_SIZE = 20;
 
@@ -294,6 +295,8 @@ const ProductListPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AdminProductsTabs />
+
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">
