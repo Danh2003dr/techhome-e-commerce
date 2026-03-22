@@ -1,108 +1,187 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
-import { generateInvoicePDF } from '@/utils/generateInvoicePDF';
+type InvoiceParty = {
+  name: string;
+  address: string;
+};
+
+type InvoiceItem = {
+  id: number;
+  description: string;
+  quantity: number;
+  baseCost: number;
+};
+
+type InvoiceData = {
+  from: InvoiceParty;
+  to: InvoiceParty;
+  invoiceDate: string;
+  dueDate: string;
+  items: InvoiceItem[];
+};
+
+const MOCK_INVOICE: InvoiceData = {
+  from: {
+    name: 'Virginia Walker',
+    address: '9694 Krajcik Locks Suite 635',
+  },
+  to: {
+    name: 'Austin Miller',
+    address: 'Brookview',
+  },
+  invoiceDate: '12 Nov 2019',
+  dueDate: '25 Dec 2019',
+  items: [
+    { id: 1, description: 'Children Toy', quantity: 2, baseCost: 20 },
+    { id: 2, description: 'Makeup', quantity: 2, baseCost: 50 },
+    { id: 3, description: 'Asus Laptop', quantity: 5, baseCost: 100 },
+    { id: 4, description: 'Iphone X', quantity: 4, baseCost: 1000 },
+  ],
+};
+
+const formatCurrency = (value: number) => `$${value}`;
 
 const InvoicePage: React.FC = () => {
-  const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('orderId');
+  const autoprint = searchParams.get('autoprint') === '1';
+
+  useEffect(() => {
+    if (!autoprint) return;
+    const t = window.setTimeout(() => {
+      window.print();
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [autoprint]);
+
+  const rows = useMemo(
+    () =>
+      MOCK_INVOICE.items.map((item) => ({
+        ...item,
+        totalCost: item.quantity * item.baseCost,
+      })),
+    [],
+  );
+
+  const totalAmount = useMemo(() => rows.reduce((sum, item) => sum + item.totalCost, 0), [rows]);
+
+  const handlePrint = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
+
+  const sendInvoice = () => {
+    // TODO: Replace with API call when backend endpoint is available.
+    console.log('Sending invoice...', {
+      from: MOCK_INVOICE.from,
+      to: MOCK_INVOICE.to,
+      invoiceDate: MOCK_INVOICE.invoiceDate,
+      dueDate: MOCK_INVOICE.dueDate,
+      items: rows,
+      totalAmount,
+    });
+  };
 
   return (
-    <div className="admin-content-grid">
-      <h1 className="admin-page-title">Invoice #{orderId}</h1>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-[32px] leading-[44px] font-semibold tracking-tight text-[#202224]">Invoice</h1>
+          {orderId && (
+            <p className="text-sm font-semibold text-slate-500 mt-1">
+              Order ID: <span className="text-slate-800">{orderId}</span>
+            </p>
+          )}
+        </div>
+        <Link
+          to="/admin/orders"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <span className="material-icons text-[18px]">arrow_back</span>
+          Back to Orders
+        </Link>
+      </div>
 
-      <section className="admin-card">
-        <div className="admin-invoice-meta">
-          <div>
-            <div className="admin-invoice-meta-title">Invoice To</div>
-            <div className="admin-invoice-meta-value">Christine Brooks</div>
-            <div className="admin-invoice-meta-sub">089 Kutch Green Apt.</div>
+      <section className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 md:p-7 lg:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold text-slate-500">Invoice From :</p>
+            <p className="text-base font-semibold text-slate-900">{MOCK_INVOICE.from.name}</p>
+            <p className="text-sm font-medium text-slate-500">{MOCK_INVOICE.from.address}</p>
           </div>
-          <div>
-            <div className="admin-invoice-meta-title">Invoice From</div>
-            <div className="admin-invoice-meta-value">TechHome E-Commerce</div>
-            <div className="admin-invoice-meta-sub">support@techhome.example</div>
+
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold text-slate-500">Invoice To :</p>
+            <p className="text-base font-semibold text-slate-900">{MOCK_INVOICE.to.name}</p>
+            <p className="text-sm font-medium text-slate-500">{MOCK_INVOICE.to.address}</p>
           </div>
-          <div>
-            <div className="admin-invoice-meta-title">Issue Date</div>
-            <div className="admin-invoice-meta-value">04 Sep 2019</div>
-          </div>
-          <div>
-            <div className="admin-invoice-meta-title">Due Date</div>
-            <div className="admin-invoice-meta-value">04 Oct 2019</div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold text-slate-500">Invoice Date :</span>
+              <span className="font-semibold text-slate-900">{MOCK_INVOICE.invoiceDate}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold text-slate-500">Due Date :</span>
+              <span className="font-semibold text-slate-900">{MOCK_INVOICE.dueDate}</span>
+            </div>
           </div>
         </div>
 
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Serial</th>
-              <th>Description</th>
-              <th>Quantity</th>
-              <th>Base Cost</th>
-              <th>Total Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>Children Toy</td>
-              <td>2</td>
-              <td>$20</td>
-              <td>$40</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Makeup</td>
-              <td>2</td>
-              <td>$50</td>
-              <td>$100</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>Asian Laptop</td>
-              <td>5</td>
-              <td>$100</td>
-              <td>$500</td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td>iPhone X</td>
-              <td>4</td>
-              <td>$1000</td>
-              <td>$4000</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full min-w-[680px] border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-slate-100/90">
+                <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-l-xl">Serial No.</th>
+                <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Description</th>
+                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Quantity</th>
+                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Base Cost</th>
+                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-r-xl">Total Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-5 py-4 text-sm text-slate-700 border-b border-slate-100">{item.id}</td>
+                  <td className="px-5 py-4 text-sm font-medium text-slate-800 border-b border-slate-100">{item.description}</td>
+                  <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{item.quantity}</td>
+                  <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{formatCurrency(item.baseCost)}</td>
+                  <td className="px-5 py-4 text-sm text-right text-slate-800 font-semibold border-b border-slate-100">
+                    {formatCurrency(item.totalCost)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <div className="admin-invoice-summary">
-          <div />
-          <div />
-          <div />
-          <div className="admin-invoice-total">
-            <div style={{ fontWeight: 800, marginBottom: 6, color: '#2a3448' }}>Total</div>
-            <div style={{ fontSize: 22, fontWeight: 900 }}>$4640</div>
+        <div className="mt-5 flex justify-end">
+          <div className="flex items-center gap-4 text-lg">
+            <span className="text-slate-700">Total</span>
+            <span className="font-bold text-slate-900">=</span>
+            <span className="font-extrabold text-slate-900">{formatCurrency(totalAmount)}</span>
           </div>
         </div>
 
-        <div className="admin-form-actions">
+        <div className="mt-8 flex justify-end items-center gap-3">
           <button
-            className="admin-btn secondary"
             type="button"
-            onClick={() => {
-              void generateInvoicePDF({ orderId });
-            }}
+            onClick={handlePrint}
+            className="w-11 h-11 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors inline-flex items-center justify-center"
+            aria-label="Print invoice"
           >
-            Print
+            <span className="material-icons text-[20px]">print</span>
           </button>
+
           <button
-            className="admin-btn"
             type="button"
-            onClick={() => {
-              // Placeholder: download/pdf generation can be wired later.
-              void generateInvoicePDF({ orderId });
-            }}
+            onClick={sendInvoice}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#4880FF] text-white font-semibold text-sm px-5 h-11 hover:bg-[#3E73E8] transition-colors"
           >
-            Download PDF
+            Send
+            <span className="material-icons text-[18px]">send</span>
           </button>
         </div>
       </section>

@@ -122,11 +122,8 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
   );
 }
 
-const PROMO_IMAGE =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCW_DKot_SgA4oN0d4oZKWOebmbok17z_1w2ouERo8ChXoK4gX1ZkZLAqhmuaGnQFqNTFWtDJsVEjGLimWvPUyQ4iRwVtZk4vsdtCCeNdwJ-WPNZcWNPa0wZUh1UO4c7yTSKxZJVusT4_MRFglHh0eBZJEBfT1FdUeNAstQWrSsVTJZ6J7W9IIOse8k52nTOk1IIi9AHpZ8l4s6vqNjTTV1XyuWpZIPneqE2gjpCyXrwI4O-jammcoFp7gRY5orxIhDeg_X6sIzExg';
-
 const HomePage: React.FC = () => {
-  const [heroBanner, ...smallerBanners] = banners;
+  const [heroBanner] = banners;
   const [activeTab, setActiveTab] = useState<'new' | 'bestseller' | 'featured'>('new');
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
   const { data: apiCategories, loading: categoriesLoading } = useApiCategories();
@@ -148,25 +145,25 @@ const HomePage: React.FC = () => {
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <main className="container mx-auto px-4 py-8">
         {/* Hero Banner - Full Width */}
-        <section className="mb-12">
-          <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[500px] md:h-[600px]">
+        <section className="mb-10 md:mb-12">
+          <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[240px] sm:h-[300px] md:h-[360px] lg:h-[400px]">
             <img
               src={heroBanner.image}
               alt={heroBanner.title}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent flex items-center p-12">
-              <div className="max-w-md text-white">
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent flex items-center p-6 sm:p-8 md:p-10">
+              <div className="max-w-[320px] md:max-w-md text-white">
                 <span className="inline-block bg-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded mb-4">
                   {heroBanner.subtitle}
                 </span>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{heroBanner.title}</h2>
-                <p className="text-slate-200 mb-8 font-medium text-lg">
+                <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold mb-3 md:mb-4 leading-tight">{heroBanner.title}</h2>
+                <p className="text-slate-200 mb-5 md:mb-7 font-medium text-sm sm:text-base md:text-lg">
                   Experience lightning-fast performance and crystal clear displays.
                 </p>
                 <Link
                   to={heroBanner.link}
-                  className="inline-block bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg"
+                  className="inline-block bg-primary hover:bg-blue-600 text-white font-bold py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg text-sm md:text-base"
                 >
                   {heroBanner.linkText}
                 </Link>
@@ -175,56 +172,9 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Smaller Banners Section */}
-        {smallerBanners.length > 0 && (
-          <section className="mb-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Left: Wide banner */}
-              <div className="md:col-span-2">
-                <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[300px] md:h-[400px]">
-                  <img
-                    src={smallerBanners[0].image}
-                    alt={smallerBanners[0].title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-transparent flex items-center p-8">
-                    <div className="max-w-xs text-white">
-                      <span className="inline-block bg-emerald-500 text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded mb-3">
-                        {smallerBanners[0].subtitle}
-                      </span>
-                      <h3 className="text-2xl md:text-3xl font-bold mb-3 leading-tight">{smallerBanners[0].title}</h3>
-                      <Link
-                        to={smallerBanners[0].link}
-                        className="inline-block bg-white text-slate-900 hover:bg-slate-100 font-bold py-2 px-6 rounded-lg transition-all text-sm"
-                      >
-                        {smallerBanners[0].linkText}
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Right: Placeholder for additional smaller banners (can be added later) */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* Square banner 1 - Placeholder */}
-                <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[190px] md:h-[195px]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800/60 to-slate-900/80 flex items-center justify-center">
-                    <p className="text-white text-sm font-semibold">More Products</p>
-                  </div>
-                </div>
-                {/* Square banner 2 - Placeholder */}
-                <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[190px] md:h-[195px]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800/60 to-slate-900/80 flex items-center justify-center">
-                    <p className="text-white text-sm font-semibold">Coming Soon</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section className="mb-16">
-          <h3 className="text-xl font-bold mb-8 text-slate-900 dark:text-white">Shop by Category</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+        <section className="mb-14 md:mb-16">
+          <h3 className="text-xl font-bold mb-6 md:mb-7 text-slate-900 dark:text-white">Shop by Category</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 sm:gap-5">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -243,8 +193,8 @@ const HomePage: React.FC = () => {
                 }
                 className="group text-center"
               >
-                <div className="w-full aspect-square rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-8 transition-all hover:border-primary hover:shadow-lg mb-4">
-                  <span className="material-icons text-5xl text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
+                <div className="w-[88px] h-[88px] sm:w-[92px] sm:h-[92px] mx-auto rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-5 sm:p-6 transition-all hover:border-primary hover:shadow-lg mb-3">
+                  <span className="material-icons text-[30px] sm:text-[32px] text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
                     {categoryIcons[cat.icon] || cat.icon}
                   </span>
                 </div>
@@ -349,25 +299,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        <section className="mb-16 bg-slate-900 rounded-2xl overflow-hidden text-white flex flex-col md:flex-row items-center">
-          <div className="p-12 md:w-1/2">
-            <h3 className="text-3xl font-bold mb-4">Thành viên TechHome Plus tiết kiệm hơn</h3>
-            <p className="text-slate-400 mb-8 text-lg">
-              Tham gia ngay để nhận ưu đãi hàng tuần, giao hàng ngày hôm sau miễn phí và hỗ trợ kỹ thuật 24/7.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                Tham gia ngay
-              </a>
-              <a href="#" className="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                Tìm hiểu thêm
-              </a>
-            </div>
-          </div>
-          <div className="md:w-1/2 h-64 md:h-auto self-stretch min-h-[200px]">
-            <img src={PROMO_IMAGE} alt="Support team" className="w-full h-full object-cover opacity-60" />
-          </div>
-        </section>
       </main>
     </div>
   );

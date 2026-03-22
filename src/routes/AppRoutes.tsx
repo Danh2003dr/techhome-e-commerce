@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/store/HomePage';
 import SearchResults from '@/pages/store/SearchResults';
@@ -22,22 +22,15 @@ import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
-import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import DashboardPage from '@/pages/admin/DashboardPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
+import ProductStockPage from '@/pages/admin/products/ProductStockPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
-import OrderListsVariantPage from '@/pages/admin/orders/OrderListsVariantPage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
-import InboxPage from '@/pages/admin/inbox/InboxPage';
-import InboxListVariantPage from '@/pages/admin/inbox/InboxListVariantPage';
-import CalendarPage from '@/pages/admin/calendar/CalendarPage';
-import TodoListPage from '@/pages/admin/todo/TodoListPage';
-import PrivateRoute from '@/routes/PrivateRoute';
-import InboxThreadPage from '@/pages/admin/inbox/InboxThreadPage';
-import CalendarEventFormPage from '@/pages/admin/calendar/CalendarEventFormPage';
-import TodoAddPage from '@/pages/admin/todo/TodoAddPage';
+import CalendarPage from '@/pages/admin/CalendarPage';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -66,30 +59,22 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
+    <Route element={<AdminLayout />}>
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin/dashboard" element={<DashboardPage />} />
+      <Route path="/admin/calendar" element={<CalendarPage />} />
+      <Route path="/admin/products" element={<ProductListPage />} />
+      <Route path="/admin/products/stock" element={<ProductStockPage />} />
+      <Route path="/admin/products/new" element={<ProductFormPage />} />
+      <Route path="/admin/products/:id" element={<ProductFormPage />} />
 
-    {/* Admin routes (DashStack UI - static first, logic wired later) */}
-    <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
-      <Route index element={<AdminDashboardPage />} />
-      <Route path="products" element={<ProductListPage />} />
-      <Route path="products/new" element={<ProductFormPage />} />
-      <Route path="products/:id" element={<ProductFormPage />} />
-      <Route
-        path="orders"
-        element={<OrderListPage initialVariant={{ openModal: null, dateFilter: '14 Feb 2019', selectedTypes: [], selectedStatuses: [] }} />}
-      />
-      <Route path="orders/dash/:variantId" element={<OrderListsVariantPage />} />
-      <Route path="orders/:orderId" element={<OrderDetailPage />} />
-      <Route path="orders/:orderId/invoice" element={<InvoicePage />} />
-      <Route path="seo" element={<SEOSettingsPage />} />
-      <Route path="inbox" element={<InboxPage />} />
-      <Route path="inbox/:threadId" element={<InboxThreadPage />} />
-      <Route path="inbox/dash/:variantId" element={<InboxListVariantPage />} />
-      <Route path="calendar" element={<CalendarPage />} />
-      <Route path="calendar/new" element={<CalendarEventFormPage />} />
-      <Route path="todo" element={<TodoListPage />} />
-      <Route path="todo/new" element={<TodoAddPage />} />
+      {/* Static path must be before :orderId so "invoice" is not captured as orderId */}
+      <Route path="/admin/orders/invoice" element={<InvoicePage />} />
+      <Route path="/admin/orders" element={<OrderListPage />} />
+      <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
+
+      <Route path="/admin/seo" element={<SEOSettingsPage />} />
     </Route>
-
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>
 );
