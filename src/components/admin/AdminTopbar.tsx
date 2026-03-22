@@ -1,13 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-
-type LanguageOption = { id: string; label: string };
-
-const languageOptions: LanguageOption[] = [
-  { id: 'en', label: 'English' },
-  { id: 'vi', label: 'Tiếng Việt' },
-];
 
 const getInitials = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -26,12 +19,6 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-
-  const [languageId, setLanguageId] = useState<string>('en');
-  const activeLanguage = useMemo(
-    () => languageOptions.find((x) => x.id === languageId) ?? languageOptions[0],
-    [languageId],
-  );
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -85,24 +72,6 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
           >
             <span className="material-icons text-slate-600 dark:text-slate-300">notifications_none</span>
           </button>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{activeLanguage.id.toUpperCase()}</span>
-            </div>
-            <select
-              value={languageId}
-              onChange={(e) => setLanguageId(e.target.value)}
-              className="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-transparent outline-none cursor-pointer"
-              aria-label="Language"
-            >
-              {languageOptions.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
 
           <div className="relative" ref={profileRef}>
             <button
