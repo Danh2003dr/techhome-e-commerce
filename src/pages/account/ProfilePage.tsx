@@ -22,7 +22,6 @@ export interface ProfileExtension {
   phone: string;
   gender: string;
   dateOfBirth: string;
-  defaultAddress: string;
 }
 
 const defaultProfile: ProfileExtension = {
@@ -30,7 +29,6 @@ const defaultProfile: ProfileExtension = {
   phone: '0913955274',
   gender: '',
   dateOfBirth: '',
-  defaultAddress: '',
 };
 
 const DEFAULT_PASSWORD_UPDATED = '24/01/2024 11:46';
@@ -312,10 +310,6 @@ const ProfilePage: React.FC = () => {
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Ngày sinh</p>
                 <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.dateOfBirth, '- (Chưa cập nhật)')}</p>
               </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Địa chỉ mặc định</p>
-                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.defaultAddress, '- (Chưa cập nhật)')}</p>
-              </div>
             </div>
           </section>
 
@@ -472,16 +466,6 @@ const ProfilePage: React.FC = () => {
                   type="date"
                   value={editForm.dateOfBirth}
                   onChange={(e) => setEditForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Địa chỉ mặc định</label>
-                <input
-                  type="text"
-                  value={editForm.defaultAddress}
-                  onChange={(e) => setEditForm((f) => ({ ...f, defaultAddress: e.target.value }))}
-                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary"
                 />
               </div>

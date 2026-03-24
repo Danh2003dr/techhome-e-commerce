@@ -46,23 +46,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const isLoggedIn = Boolean(getToken());
 
   useEffect(() => {
-    if (!isApiConfigured()) {
-      setItems(loadCartFromStorage());
-      setInitialized(true);
-      return;
-    }
-    if (isLoggedIn) {
+    setItems(loadCartFromStorage());
+    setInitialized(true);
+
+    if (isApiConfigured() && isLoggedIn) {
       backend
         .getCart()
         .then((cart) => {
-          setItems(cart);
-          saveCartToStorage(cart);
+          const list = Array.isArray(cart) ? cart : [];
+          setItems(list);
+          saveCartToStorage(list);
         })
-        .catch(() => setItems(loadCartFromStorage()))
-        .finally(() => setInitialized(true));
-    } else {
-      setItems(loadCartFromStorage());
-      setInitialized(true);
+        .catch(() => {/* keep localStorage cart on API error */});
     }
   }, [isLoggedIn]);
 
@@ -76,7 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isApiConfigured() && getToken()) {
       backend
         .addCartItem({ productId, name, price, image: image || '', variant })
-        .then(setItems)
+        .then((res) => { if (Array.isArray(res)) setItems(res); })
         .catch(() => {
           setItems((prev) => {
             const existing = prev.find((i) => i.productId === productId && (i.variant ?? '') === (variant ?? ''));
@@ -123,7 +118,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isApiConfigured() && getToken()) {
       backend
         .removeCartItem(cartItemId)
-        .then(setItems)
+        .then((res) => { if (Array.isArray(res)) setItems(res); else setItems((prev) => prev.filter((i) => i.id !== cartItemId)); })
         .catch(() => setItems((prev) => prev.filter((i) => i.id !== cartItemId)));
       return;
     }
@@ -138,7 +133,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isApiConfigured() && getToken()) {
       backend
         .updateCartItemQuantity(cartItemId, quantity)
-        .then(setItems)
+        .then((res) => { if (Array.isArray(res)) setItems(res); })
         .catch(() => {
           setItems((prev) =>
             prev.map((i) => (i.id === cartItemId ? { ...i, quantity } : i))
@@ -151,11 +146,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, [removeItem]);
 
-  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const safeItems = Array.isArray(items) ? items : [];
+  const totalCount = safeItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, totalCount }}
+      value={{ items: safeItems, addItem, removeItem, updateQuantity, totalCount }}
     >
       {children}
     </CartContext.Provider>

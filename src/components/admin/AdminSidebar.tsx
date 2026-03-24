@@ -8,10 +8,11 @@ const navGroups: Array<{
 }> = [
   {
     items: [
-      { label: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
-      { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
-      { label: 'Orders', path: '/admin/orders', icon: 'receipt_long' },
-      { label: 'Settings', path: '/admin/seo', icon: 'settings' },
+      { label: 'Dashboard',   path: '/admin/dashboard',  icon: 'dashboard' },
+      { label: 'Products',    path: '/admin/products',   icon: 'inventory_2' },
+      { label: 'Categories',  path: '/admin/categories', icon: 'category' },
+      { label: 'Orders',      path: '/admin/orders',     icon: 'receipt_long' },
+      { label: 'Settings',    path: '/admin/seo',        icon: 'settings' },
     ],
   },
   {
@@ -43,6 +44,7 @@ function pathMatchesItem(currentPath: string, itemPath: string): boolean {
   if (itemPath === '/admin/orders') {
     return currentPath === '/admin/orders' || currentPath.startsWith('/admin/orders/');
   }
+  if (itemPath === '/admin/categories') return currentPath.startsWith('/admin/categories');
   if (itemPath === '/admin/seo') return currentPath.startsWith('/admin/seo');
   if (itemPath === '/login') return false;
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);

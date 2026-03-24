@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '@/features/products/components/ProductCard';
-import { searchProducts, getPopularProducts, getProductsByCategorySlug, products } from '@/data';
+import { useApiProducts, useApiFeaturedProducts, useApiCategories } from '@/hooks/useProductApi';
 
 const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -9,35 +9,30 @@ const SearchResults: React.FC = () => {
   const categorySlug = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
 
-  const results = useMemo(() => {
-    let filteredProducts: typeof products = [];
-    
-    if (categorySlug) {
-      filteredProducts = getProductsByCategorySlug(categorySlug);
-    } else if (query) {
-      filteredProducts = searchProducts(query);
-    } else if (sort === 'newest') {
-      // New Releases: Filter products with "New Release" tag
-      filteredProducts = products.filter((p) => p.tag === 'New Release');
+  const { data: categories } = useApiCategories();
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (categorySlug && categories.length > 0) {
+      const match = categories.find((c) => c.slug === categorySlug);
+      setCategoryId(match ? Number(match.id) : undefined);
     } else {
-      // Shop Categories: Show all products when no query/category
-      filteredProducts = products;
+      setCategoryId(undefined);
     }
-    
-    // Apply sorting
-    if (sort === 'newest') {
-      return [...filteredProducts].sort((a, b) => {
-        // Sort by "New Release" tag first, then by reviews (newer products might have fewer reviews initially)
-        const aIsNew = a.tag === 'New Release' ? 1 : 0;
-        const bIsNew = b.tag === 'New Release' ? 1 : 0;
-        if (aIsNew !== bIsNew) return bIsNew - aIsNew;
-        return b.reviews - a.reviews; // More reviews = newer (assuming)
-      });
-    }
-    
-    return filteredProducts;
-  }, [query, categorySlug, sort]);
-  const popularProducts = getPopularProducts(4);
+  }, [categorySlug, categories]);
+
+  const { data: rawResults, loading } = useApiProducts({
+    q: query || undefined,
+    category: categoryId,
+    size: 200,
+  });
+
+  const { data: featuredProducts } = useApiFeaturedProducts();
+
+  const results = sort === 'newest'
+    ? [...rawResults].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    : rawResults;
+
   const hasResults = results.length > 0;
 
   return (
@@ -49,29 +44,29 @@ const SearchResults: React.FC = () => {
           ) : categorySlug ? (
             <>{results.length} sản phẩm trong danh mục</>
           ) : query ? (
-            <>{(results.length)} kết quả cho <span className="text-indigo-600 italic">&quot;{query}&quot;</span></>
+            <>{results.length} kết quả cho <span className="text-indigo-600 italic">&quot;{query}&quot;</span></>
           ) : (
             'Danh mục sản phẩm'
           )}
         </h1>
-        {query && !hasResults && (
+        {query && !hasResults && !loading && (
           <p className="text-gray-500 mt-2">
             Bạn có thể tìm: <Link to="/search?q=samsung" className="text-indigo-600 font-semibold hover:underline underline-offset-4">Samsung</Link>?
           </p>
         )}
         {sort === 'newest' && (
-          <p className="text-gray-500 mt-2">
-            Khám phá sản phẩm mới nhất
-          </p>
+          <p className="text-gray-500 mt-2">Khám phá sản phẩm mới nhất</p>
         )}
         {!query && !categorySlug && !sort && (
-          <p className="text-gray-500 mt-2">
-            Duyệt tất cả danh mục sản phẩm
-          </p>
+          <p className="text-gray-500 mt-2">Duyệt tất cả danh mục sản phẩm</p>
         )}
       </div>
 
-      {hasResults ? (
+      {loading ? (
+        <div className="flex justify-center py-24">
+          <span className="material-icons animate-spin text-4xl text-primary">refresh</span>
+        </div>
+      ) : hasResults ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {results.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -98,33 +93,22 @@ const SearchResults: React.FC = () => {
               <Link to="/" className="px-8 py-3.5 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
                 Về trang chủ
               </Link>
-              <Link to="/" className="px-8 py-3.5 bg-white text-gray-700 font-bold rounded-2xl border border-gray-200 hover:border-indigo-600 transition-all">
-                Duyệt danh mục
-              </Link>
             </div>
           </div>
 
-          <div className="mt-24">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                Sản phẩm phổ biến
+          {featuredProducts.length > 0 && (
+            <div className="mt-24">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-8">
+                Sản phẩm nổi bật
                 <span className="material-icons text-indigo-600">trending_up</span>
               </h3>
-              <div className="flex gap-2">
-                <button className="p-2.5 rounded-full border border-gray-200 hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-all">
-                  <span className="material-icons">chevron_left</span>
-                </button>
-                <button className="p-2.5 rounded-full border border-gray-200 hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-all">
-                  <span className="material-icons">chevron_right</span>
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.slice(0, 4).map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {popularProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
+          )}
         </>
       )}
     </div>

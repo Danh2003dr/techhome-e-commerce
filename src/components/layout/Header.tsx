@@ -118,6 +118,7 @@ const Header: React.FC = () => {
                       <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Yêu thích
                       </Link>
+                     
                       <button type="button" onClick={() => { setAccountOpen(false); logout(); }} className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Đăng xuất
                       </button>

@@ -22,6 +22,8 @@ import type {
   CreateOrderRequest,
   OrderDto,
   ProfileDto,
+  CartDto,
+  CartItemDto,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -32,6 +34,36 @@ export interface ProductsParams {
   size?: number;
 }
 
+interface PageResponse<T> {
+  content: T[];
+  totalElements?: number;
+  totalPages?: number;
+  [key: string]: unknown;
+}
+
+/** Handle both plain array and Spring Page object from backend */
+function extractList<T>(response: T[] | PageResponse<T>): T[] {
+  if (Array.isArray(response)) return response;
+  if (response && typeof response === 'object' && Array.isArray((response as PageResponse<T>).content)) {
+    return (response as PageResponse<T>).content;
+  }
+  return [];
+}
+
+/** Map CartDto (backend) → CartItem[] (frontend) */
+function mapCartDto(dto: CartDto): CartItem[] {
+  if (!dto || !Array.isArray(dto.items)) return [];
+  return dto.items.map((item: CartItemDto) => ({
+    id: String(item.id),
+    productId: String(item.productId),
+    name: item.productName ?? '',
+    variant: item.selectedColor || item.selectedStorage || undefined,
+    price: Number(item.priceAtAdd ?? 0),
+    quantity: item.quantity ?? 1,
+    image: item.productImage ?? '',
+  }));
+}
+
 /** GET /api/health */
 export async function health(): Promise<{ status: string }> {
   return apiGet<{ status: string }>('/health', { auth: false });
@@ -39,7 +71,8 @@ export async function health(): Promise<{ status: string }> {
 
 /** GET /api/categories */
 export async function getCategories(): Promise<CategoryDto[]> {
-  return apiGet<CategoryDto[]>('/categories', { auth: false });
+  const raw = await apiGet<CategoryDto[] | PageResponse<CategoryDto>>('/categories', { auth: false });
+  return extractList(raw);
 }
 
 /** GET /api/products?category=&q=&page=&size= */
@@ -51,7 +84,8 @@ export async function getProducts(params: ProductsParams = {}): Promise<ProductD
   if (params.size != null) sp.set('size', String(params.size));
   const query = sp.toString();
   const path = query ? `/products?${query}` : '/products';
-  return apiGet<ProductDto[]>(path, { auth: false });
+  const raw = await apiGet<ProductDto[] | PageResponse<ProductDto>>(path, { auth: false });
+  return extractList(raw);
 }
 
 /** GET /api/products/{id} */
@@ -61,12 +95,100 @@ export async function getProduct(id: number | string): Promise<ProductDto> {
 
 /** GET /api/products/featured */
 export async function getFeaturedProducts(): Promise<ProductDto[]> {
-  return apiGet<ProductDto[]>('/products/featured', { auth: false });
+  const raw = await apiGet<ProductDto[] | PageResponse<ProductDto>>('/products/featured', { auth: false });
+  return extractList(raw);
 }
 
-/** POST /api/products/{id}/fetch-specs */
-export async function fetchProductSpecs(id: number | string): Promise<ProductDto> {
-  return apiPost<ProductDto>(`/products/${id}/fetch-specs`, {}, { auth: false });
+// ——— Admin: Products ———
+
+export interface AdminProductPayload {
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  price: number;
+  categoryId: number;
+  stock: number;
+  featured?: boolean;
+}
+
+// ——— File Upload ———
+
+/** POST /api/upload — upload ảnh từ máy, trả về { url } */
+export async function uploadImage(file: File): Promise<string> {
+  const { getToken } = await import('./api');
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api';
+  const res = await fetch(`${API_BASE}/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { message?: string }).message ?? `Upload lỗi ${res.status}`);
+  }
+  const data = await res.json() as { url: string };
+  return data.url;
+}
+
+// ——— Admin: Stats ———
+
+export interface AdminStats {
+  totalProducts: number;
+  totalUsers: number;
+  totalOrders: number;
+  totalCategories: number;
+}
+
+/** GET /api/admin/stats */
+export async function adminGetStats(): Promise<AdminStats> {
+  return apiGet<AdminStats>('/admin/stats', { auth: true });
+}
+
+/** GET /api/admin/products */
+export async function adminGetProducts(): Promise<ProductDto[]> {
+  const raw = await apiGet<ProductDto[] | PageResponse<ProductDto>>('/admin/products', { auth: true });
+  return extractList(raw);
+}
+
+/** POST /api/admin/products */
+export async function adminCreateProduct(body: AdminProductPayload): Promise<ProductDto> {
+  return apiPost<ProductDto>('/admin/products', body, { auth: true });
+}
+
+/** PATCH /api/admin/products/{id} */
+export async function adminUpdateProduct(id: number | string, body: Partial<AdminProductPayload>): Promise<ProductDto> {
+  return apiPatch<ProductDto>(`/admin/products/${id}`, body, { auth: true });
+}
+
+/** DELETE /api/admin/products/{id} */
+export async function adminDeleteProduct(id: number | string): Promise<void> {
+  return apiDelete<void>(`/admin/products/${id}`, { auth: true });
+}
+
+// ——— Admin: Categories ———
+
+/** GET /api/admin/categories */
+export async function adminGetCategories(): Promise<CategoryDto[]> {
+  const raw = await apiGet<CategoryDto[] | PageResponse<CategoryDto>>('/admin/categories', { auth: true });
+  return extractList(raw);
+}
+
+/** POST /api/admin/categories */
+export async function adminCreateCategory(body: { name: string; description?: string }): Promise<CategoryDto> {
+  return apiPost<CategoryDto>('/admin/categories', body, { auth: true });
+}
+
+/** PATCH /api/admin/categories/{id} */
+export async function adminUpdateCategory(id: number | string, body: { name?: string; description?: string }): Promise<CategoryDto> {
+  return apiPatch<CategoryDto>(`/admin/categories/${id}`, body, { auth: true });
+}
+
+/** DELETE /api/admin/categories/{id} */
+export async function adminDeleteCategory(id: number | string): Promise<void> {
+  return apiDelete<void>(`/admin/categories/${id}`, { auth: true });
 }
 
 /** POST /api/auth/login */
@@ -107,9 +229,10 @@ export function logout(): void {
 
 // ——— Cart API (requires auth) ———
 
-/** GET /api/cart */
+/** GET /api/cart – trả về CartItem[] (mapped từ CartDto) */
 export async function getCart(): Promise<CartItem[]> {
-  return apiGet<CartItem[]>('/cart', { auth: true });
+  const dto = await apiGet<CartDto>('/cart', { auth: true });
+  return mapCartDto(dto);
 }
 
 /** POST /api/cart/items */
@@ -121,23 +244,30 @@ export async function addCartItem(payload: {
   quantity?: number;
   variant?: string;
 }): Promise<CartItem[]> {
-  const res = await apiPost<CartItem[]>('/cart/items', payload, { auth: true });
-  return res;
+  const dto = await apiPost<CartDto>('/cart/items', {
+    productId: Number(payload.productId),
+    quantity: payload.quantity ?? 1,
+    variant: payload.variant,
+  }, { auth: true });
+  return mapCartDto(dto);
 }
 
 /** PATCH /api/cart/items/:id */
 export async function updateCartItemQuantity(cartItemId: string, quantity: number): Promise<CartItem[]> {
-  return apiPatch<CartItem[]>(`/cart/items/${encodeURIComponent(cartItemId)}`, { quantity }, { auth: true });
+  const dto = await apiPatch<CartDto>(`/cart/items/${encodeURIComponent(cartItemId)}`, { quantity }, { auth: true });
+  return mapCartDto(dto);
 }
 
 /** DELETE /api/cart/items/:id */
 export async function removeCartItem(cartItemId: string): Promise<CartItem[]> {
-  return apiDelete<CartItem[]>(`/cart/items/${encodeURIComponent(cartItemId)}`, { auth: true });
+  const dto = await apiDelete<CartDto>(`/cart/items/${encodeURIComponent(cartItemId)}`, { auth: true });
+  return mapCartDto(dto);
 }
 
 /** PUT /api/cart – replace entire cart */
 export async function setCart(items: CartItem[]): Promise<CartItem[]> {
-  return apiPut<CartItem[]>('/cart', { items }, { auth: true });
+  const dto = await apiPut<CartDto>('/cart', { items }, { auth: true });
+  return mapCartDto(dto);
 }
 
 // ——— Profile & Password (requires auth) ———

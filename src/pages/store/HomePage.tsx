@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { categories as mockCategories, banners, trendingProducts as mockTrendingProducts } from '@/data';
+import { banners } from '@/data';
 import { useApiCategories, useApiFeaturedProducts } from '@/hooks/useProductApi';
-import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
@@ -126,20 +125,12 @@ const HomePage: React.FC = () => {
   const [heroBanner] = banners;
   const [activeTab, setActiveTab] = useState<'new' | 'bestseller' | 'featured'>('new');
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
-  const { data: apiCategories, loading: categoriesLoading } = useApiCategories();
-  const { data: apiFeaturedProducts, loading: featuredLoading } = useApiFeaturedProducts();
+  const { data: categories, loading: categoriesLoading } = useApiCategories();
+  const { data: trendingProducts, loading: featuredLoading } = useApiFeaturedProducts();
 
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
 
-  const categories = useMemo(
-    () => (isApiConfigured() && apiCategories.length > 0 ? apiCategories : mockCategories),
-    [apiCategories]
-  );
-  const trendingProducts = useMemo(
-    () => (isApiConfigured() && apiFeaturedProducts.length > 0 ? apiFeaturedProducts : mockTrendingProducts),
-    [apiFeaturedProducts]
-  );
-  const isUsingApiProducts = isApiConfigured() && apiFeaturedProducts.length > 0;
+  const isUsingApiProducts = true;
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">

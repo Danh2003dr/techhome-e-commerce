@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate, Routes, Route } from 'react-router-dom';
+import PrivateRoute from '@/routes/PrivateRoute';
 import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/store/HomePage';
 import SearchResults from '@/pages/store/SearchResults';
@@ -26,6 +27,7 @@ import DashboardPage from '@/pages/admin/DashboardPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
 import ProductStockPage from '@/pages/admin/products/ProductStockPage';
+import CategoryListPage from '@/pages/admin/categories/CategoryListPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
@@ -59,7 +61,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
-    <Route element={<AdminLayout />}>
+    <Route element={<PrivateRoute requiredRole="admin"><AdminLayout /></PrivateRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
       <Route path="/admin/calendar" element={<CalendarPage />} />
@@ -67,6 +69,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin/products/stock" element={<ProductStockPage />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
       <Route path="/admin/products/:id" element={<ProductFormPage />} />
+      <Route path="/admin/categories" element={<CategoryListPage />} />
 
       {/* Static path must be before :orderId so "invoice" is not captured as orderId */}
       <Route path="/admin/orders/invoice" element={<InvoicePage />} />

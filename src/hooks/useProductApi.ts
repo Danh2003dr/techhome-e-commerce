@@ -108,6 +108,20 @@ export function useApiProducts(params: UseApiProductsParams = {}): {
   return { data, loading, error, refetch: fetchData };
 }
 
+/** Fetch products by category slug — resolves slug → id then fetches */
+export function useApiProductsBySlug(categorySlug: string): {
+  data: ListingProduct[];
+  loading: boolean;
+} {
+  const { data: categories, loading: catsLoading } = useApiCategories();
+  const cat = categories.find((c) => c.slug === categorySlug);
+  const categoryId = cat ? Number(cat.id) : undefined;
+  const { data: products, loading: productsLoading } = useApiProducts(
+    categoryId != null ? { category: categoryId } : {}
+  );
+  return { data: products, loading: catsLoading || productsLoading };
+}
+
 export function useApiProduct(id: string | undefined): {
   data: Product | null;
   loading: boolean;

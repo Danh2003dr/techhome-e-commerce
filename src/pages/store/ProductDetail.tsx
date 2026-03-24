@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProductById, getProductDetailExtras } from '@/data';
 import { useApiProduct } from '@/hooks/useProductApi';
-import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
@@ -33,10 +31,8 @@ const DEFAULT_IPAD_STORAGE = ['256GB', '512GB', '1TB'];
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
-  const mockProduct = id ? getProductById(id) : undefined;
-  const product = isApiConfigured() && apiProduct ? apiProduct : mockProduct;
-  const extras = id ? getProductDetailExtras(id) : null;
+  const { data: product, loading: apiLoading } = useApiProduct(id);
+  const extras = null;
 
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();

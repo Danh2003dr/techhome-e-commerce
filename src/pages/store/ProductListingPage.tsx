@@ -1,8 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { listingProducts as mockListingProducts } from '@/data';
 import { useApiProducts } from '@/hooks/useProductApi';
-import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
@@ -17,12 +15,8 @@ const ProductListingPage: React.FC = () => {
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
-  const { data: apiProducts } = useApiProducts({ page: 0, size: 100 });
+  const { data: listingProducts, loading } = useApiProducts({ page: 0, size: 100 });
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
-  const listingProducts = useMemo(
-    () => (isApiConfigured() && apiProducts.length > 0 ? apiProducts : mockListingProducts),
-    [apiProducts]
-  );
   const totalResults = listingProducts.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / PER_PAGE));
   const [processorOpen, setProcessorOpen] = useState(true);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mobileCategoryProducts } from '@/data';
+import { useApiProductsBySlug } from '@/hooks/useProductApi';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
@@ -56,6 +56,7 @@ function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' |
 const MobileCategoryPage: React.FC = () => {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
+  const { data: mobileCategoryProducts, loading } = useApiProductsBySlug('mobile');
   const [sortBy, setSortBy] = useState('Most Relevant');
   const [selectedSub, setSelectedSub] = useState('All Products');
   const [selectedRam, setSelectedRam] = useState<string | null>('12 GB');

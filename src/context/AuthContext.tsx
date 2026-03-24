@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { getToken, getStoredUser, clearToken } from '@/services/api';
 import * as backend from '@/services/backend';
-import type { AuthUserDto, AuthRequest, RegisterRequest } from '@/types/api';
+import type { AuthUserDto, AuthRequest, AuthResponse, RegisterRequest } from '@/types/api';
 import { ApiError } from '@/services/api';
 
 export interface AuthState {
@@ -11,8 +11,8 @@ export interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (body: AuthRequest) => Promise<void>;
-  register: (body: RegisterRequest) => Promise<void>;
+  login: (body: AuthRequest) => Promise<AuthResponse>;
+  register: (body: RegisterRequest) => Promise<AuthResponse>;
   logout: () => void;
 }
 
@@ -31,14 +31,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsInitialized(true);
   }, []);
 
-  const login = useCallback(async (body: AuthRequest) => {
+  const login = useCallback(async (body: AuthRequest): Promise<AuthResponse> => {
     const res = await backend.login(body);
     setUser(res.user);
+    return res;
   }, []);
 
-  const register = useCallback(async (body: RegisterRequest) => {
+  const register = useCallback(async (body: RegisterRequest): Promise<AuthResponse> => {
     const res = await backend.register(body);
     setUser(res.user);
+    return res;
   }, []);
 
   const logout = useCallback(() => {

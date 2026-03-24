@@ -25,15 +25,15 @@ const LoginPage: React.FC = () => {
     if (isApiConfigured()) {
       setLoading(true);
       try {
-        await login({ email: email.trim(), password });
-        navigate('/profile');
+        const res = await login({ email: email.trim(), password });
+        navigate(res.user.role === 'admin' ? '/admin/dashboard' : '/');
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Đăng nhập thất bại.');
       } finally {
         setLoading(false);
       }
     } else {
-      navigate('/profile');
+      navigate('/');
     }
   };
 

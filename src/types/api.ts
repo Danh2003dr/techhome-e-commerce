@@ -6,18 +6,12 @@
 export interface CategoryDto {
   id: number;
   name: string;
-  slug: string;
-}
-
-export interface ProductColorDto {
-  name: string;
-  hex: string;
+  description?: string | null;
 }
 
 export interface ProductDto {
   id: number;
   name: string;
-  slug: string;
   description: string | null;
   image: string | null;
   price: number;
@@ -25,9 +19,6 @@ export interface ProductDto {
   categoryName: string;
   stock: number;
   featured: boolean;
-  specifications: string | null;
-  colors?: ProductColorDto[];
-  storageOptions?: string[];
 }
 
 export interface AuthRequest {
@@ -45,6 +36,8 @@ export interface AuthUserDto {
   id: number;
   name: string;
   email: string;
+  /** Backend trả về lowercase: 'admin' | 'customer' */
+  role?: 'admin' | 'customer';
 }
 
 /** Profile từ GET /api/profile (UserDto). */
@@ -55,7 +48,6 @@ export interface ProfileDto {
   phone?: string | null;
   gender?: string | null;
   dateOfBirth?: string | null;
-  defaultAddress?: string | null;
   passwordChangedAt?: string | null;
 }
 
@@ -95,4 +87,26 @@ export interface OrderDto {
 export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;
+}
+
+// ——— Cart DTOs (matches backend CartDto / CartItemDto) ———
+
+export interface CartItemDto {
+  id: number;
+  productId: number;
+  productName: string;
+  productImage: string | null;
+  quantity: number;
+  selectedColor: string | null;
+  selectedStorage: string | null;
+  priceAtAdd: number;
+  lineTotal: number;
+}
+
+export interface CartDto {
+  id: number;
+  userId: number;
+  items: CartItemDto[];
+  itemCount: number;
+  totalPrice: number;
 }
