@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
-import { savedAddresses } from '@/data';
+import { getToken } from '@/services/api';
+import { getAddresses, createAddress } from '@/services/backend';
+import { addressDtoToSaved } from '@/services/addressMapper';
 import type { SavedAddress } from '@/types';
 import AddressCard from './AddressCard';
 
@@ -29,12 +31,49 @@ const defaultForm = {
 
 const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
   const { checkoutData, updateCheckoutData } = useCheckout();
-  const [addresses, setAddresses] = useState<SavedAddress[]>(savedAddresses);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
-    checkoutData.selectedAddress?.id || addresses.find((a) => a.isDefault)?.id || null
-  );
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState(defaultForm);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const token = getToken();
+      if (!token) {
+        setAddresses([]);
+        setSelectedAddressId(null);
+        setLoadingAddresses(false);
+        return;
+      }
+      try {
+        const list = await getAddresses();
+        if (cancelled) return;
+        const mapped = list.map(addressDtoToSaved);
+        setAddresses(mapped);
+        const preferred =
+          mapped.find((a) => a.id === checkoutData.selectedAddress?.id) ??
+          mapped.find((a) => a.isDefault) ??
+          mapped[0];
+        if (preferred) {
+          setSelectedAddressId(preferred.id);
+          updateCheckoutData({ selectedAddress: preferred });
+        }
+      } catch {
+        if (!cancelled) {
+          setAddresses([]);
+          setSelectedAddressId(null);
+        }
+      } finally {
+        if (!cancelled) setLoadingAddresses(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ load khi vào bước địa chỉ
+  }, []);
 
   const handleSelectAddress = (addressId: string) => {
     setSelectedAddressId(addressId);
@@ -61,10 +100,62 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
   }, []);
 
   const handleSubmitAddress = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
+      const token = getToken();
+      if (token) {
+        try {
+          const dto = await createAddress({
+            name: form.fullName.trim(),
+            phone: form.phone.trim(),
+            street: form.street.trim(),
+            apartment: form.apartment.trim() || undefined,
+            label: form.addressType,
+            city: form.city.trim(),
+            state: form.state.trim() || undefined,
+            zipCode: form.zipCode.trim() || undefined,
+            country: form.country.trim() || undefined,
+            isDefault: form.isDefault,
+          });
+          const mapped = addressDtoToSaved(dto);
+          const list = await getAddresses();
+          const mappedList = list.map(addressDtoToSaved);
+          setAddresses(mappedList);
+          setSelectedAddressId(mapped.id);
+          updateCheckoutData({ selectedAddress: mapped });
+          closeModal();
+        } catch {
+          // fallback: vẫn cho phép tiếp tục checkout với địa chỉ cục bộ
+          const newAddr: SavedAddress = {
+            id: `local-${Date.now()}`,
+            label: form.addressType,
+            tagIcon: form.addressType === 'Home' ? 'home' : form.addressType === 'Office' ? 'work' : 'add_location',
+            tagPrimary: form.addressType === 'Home',
+            name: form.fullName,
+            phone: form.phone,
+            street: form.street,
+            apartment: form.apartment,
+            city: form.city,
+            state: form.state,
+            zipCode: form.zipCode,
+            country: form.country,
+            isDefault: form.isDefault,
+            addressLines: [
+              form.street,
+              form.apartment,
+              `${form.city}, ${form.state} ${form.zipCode}`,
+              form.country,
+            ].filter(Boolean),
+          };
+          setAddresses((prev) => [...prev, newAddr]);
+          setSelectedAddressId(newAddr.id);
+          updateCheckoutData({ selectedAddress: newAddr });
+          closeModal();
+        }
+        return;
+      }
       const newAddr: SavedAddress = {
-        id: `addr-${Date.now()}`,
+        id: `local-${Date.now()}`,
         label: form.addressType,
         tagIcon: form.addressType === 'Home' ? 'home' : form.addressType === 'Office' ? 'work' : 'add_location',
         tagPrimary: form.addressType === 'Home',
@@ -99,6 +190,10 @@ const CheckoutStep1: React.FC<CheckoutStep1Props> = ({ onNext, onBack }) => {
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Địa chỉ giao hàng</h2>
 
       <div className="space-y-4 mb-8">
+        {loadingAddresses && <p className="text-slate-500 text-sm">Đang tải địa chỉ đã lưu…</p>}
+        {!loadingAddresses && addresses.length === 0 && getToken() && (
+          <p className="text-slate-500 text-sm">Chưa có địa chỉ. Thêm địa chỉ mới bên dưới.</p>
+        )}
         {addresses.map((address) => (
           <AddressCard
             key={address.id}

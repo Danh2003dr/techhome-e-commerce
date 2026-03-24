@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { getToken, getStoredUser, clearToken } from '@/services/api';
+import { getToken, getStoredUser, clearToken, setStoredUser } from '@/services/api';
 import * as backend from '@/services/backend';
 import type { AuthUserDto, AuthRequest, AuthResponse, RegisterRequest } from '@/types/api';
 import { ApiError } from '@/services/api';
@@ -14,6 +14,7 @@ interface AuthContextType extends AuthState {
   login: (body: AuthRequest) => Promise<AuthResponse>;
   register: (body: RegisterRequest) => Promise<AuthResponse>;
   logout: () => void;
+  updateCurrentUser: (patch: Partial<AuthUserDto>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +49,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   }, []);
 
+  const updateCurrentUser = useCallback((patch: Partial<AuthUserDto>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      setStoredUser(next);
+      return next;
+    });
+  }, []);
+
   const value: AuthContextType = {
     user,
     isAuthenticated: Boolean(user),
@@ -55,6 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     register,
     logout,
+    updateCurrentUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

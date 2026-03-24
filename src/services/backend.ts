@@ -24,6 +24,7 @@ import type {
   ProfileDto,
   CartDto,
   CartItemDto,
+  AddressDto,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -277,10 +278,60 @@ export async function getProfile(): Promise<ProfileDto> {
   return apiGet<ProfileDto>('/profile', { auth: true });
 }
 
+/** PATCH /api/profile */
+export async function updateProfile(body: {
+  name?: string;
+  phone?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+}): Promise<ProfileDto> {
+  return apiPatch<ProfileDto>('/profile', body, { auth: true });
+}
+
 /** POST /api/auth/change-password */
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string; passwordChangedAt?: string }> {
   return apiPost<{ message: string; passwordChangedAt?: string }>('/auth/change-password', {
     currentPassword,
     newPassword,
   }, { auth: true });
+}
+
+// ——— Addresses (requires auth) ———
+
+export interface AddressPayload {
+  name: string;
+  phone: string;
+  street: string;
+  apartment?: string | null;
+  label?: string | null;
+  city: string;
+  state?: string | null;
+  zipCode?: string | null;
+  country?: string | null;
+  isDefault?: boolean;
+}
+
+/** GET /api/addresses */
+export async function getAddresses(): Promise<AddressDto[]> {
+  return apiGet<AddressDto[]>('/addresses', { auth: true });
+}
+
+/** POST /api/addresses */
+export async function createAddress(body: AddressPayload): Promise<AddressDto> {
+  return apiPost<AddressDto>('/addresses', body, { auth: true });
+}
+
+/** PATCH /api/addresses/:id */
+export async function updateAddress(id: number, body: Partial<AddressPayload>): Promise<AddressDto> {
+  return apiPatch<AddressDto>(`/addresses/${id}`, body, { auth: true });
+}
+
+/** DELETE /api/addresses/:id */
+export async function deleteAddress(id: number): Promise<void> {
+  await apiDelete<{ message?: string }>(`/addresses/${id}`, { auth: true });
+}
+
+/** PUT /api/addresses/:id/set-default */
+export async function setDefaultAddress(id: number): Promise<AddressDto> {
+  return apiPut<AddressDto>(`/addresses/${id}/set-default`, {}, { auth: true });
 }

@@ -110,3 +110,18 @@ export interface CartDto {
   itemCount: number;
   totalPrice: number;
 }
+
+/** Địa chỉ — GET/POST/PATCH /api/addresses */
+export interface AddressDto {
+  id: number;
+  name: string;
+  phone: string;
+  street: string;
+  apartment?: string | null;
+  label?: string | null;
+  city: string;
+  state?: string | null;
+  zipCode?: string | null;
+  country?: string | null;
+  isDefault?: boolean;
+}

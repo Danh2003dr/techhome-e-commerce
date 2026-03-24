@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { isApiConfigured, ApiError } from '@/services/api';
-import { getProfile, changePassword } from '@/services/backend';
+import { getProfile, updateProfile, changePassword } from '@/services/backend';
 import type { ProfileDto } from '@/types/api';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
@@ -30,6 +30,15 @@ const defaultProfile: ProfileExtension = {
   gender: '',
   dateOfBirth: '',
 };
+
+function toProfileExtension(dto: ProfileDto): ProfileExtension {
+  return {
+    fullName: dto.name ?? '',
+    phone: dto.phone ?? '',
+    gender: dto.gender ?? '',
+    dateOfBirth: dto.dateOfBirth ?? '',
+  };
+}
 
 const DEFAULT_PASSWORD_UPDATED = '24/01/2024 11:46';
 
@@ -74,7 +83,7 @@ function displayValue(value: string, placeholder: string) {
 }
 
 const ProfilePage: React.FC = () => {
-  const { user, isAuthenticated, isInitialized } = useAuth();
+  const { user, isAuthenticated, isInitialized, updateCurrentUser } = useAuth();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const [profile, setProfile] = useState<ProfileExtension>(loadProfile);
   const [passwordUpdated, setPasswordUpdated] = useState(loadPasswordUpdated);
@@ -103,6 +112,13 @@ const ProfilePage: React.FC = () => {
       .then(setApiProfile)
       .catch(() => setApiProfile(null));
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!apiProfile) return;
+    const mapped = toProfileExtension(apiProfile);
+    setProfile(mapped);
+    saveProfile(mapped);
+  }, [apiProfile]);
 
   const handleUploadClick = () => {
     setAvatarError(null);
@@ -138,11 +154,25 @@ const ProfilePage: React.FC = () => {
     setEditOpen(false);
   }, []);
 
-  const saveEdit = useCallback(() => {
+  const saveEdit = useCallback(async () => {
+    if (isApiConfigured() && isAuthenticated) {
+      try {
+        const updated = await updateProfile({
+          name: editForm.fullName,
+          phone: editForm.phone || null,
+          gender: editForm.gender || null,
+          dateOfBirth: editForm.dateOfBirth || null,
+        });
+        setApiProfile(updated);
+        updateCurrentUser({ name: updated.name, email: updated.email });
+      } catch {
+        // Fallback local khi API lỗi
+      }
+    }
     setProfile(editForm);
     saveProfile(editForm);
     setEditOpen(false);
-  }, [editForm]);
+  }, [editForm, isAuthenticated, updateCurrentUser]);
 
   const displayPasswordUpdated = isApiConfigured() && apiProfile?.passwordChangedAt
     ? formatPasswordChangedAt(apiProfile.passwordChangedAt)
