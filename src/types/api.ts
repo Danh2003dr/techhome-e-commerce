@@ -20,7 +20,11 @@ export interface ProductDto {
   slug: string;
   description: string | null;
   image: string | null;
+  /** Gallery URLs; first image is typically the primary. */
+  images?: string[] | null;
   price: number;
+  /** When set and lower than `price`, product is on sale (storefront shows discount %). */
+  salePrice?: number | null;
   categoryId: number;
   categoryName: string;
   stock: number;

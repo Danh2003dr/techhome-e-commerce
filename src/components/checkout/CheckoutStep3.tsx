@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext';
 import { createOrder } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { ApiError } from '@/services/api';
+import { incrementVoucherUse } from '@/services/adminMockStore';
+import { recordPurchasedProducts } from '@/services/purchasesStore';
 import PaymentTabs, { type PaymentMethodType } from './PaymentTabs';
 import CreditCardForm from './CreditCardForm';
 import CheckoutSummary from './CheckoutSummary';
@@ -16,7 +18,7 @@ interface CheckoutStep3Props {
 const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   const navigate = useNavigate();
   const { checkoutData, updateCheckoutData } = useCheckout();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('credit_card');
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -73,7 +75,12 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
 
     const useBackend = isApiConfigured() && isAuthenticated && checkoutData.items.length > 0;
     const items = checkoutData.items;
-    const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const discount = checkoutData.appliedVoucher?.discountAmount ?? 0;
+    const afterDiscount = Math.max(0, subtotal - discount);
+    const shipping = checkoutData.shippingMethod?.price || 0;
+    const tax = afterDiscount * 0.08;
+    const totalPrice = afterDiscount + shipping + tax;
 
     if (useBackend) {
       const productIdsValid = items.every((i) => !Number.isNaN(Number(i.productId)));
@@ -91,6 +98,15 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
             price: i.price,
           })),
         });
+        if (checkoutData.appliedVoucher?.code) {
+          incrementVoucherUse(checkoutData.appliedVoucher.code);
+        }
+        if (user?.id != null) {
+          recordPurchasedProducts(
+            String(user.id),
+            items.map((i) => String(i.productId))
+          );
+        }
         navigate('/order-confirmation', { state: { orderId: order.id, fromApi: true } });
       } catch (err) {
         setOrderError(err instanceof ApiError ? err.message : 'Failed to create order.');
@@ -101,7 +117,21 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         setPlacing(false);
       }
     } else {
-      navigate('/order-confirmation');
+      if (checkoutData.appliedVoucher?.code) {
+        incrementVoucherUse(checkoutData.appliedVoucher.code);
+      }
+      if (user?.id != null) {
+        recordPurchasedProducts(
+          String(user.id),
+          items.map((i) => String(i.productId))
+        );
+      }
+      navigate('/order-confirmation', {
+        state: {
+          fromApi: false,
+          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        },
+      });
     }
   };
 

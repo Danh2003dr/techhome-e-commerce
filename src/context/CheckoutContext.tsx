@@ -19,6 +19,11 @@ export interface PaymentMethod {
 
 export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit';
 
+export interface AppliedVoucherInfo {
+  code: string;
+  discountAmount: number;
+}
+
 export interface CheckoutData {
   // Step 1: Shipping Address
   selectedAddress: SavedAddress | null;
@@ -30,6 +35,8 @@ export interface CheckoutData {
   // Step 3: Payment
   paymentMethod: PaymentMethod | null;
   couponCode: string;
+  /** Set when a voucher code is validated against the local voucher store. */
+  appliedVoucher: AppliedVoucherInfo | null;
   agreeToTerms: boolean;
   
   // Cart items
@@ -52,6 +59,7 @@ const defaultCheckoutData: CheckoutData = {
   shippingMethod: null,
   paymentMethod: null,
   couponCode: '',
+  appliedVoucher: null,
   agreeToTerms: false,
   items: [],
 };

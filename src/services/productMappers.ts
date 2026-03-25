@@ -4,6 +4,7 @@
 
 import type { CategoryDto, ProductDto } from '@/types/api';
 import type { Category, Product, TrendingProduct, ListingProduct } from '@/types';
+import { discountPercentFromPrices, effectiveUnitPrice } from '@/utils/pricing';
 
 const slugToIcon: Record<string, string> = {
   mobile: 'smartphone',
@@ -26,14 +27,23 @@ export function mapCategoryDtoToCategory(dto: CategoryDto): Category {
 }
 
 export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
-  const price = Number(dto.price);
+  const listPrice = Number(dto.price);
+  const sale =
+    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
+  const price = effectiveUnitPrice(listPrice, sale);
+  const onSale = sale != null && sale < listPrice;
+  const oldPrice = onSale ? listPrice : dto.featured ? Math.round(listPrice * 1.15) : undefined;
+  const discountPercent = onSale ? discountPercentFromPrices(listPrice, sale) : undefined;
+  const img =
+    (dto.images && dto.images.length > 0 ? dto.images[0] : null) ?? dto.image ?? '';
   return {
     id: String(dto.id),
     name: dto.name,
     category: dto.categoryName,
-    image: dto.image ?? '',
+    image: img,
     price,
-    oldPrice: dto.featured ? Math.round(price * 1.15) : undefined,
+    oldPrice,
+    discountPercent,
     rating: 4,
     reviews: 0,
     isBestSeller: dto.featured,
@@ -42,11 +52,20 @@ export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
 }
 
 export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
+  const listPrice = Number(dto.price);
+  const sale =
+    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
+  const price = effectiveUnitPrice(listPrice, sale);
+  const onSale = sale != null && sale < listPrice;
+  const img =
+    (dto.images && dto.images.length > 0 ? dto.images[0] : null) ?? dto.image ?? '';
   return {
     id: String(dto.id),
     name: dto.name,
-    price: dto.price,
-    image: dto.image ?? '',
+    price,
+    oldPrice: onSale ? listPrice : undefined,
+    discountPercent: onSale ? discountPercentFromPrices(listPrice, sale!) : undefined,
+    image: img,
     rating: 4,
     reviews: 0,
     productDetailId: String(dto.id),
@@ -54,16 +73,29 @@ export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
 }
 
 export function mapProductDtoToProduct(dto: ProductDto): Product {
-  const image = dto.image ?? '';
+  const listPrice = Number(dto.price);
+  const sale =
+    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
+  const price = effectiveUnitPrice(listPrice, sale);
+  const onSale = sale != null && sale < listPrice;
+  const gallery =
+    dto.images && dto.images.length > 0
+      ? dto.images
+      : dto.image
+        ? [dto.image]
+        : [];
+  const image = gallery[0] ?? dto.image ?? '';
   return {
     id: String(dto.id),
     name: dto.name,
     category: dto.categoryName,
-    price: dto.price,
+    price,
+    oldPrice: onSale ? listPrice : undefined,
+    salePrice: onSale ? sale! : undefined,
     rating: 4,
     reviews: 0,
     image,
-    images: image ? [image] : undefined,
+    images: gallery.length ? gallery : undefined,
     description: dto.description ?? undefined,
     inStock: dto.stock > 0,
     specifications: dto.specifications ?? undefined,

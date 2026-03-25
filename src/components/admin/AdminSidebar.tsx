@@ -1,23 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
-const navGroups: Array<{
-  title?: string;
-  items: Array<{ label: string; path: string; icon: string }>;
-}> = [
-  {
-    items: [
-      { label: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
-      { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
-      { label: 'Orders', path: '/admin/orders', icon: 'receipt_long' },
-      { label: 'Calendar', path: '/admin/calendar', icon: 'event' },
-      { label: 'Settings', path: '/admin/seo', icon: 'settings' },
-    ],
-  },
-  {
-    items: [{ label: 'Logout', path: '/login', icon: 'logout' }],
-  },
-];
+import { ADMIN_NAV_GROUPS } from '@/components/admin/adminNavConfig';
 
 type AdminSidebarProps = {
   collapsed?: boolean;
@@ -36,6 +19,8 @@ function pathMatchesItem(currentPath: string, itemPath: string): boolean {
     return currentPath === '/admin/orders' || currentPath.startsWith('/admin/orders/');
   }
   if (itemPath === '/admin/seo') return currentPath.startsWith('/admin/seo');
+  if (itemPath === '/admin/banners') return currentPath.startsWith('/admin/banners');
+  if (itemPath === '/admin/vouchers') return currentPath.startsWith('/admin/vouchers');
   if (itemPath === '/login') return false;
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
 }
@@ -69,7 +54,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed = false }) => {
       </div>
 
       <nav className="px-4 pb-4 flex-1 overflow-y-auto">
-        {navGroups.map((group, idx) => (
+        {ADMIN_NAV_GROUPS.map((group, idx) => (
           <div key={idx} className="mb-5">
             {group.title && !collapsed && (
               <div className="px-2 mb-2">

@@ -36,8 +36,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-8">
-        <div className="flex items-center gap-3 flex-1">
-          {/* 3 gạch / hamburger button (toggle sidebar) */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onToggleSidebar}
@@ -47,21 +46,6 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
           >
             <span className={`material-icons text-slate-600 dark:text-slate-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}>menu</span>
           </button>
-
-          <form className="flex-1 max-w-xl">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <span className="material-icons text-slate-400 group-focus-within:text-primary transition-colors">
-                  search
-                </span>
-              </div>
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm"
-              />
-            </div>
-          </form>
         </div>
 
         <div className="flex items-center gap-3">
@@ -121,4 +105,3 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
 };
 
 export default AdminTopbar;
-

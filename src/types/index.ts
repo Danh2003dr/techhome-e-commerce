@@ -2,8 +2,12 @@ export interface Product {
   id: string;
   name: string;
   category: string;
+  /** Current selling price (after sale if any). */
   price: number;
+  /** List / MSRP when item is on promotion; shown struck-through with `salePrice` or derived sale. */
   oldPrice?: number;
+  /** Explicit sale price from catalog (optional; may match `price` when on sale). */
+  salePrice?: number;
   rating: number;
   reviews: number;
   image: string;
@@ -17,6 +21,15 @@ export interface Product {
   storageOptions?: string[];
   /** JSON string from API (backend product specs: manHinh, cameraSau, ...) */
   specifications?: string | null;
+  /** Admin catalog: SKU rows for PDP / cart line. */
+  variants?: Array<{
+    sku: string;
+    color?: string;
+    storage?: string;
+    size?: string;
+    stock: number;
+    price?: number;
+  }>;
 }
 
 export type OrderStatus = 'Processing' | 'Delivered' | 'Shipping' | 'Shipped' | 'Cancelled';
@@ -199,6 +212,8 @@ export interface TrendingProduct {
   image: string;
   price: number;
   oldPrice?: number;
+  /** e.g. 15 for −15% badge */
+  discountPercent?: number;
   rating: number;
   reviews: number;
   isBestSeller?: boolean;
@@ -215,6 +230,7 @@ export interface ListingProduct {
   name: string;
   price: number;
   oldPrice?: number;
+  discountPercent?: number;
   rating: number;
   reviews: number;
   image: string;
@@ -282,12 +298,14 @@ export interface ProductSpec {
 }
 
 export interface ProductReview {
+  id?: string;
   author: string;
   initials: string;
   rating: number;
   date: string;
   text: string;
   verified?: boolean;
+  photos?: string[];
 }
 
 export interface RelatedProduct {

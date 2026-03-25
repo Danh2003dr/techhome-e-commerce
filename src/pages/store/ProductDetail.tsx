@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProductById, getProductDetailExtras } from '@/data';
+import { getProductDetailExtras } from '@/data';
 import { useApiProduct } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
+import { resolveProductById } from '@/services/productCatalogBridge';
+import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
+import { hasPurchasedProduct } from '@/services/purchasesStore';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { formatVND } from '@/utils';
+import { useAuth } from '@/context/AuthContext';
+import { formatVND, discountPercentFromPrices } from '@/utils';
 import Breadcrumbs from '@/components/store/Breadcrumbs';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -34,7 +38,8 @@ const DEFAULT_IPAD_STORAGE = ['256GB', '512GB', '1TB'];
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
-  const mockProduct = id ? getProductById(id) : undefined;
+  const { user, isAuthenticated } = useAuth();
+  const mockProduct = id ? resolveProductById(id) : undefined;
   const product = isApiConfigured() && apiProduct ? apiProduct : mockProduct;
   const extras = id ? getProductDetailExtras(id) : null;
 
@@ -46,26 +51,51 @@ const ProductDetail: React.FC = () => {
   const [addInstallation, setAddInstallation] = useState(false);
   const [justAddedToCart, setJustAddedToCart] = useState(false);
   const [failedThumbIndices, setFailedThumbIndices] = useState<Set<number>>(() => new Set());
+  const [reviewRefresh, setReviewRefresh] = useState(0);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+
+  const storedReviews = useMemo(() => (id ? getStoredReviewsForProduct(id) : []), [id, reviewRefresh]);
+  const canReview = useMemo(
+    () => Boolean(isAuthenticated && id && user && hasPurchasedProduct(String(user.id), id)),
+    [isAuthenticated, id, user]
+  );
 
   const colors = useMemo(() => {
     if (!product) return [];
+    const fromVar = product.variants?.map((v) => v.color).filter(Boolean) as string[] | undefined;
+    if (fromVar?.length) {
+      const uniq = [...new Set(fromVar)];
+      return uniq.map((name) => ({ name, hex: '#6b7280' }));
+    }
     if (product.colors?.length) return product.colors;
     const name = product.name || '';
     if (name.startsWith('iPhone')) return DEFAULT_IPHONE_COLORS;
     if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_COLORS;
     if (name.includes('iPad')) return DEFAULT_IPAD_COLORS;
     return [];
-  }, [product?.colors, product?.name]);
+  }, [product?.colors, product?.name, product?.variants]);
 
   const storageOptions = useMemo(() => {
     if (!product) return [];
+    const fromVar = product.variants?.map((v) => v.storage).filter(Boolean) as string[] | undefined;
+    if (fromVar?.length) return [...new Set(fromVar)];
     if (product.storageOptions?.length) return product.storageOptions;
     const name = product.name || '';
     if (name.startsWith('iPhone')) return DEFAULT_IPHONE_STORAGE;
     if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_STORAGE;
     if (name.includes('iPad')) return DEFAULT_IPAD_STORAGE;
     return [];
-  }, [product?.storageOptions, product?.name]);
+  }, [product?.storageOptions, product?.name, product?.variants]);
+
+  const matchedVariant = useMemo(() => {
+    if (!product?.variants?.length) return undefined;
+    const found = product.variants.find(
+      (v) =>
+        (!v.color || v.color === selectedColor) && (!v.storage || v.storage === selectedSize)
+    );
+    return found ?? product.variants[0];
+  }, [product, selectedColor, selectedSize]);
 
   useEffect(() => {
     setFailedThumbIndices(new Set());
@@ -73,6 +103,12 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     if (!product) return;
+    if (product.variants?.length) {
+      const v0 = product.variants[0];
+      if (v0.color) setSelectedColor(v0.color);
+      if (v0.storage) setSelectedSize(v0.storage);
+      return;
+    }
     if (product.colors?.length) setSelectedColor(product.colors[0].name);
     else if (product.name?.startsWith('iPhone')) setSelectedColor(DEFAULT_IPHONE_COLORS[0].name);
     else if (product.name?.includes('Samsung Galaxy S24')) setSelectedColor(DEFAULT_SAMSUNG_COLORS[0].name);
@@ -81,7 +117,7 @@ const ProductDetail: React.FC = () => {
     else if (product.name?.startsWith('iPhone')) setSelectedSize(DEFAULT_IPHONE_STORAGE[1] ?? DEFAULT_IPHONE_STORAGE[0]);
     else if (product.name?.includes('Samsung Galaxy S24')) setSelectedSize(DEFAULT_SAMSUNG_STORAGE[0]);
     else if (product.name?.includes('iPad')) setSelectedSize(DEFAULT_IPAD_STORAGE[1] ?? DEFAULT_IPAD_STORAGE[0]);
-  }, [product?.id, product?.name, product?.colors, product?.storageOptions]);
+  }, [product?.id, product?.name, product?.colors, product?.storageOptions, product?.variants]);
 
   if (isApiConfigured() && apiLoading) {
     return (
@@ -133,6 +169,12 @@ const ProductDetail: React.FC = () => {
     return '/search';
   };
 
+  const priceLine =
+    matchedVariant?.price != null && matchedVariant.price > 0 ? matchedVariant.price : product.price;
+  const oldLine = matchedVariant?.price != null && matchedVariant.price > 0 ? undefined : product.oldPrice;
+  const salePct =
+    oldLine && product.price < oldLine ? discountPercentFromPrices(oldLine, product.price) : null;
+
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
       <main className="container mx-auto px-6 py-8">
@@ -167,13 +209,25 @@ const ProductDetail: React.FC = () => {
                 <div className="flex items-center gap-4 mt-4">
                   {renderStars(product.rating)}
                   <span className="text-sm font-medium text-slate-500 underline cursor-pointer">{product.reviews} reviews</span>
-                  {product.sku && <><span className="text-sm text-slate-400">|</span><span className="text-sm text-slate-500">SKU: {product.sku}</span></>}
+                  {(matchedVariant?.sku || product.sku) && (
+                    <>
+                      <span className="text-sm text-slate-400">|</span>
+                      <span className="text-sm text-slate-500">SKU: {matchedVariant?.sku ?? product.sku}</span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="mb-8">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-white">{formatVND(product.price)}</span>
-                  {product.oldPrice && <span className="text-lg text-slate-400 line-through">{formatVND(product.oldPrice)}</span>}
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white">{formatVND(priceLine)}</span>
+                  {oldLine != null && priceLine < oldLine && (
+                    <span className="text-lg text-slate-400 line-through">{formatVND(oldLine)}</span>
+                  )}
+                  {salePct != null && salePct > 0 && !matchedVariant?.price && (
+                    <span className="text-sm font-black text-red-600 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded-lg">
+                      −{salePct}%
+                    </span>
+                  )}
                 </div>
                 <p className={`text-sm font-medium mt-1 ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>{product.inStock !== false ? 'In Stock - Ready to ship' : 'Out of Stock'}</p>
               </div>
@@ -207,9 +261,9 @@ const ProductDetail: React.FC = () => {
                     addItem({
                       productId: String(product.id),
                       name: product.name,
-                      price: Number(product.price),
+                      price: Number(priceLine),
                       image: Array.isArray(product.images) && product.images[0] ? product.images[0] : (product.image || ''),
-                      variant: [selectedColor, selectedSize].filter(Boolean).join(', ') || undefined,
+                      variant: [matchedVariant?.sku, selectedColor, selectedSize].filter(Boolean).join(' · ') || undefined,
                     });
                     setJustAddedToCart(true);
                     setTimeout(() => setJustAddedToCart(false), 2000);
@@ -377,6 +431,86 @@ const ProductDetail: React.FC = () => {
           }
           return null;
         })()}
+
+        {(storedReviews.length > 0 || canReview) && (
+          <section className="mb-20 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8">
+            <h2 className="text-2xl font-bold mb-6">Đánh giá từ khách hàng</h2>
+            {canReview && (
+              <form
+                className="mb-10 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!id || !user || !reviewText.trim()) return;
+                  addStoredReview({
+                    productId: id,
+                    userId: String(user.id),
+                    authorName: user.name,
+                    rating: reviewRating,
+                    text: reviewText,
+                    photos: [],
+                  });
+                  setReviewText('');
+                  setReviewRefresh((n) => n + 1);
+                }}
+              >
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Viết đánh giá (đã mua hàng)</p>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setReviewRating(i)}
+                      className="text-amber-400"
+                      aria-label={`${i} sao`}
+                    >
+                      <span className="material-icons">{i <= reviewRating ? 'star' : 'star_border'}</span>
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[88px]"
+                  placeholder="Chia sẻ trải nghiệm của bạn..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                />
+                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold">
+                  Gửi đánh giá
+                </button>
+              </form>
+            )}
+            {storedReviews.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {storedReviews.map((r) => (
+                  <div key={r.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
+                          {r.initials}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm">{r.author}</p>
+                          <p className="text-[11px] text-slate-500">
+                            {r.verified ? 'Đã mua hàng' : ''} • {r.date}
+                          </p>
+                        </div>
+                      </div>
+                      {renderStars(r.rating, 'text-xs')}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{r.text}</p>
+                    {r.photos && r.photos.length > 0 && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {r.photos.map((ph, i) => (
+                          <img key={i} src={ph} alt="" className="w-16 h-16 rounded-lg object-cover" />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {extras && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">

@@ -1,16 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
 import { formatVND } from '@/utils';
+import { tryApplyVoucherCode } from '@/services/voucherApply';
 
 const CheckoutSummary: React.FC = () => {
-  const { checkoutData } = useCheckout();
+  const { checkoutData, updateCheckoutData } = useCheckout();
   const items = checkoutData.items;
-  
+  const [voucherInput, setVoucherInput] = useState('');
+  const [voucherMsg, setVoucherMsg] = useState<string | null>(null);
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = checkoutData.appliedVoucher?.discountAmount ?? 0;
+  const afterDiscount = Math.max(0, subtotal - discount);
   const shipping = checkoutData.shippingMethod?.price || 0;
   const taxRate = 0.08;
-  const tax = subtotal * taxRate;
-  const total = subtotal + shipping + tax;
+  const tax = afterDiscount * taxRate;
+  const total = afterDiscount + shipping + tax;
+
+  const applyVoucher = () => {
+    setVoucherMsg(null);
+    const res = tryApplyVoucherCode(voucherInput || checkoutData.couponCode, subtotal);
+    if (!res.ok) {
+      setVoucherMsg(res.message);
+      updateCheckoutData({ appliedVoucher: null });
+      return;
+    }
+    updateCheckoutData({
+      couponCode: res.code,
+      appliedVoucher: { code: res.code, discountAmount: res.discountAmount },
+    });
+    setVoucherMsg(`Đã áp dụng mã ${res.code} (−${formatVND(res.discountAmount)}).`);
+  };
+
+  const clearVoucher = () => {
+    setVoucherInput('');
+    setVoucherMsg(null);
+    updateCheckoutData({ couponCode: '', appliedVoucher: null });
+  };
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sticky top-24">
@@ -78,6 +104,39 @@ const CheckoutSummary: React.FC = () => {
         </div>
       )}
 
+      {/* Voucher */}
+      <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mã giảm giá</h4>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={voucherInput || checkoutData.couponCode}
+            onChange={(e) => {
+              setVoucherInput(e.target.value);
+              updateCheckoutData({ couponCode: e.target.value, appliedVoucher: null });
+            }}
+            placeholder="Nhập mã"
+            className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
+          />
+          <button
+            type="button"
+            onClick={applyVoucher}
+            className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold"
+          >
+            Áp dụng
+          </button>
+        </div>
+        {checkoutData.appliedVoucher && (
+          <div className="mt-2 flex items-center justify-between text-xs">
+            <span className="text-emerald-600 font-semibold">Đã áp dụng {checkoutData.appliedVoucher.code}</span>
+            <button type="button" className="text-red-600 font-semibold" onClick={clearVoucher}>
+              Gỡ
+            </button>
+          </div>
+        )}
+        {voucherMsg && <p className="mt-2 text-xs text-slate-500">{voucherMsg}</p>}
+      </div>
+
       {/* Price Info */}
       <div className="space-y-3 text-sm">
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
@@ -86,6 +145,12 @@ const CheckoutSummary: React.FC = () => {
             {formatVND(subtotal)}
           </span>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+            <span>Giảm giá</span>
+            <span className="font-semibold">−{formatVND(discount)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
           <span>Estimated Tax</span>
           <span className="font-semibold text-slate-900 dark:text-white">{formatVND(tax)}</span>

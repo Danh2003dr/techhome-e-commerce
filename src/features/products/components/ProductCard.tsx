@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { formatVND } from '@/utils';
+import { formatVND, discountPercentFromPrices } from '@/utils';
 import type { Product } from '@/types';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -19,6 +19,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const productPath = `/product/${productId}`;
   const imgSrc = imgError || !product.image ? PLACEHOLDER_IMAGE : product.image;
   const inWishlist = isInWishlist(productId);
+  const discountPct =
+    product.oldPrice && product.price < product.oldPrice
+      ? discountPercentFromPrices(product.oldPrice, product.price)
+      : null;
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -51,8 +55,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link to={productPath} className="group bg-white p-4 rounded-2xl border border-gray-100 hover:border-indigo-100 transition-all hover:shadow-xl flex flex-col block">
       <div className="relative mb-4 aspect-square rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
         <img src={imgSrc} alt={product.name} className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500" onError={() => setImgError(true)} />
+        {discountPct != null && discountPct > 0 && (
+          <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-full">
+            −{discountPct}%
+          </span>
+        )}
         {product.isBestSeller && (
-          <span className="absolute top-3 left-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Best Seller</span>
+          <span
+            className={`absolute left-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase ${
+              discountPct != null && discountPct > 0 ? 'top-12' : 'top-3'
+            }`}
+          >
+            Best Seller
+          </span>
         )}
         {product.tag && (
           <span className={`absolute left-3 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase ${product.tag === 'In Stock' ? 'bg-emerald-500' : 'bg-red-500'} ${product.isBestSeller ? 'top-10' : 'top-3'}`}>
