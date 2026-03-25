@@ -44,22 +44,6 @@ export type AdminSEO = {
   logoDataUrl?: string;
 };
 
-export type AdminInboxMessage = {
-  id: string;
-  side: 'left' | 'right';
-  title: string;
-  body: string;
-  time: string;
-};
-
-export type AdminInboxThread = {
-  id: string;
-  headerName: string;
-  labels: string[];
-  starred: boolean;
-  messages: AdminInboxMessage[];
-};
-
 export type AdminCalendarEvent = {
   id: string;
   title: string;
@@ -69,20 +53,11 @@ export type AdminCalendarEvent = {
   description: string;
 };
 
-export type AdminTodoItem = {
-  id: string;
-  text: string;
-  done: boolean;
-  starred: boolean;
-};
-
 const KEYS = {
   products: 'techhome_admin_products_mock_v1',
   orders: 'techhome_admin_orders_mock_v1',
   seo: 'techhome_admin_seo_mock_v1',
-  inboxThreads: 'techhome_admin_inbox_threads_mock_v1',
   calendarEvents: 'techhome_admin_calendar_events_mock_v1',
-  todoItems: 'techhome_admin_todo_items_mock_v1',
 } as const;
 
 function uid(prefix: string) {
@@ -205,61 +180,6 @@ function seedIfMissing() {
     logoDataUrl: undefined,
   };
 
-  const inboxThreads: AdminInboxThread[] = [
-    {
-      id: '1',
-      headerName: 'Minerva Barnett',
-      labels: ['Primary'],
-      starred: true,
-      messages: [
-        {
-          id: uid('m'),
-          side: 'left',
-          title: 'Our Bachelor of Commerce program is ACBSP-accredited.',
-          body: 'It is a long established fact that a reader will be distracted by the readable content of a page.',
-          time: '8:38 AM',
-        },
-      ],
-    },
-    {
-      id: '2',
-      headerName: 'Peter Lewis',
-      labels: ['Friends'],
-      starred: false,
-      messages: [
-        {
-          id: uid('m'),
-          side: 'left',
-          title: 'Vacation Home Rental Success',
-          body: 'The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters.',
-          time: '7:52 PM',
-        },
-        {
-          id: uid('m'),
-          side: 'right',
-          title: 'Thanks!',
-          body: 'This is a reply message placeholder aligned to the right.',
-          time: '7:54 PM',
-        },
-      ],
-    },
-    {
-      id: '3',
-      headerName: 'Cecile Webster',
-      labels: ['Social'],
-      starred: false,
-      messages: [
-        {
-          id: uid('m'),
-          side: 'left',
-          title: 'Always Look On The Bright Side Of Life',
-          body: 'All messages here are static UI placeholders for the admin template.',
-          time: '3:52 PM',
-        },
-      ],
-    },
-  ];
-
   const calendarEvents: AdminCalendarEvent[] = [
     {
       id: 'e1',
@@ -287,18 +207,10 @@ function seedIfMissing() {
     },
   ];
 
-  const todoItems: AdminTodoItem[] = [
-    { id: uid('td'), text: 'Meeting with CEO', done: false, starred: false },
-    { id: uid('td'), text: 'Pick up kids from school', done: false, starred: true },
-    { id: uid('td'), text: 'Shopping with Brother', done: false, starred: false },
-  ];
-
   safeWriteJSON(KEYS.products, products);
   safeWriteJSON(KEYS.orders, orders);
   safeWriteJSON(KEYS.seo, seo);
-  safeWriteJSON(KEYS.inboxThreads, inboxThreads);
   safeWriteJSON(KEYS.calendarEvents, calendarEvents);
-  safeWriteJSON(KEYS.todoItems, todoItems);
 }
 
 export function initAdminMockData() {
@@ -367,54 +279,6 @@ export function saveAdminSEO(seo: AdminSEO): AdminSEO {
   return seo;
 }
 
-export function getAdminInboxThreads(): AdminInboxThread[] {
-  initAdminMockData();
-  return safeReadJSON<AdminInboxThread[]>(KEYS.inboxThreads) ?? [];
-}
-
-export function getAdminInboxThread(threadId: string): AdminInboxThread | undefined {
-  return getAdminInboxThreads().find((t) => t.id === threadId);
-}
-
-export function sendAdminInboxMessage(threadId: string, message: Omit<AdminInboxMessage, 'id'>): AdminInboxThread | undefined {
-  initAdminMockData();
-  const list = getAdminInboxThreads();
-  const idx = list.findIndex((t) => t.id === threadId);
-  if (idx < 0) return undefined;
-  const nextThread: AdminInboxThread = {
-    ...list[idx],
-    messages: [...list[idx].messages, { id: uid('m'), ...message }],
-  };
-  const next = [...list.slice(0, idx), nextThread, ...list.slice(idx + 1)];
-  safeWriteJSON(KEYS.inboxThreads, next);
-  return nextThread;
-}
-
-export function createAdminInboxThread(params: { headerName: string; labels?: string[] }): AdminInboxThread {
-  initAdminMockData();
-  const list = getAdminInboxThreads();
-  const nextThread: AdminInboxThread = {
-    id: uid('th'),
-    headerName: params.headerName,
-    labels: params.labels ?? ['Primary'],
-    starred: false,
-    messages: [],
-  };
-  safeWriteJSON(KEYS.inboxThreads, [nextThread, ...list]);
-  return nextThread;
-}
-
-export function setAdminInboxThreadStar(threadId: string, starred: boolean): AdminInboxThread | undefined {
-  initAdminMockData();
-  const list = getAdminInboxThreads();
-  const idx = list.findIndex((t) => t.id === threadId);
-  if (idx < 0) return undefined;
-  const nextThread: AdminInboxThread = { ...list[idx], starred };
-  const next = [...list.slice(0, idx), nextThread, ...list.slice(idx + 1)];
-  safeWriteJSON(KEYS.inboxThreads, next);
-  return nextThread;
-}
-
 export function getAdminCalendarEvents(): AdminCalendarEvent[] {
   initAdminMockData();
   return safeReadJSON<AdminCalendarEvent[]>(KEYS.calendarEvents) ?? [];
@@ -426,37 +290,6 @@ export function addAdminCalendarEvent(event: Omit<AdminCalendarEvent, 'id'>): Ad
   const nextEvent: AdminCalendarEvent = { id: uid('e'), ...event };
   const next = [nextEvent, ...list];
   safeWriteJSON(KEYS.calendarEvents, next);
-  return next;
-}
-
-export function getAdminTodos(): AdminTodoItem[] {
-  initAdminMockData();
-  return safeReadJSON<AdminTodoItem[]>(KEYS.todoItems) ?? [];
-}
-
-export function addAdminTodoItem(text: string): AdminTodoItem[] {
-  initAdminMockData();
-  const list = getAdminTodos();
-  const next: AdminTodoItem[] = [{ id: uid('td'), text, done: false, starred: false }, ...list];
-  safeWriteJSON(KEYS.todoItems, next);
-  return next;
-}
-
-export function updateAdminTodoItem(todoId: string, patch: Partial<AdminTodoItem>): AdminTodoItem[] {
-  initAdminMockData();
-  const list = getAdminTodos();
-  const idx = list.findIndex((t) => t.id === todoId);
-  if (idx < 0) return list;
-  const updated = { ...list[idx], ...patch };
-  const next = [...list.slice(0, idx), updated, ...list.slice(idx + 1)];
-  safeWriteJSON(KEYS.todoItems, next);
-  return next;
-}
-
-export function deleteAdminTodoItem(todoId: string): AdminTodoItem[] {
-  initAdminMockData();
-  const next = getAdminTodos().filter((t) => t.id !== todoId);
-  safeWriteJSON(KEYS.todoItems, next);
   return next;
 }
 

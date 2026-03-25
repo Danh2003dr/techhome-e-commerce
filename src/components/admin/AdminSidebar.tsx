@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-/** Visible menu: core + optional (Inbox, Calendar, To-Do). Hidden items removed from nav only — routes unchanged. */
 const navGroups: Array<{
   title?: string;
   items: Array<{ label: string; path: string; icon: string }>;
@@ -11,15 +10,8 @@ const navGroups: Array<{
       { label: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
       { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
       { label: 'Orders', path: '/admin/orders', icon: 'receipt_long' },
-      { label: 'Settings', path: '/admin/seo', icon: 'settings' },
-    ],
-  },
-  {
-    title: 'More',
-    items: [
-      { label: 'Inbox', path: '/admin/inbox', icon: 'mail_outline' },
       { label: 'Calendar', path: '/admin/calendar', icon: 'event' },
-      { label: 'To-Do', path: '/admin/todo', icon: 'checklist' },
+      { label: 'Settings', path: '/admin/seo', icon: 'settings' },
     ],
   },
   {
