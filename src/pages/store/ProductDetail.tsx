@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProductDetailExtras } from '@/data';
 import { useApiProduct } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
-import { resolveProductById } from '@/services/productCatalogBridge';
+import { getFallbackProductById, getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
 import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
 import { hasPurchasedProduct } from '@/services/purchasesStore';
 import { useCart } from '@/context/CartContext';
@@ -39,9 +38,9 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
   const { user, isAuthenticated } = useAuth();
-  const mockProduct = id ? resolveProductById(id) : undefined;
-  const product = isApiConfigured() && apiProduct ? apiProduct : mockProduct;
-  const extras = id ? getProductDetailExtras(id) : null;
+  const mockProduct = getFallbackProductById(id);
+  const product = isApiConfigured() ? apiProduct : mockProduct;
+  const extras = getFallbackProductDetailExtras(id);
 
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();

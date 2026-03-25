@@ -1,8 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useApiCategories } from '@/hooks/useProductApi';
+import { getFallbackCategories } from '@/services/fallbackAdapters';
+import { isApiConfigured } from '@/services/api';
+import { resolveStorefrontPathForCategorySlug } from '@/services/categoryNavigation';
+import type { Category } from '@/types';
+
+function CategoryMenuThumb({ cat }: { cat: Category }) {
+  const [imgErr, setImgErr] = useState(false);
+  const url = cat.imageUrl?.trim();
+  const showImg = Boolean(url && !imgErr);
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-700">
+      {showImg ? (
+        <img src={url} alt="" className="h-full w-full object-cover" onError={() => setImgErr(true)} />
+      ) : (
+        <span className="material-icons text-xl text-slate-600 transition-colors group-hover:text-primary dark:text-slate-400">
+          {cat.icon}
+        </span>
+      )}
+    </span>
+  );
+}
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +36,12 @@ const Header: React.FC = () => {
   const accountRef = useRef<HTMLDivElement>(null);
   const { totalCount: cartCount } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
+  const { data: apiCategories } = useApiCategories();
+
+  const categoryMenuItems = useMemo(() => {
+    const raw = isApiConfigured() && apiCategories.length > 0 ? apiCategories : getFallbackCategories();
+    return [...raw].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  }, [apiCategories]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -46,16 +74,6 @@ const Header: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isCategoriesOpen]);
-
-  // Category menu items with routes
-  const categoryMenuItems = [
-    { name: 'Điện thoại', path: '/category/mobile', icon: 'smartphone' },
-    { name: 'Tablet', path: '/search?category=tablets', icon: 'tablet' },
-    { name: 'Laptop', path: '/search?category=laptops', icon: 'laptop' },
-    { name: 'Phụ kiện', path: '/category/accessories', icon: 'keyboard' },
-    { name: 'Âm thanh', path: '/category/audio', icon: 'headset' },
-    { name: 'Đồng hồ thông minh', path: '/search?category=smartwatch', icon: 'watch' },
-  ];
 
   return (
     <>
@@ -176,25 +194,25 @@ const Header: React.FC = () => {
                 </span>
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown: padding-top thay cho margin — tránh khe hở khiến mouseleave đóng menu trước khi vào panel */}
               {isCategoriesOpen && (
-                <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] overflow-hidden">
-                  <div className="py-2">
-                    {categoryMenuItems.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.path}
-                        onClick={() => setIsCategoriesOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
-                      >
-                        <span className="material-icons text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">
-                          {item.icon}
-                        </span>
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
-                          {item.name}
-                        </span>
-                      </Link>
-                    ))}
+                <div className="absolute left-0 top-full z-[100] w-64 pt-2">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800">
+                    <div className="py-2">
+                      {categoryMenuItems.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          to={resolveStorefrontPathForCategorySlug(cat.slug)}
+                          onClick={() => setIsCategoriesOpen(false)}
+                          className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
+                        >
+                          <CategoryMenuThumb cat={cat} />
+                          <span className="text-sm font-medium text-slate-700 transition-colors group-hover:text-primary dark:text-slate-200">
+                            {cat.name}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

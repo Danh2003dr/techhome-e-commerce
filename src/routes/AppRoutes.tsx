@@ -21,6 +21,7 @@ import WishlistPage from '@/pages/account/WishlistPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import ForbiddenPage from '@/pages/ForbiddenPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
@@ -33,6 +34,7 @@ import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 import CalendarPage from '@/pages/admin/CalendarPage';
 import BannerManagementPage from '@/pages/admin/banners/BannerManagementPage';
 import VoucherBuilderPage from '@/pages/admin/vouchers/VoucherBuilderPage';
+import AdminRoute from '@/routes/AdminRoute';
 
 const AppRoutes: React.FC = () => (
         <Routes>
@@ -54,6 +56,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
     <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
     <Route path="/login" element={<LoginPage />} />
+    <Route path="/403" element={<ForbiddenPage />} />
     <Route path="/signup" element={<SignUpPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
@@ -61,7 +64,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
-    <Route element={<AdminLayout />}>
+    <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
       <Route path="/admin/calendar" element={<CalendarPage />} />

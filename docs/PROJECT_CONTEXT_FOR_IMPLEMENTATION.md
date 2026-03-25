@@ -78,6 +78,7 @@
 
 - Backend có thể chạy tách (ví dụ Node repo khác); frontend chỉ cần **đúng base URL** + **CORS** cho origin `http://localhost:3000`.
 - Contract endpoint: bám `src/services/backend.ts` + `src/types/api.ts`; đổi backend thì ưu tiên cập nhật **một chỗ** (service + type + mapper).
+- **Spec đầy đủ cho AI / backend:** [`BACKEND_API_SPEC_FOR_AI.md`](./BACKEND_API_SPEC_FOR_AI.md) — bảng endpoint, schema JSON, auth, quy tắc đặt hàng và giỏ.
 
 ---
 

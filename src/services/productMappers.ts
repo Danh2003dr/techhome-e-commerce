@@ -9,20 +9,41 @@ import { discountPercentFromPrices, effectiveUnitPrice } from '@/utils/pricing';
 const slugToIcon: Record<string, string> = {
   mobile: 'smartphone',
   smartphones: 'smartphone',
+  'dien-thoai': 'smartphone',
   tablets: 'tablet',
   tablet: 'tablet',
   accessories: 'keyboard',
+  'phu-kien': 'keyboard',
   audio: 'headset',
+  'am-thanh': 'headset',
   cooling: 'ac_unit',
   'smart-home': 'tv',
+  laptop: 'laptop',
+  laptops: 'laptop',
+  smartwatch: 'watch',
+  'dong-ho-thong-minh': 'watch',
 };
 
+/** Alias tên icon API → tên Material Icons dùng trong UI */
+const iconAliases: Record<string, string> = {
+  headset: 'headphones',
+  headphones: 'headphones',
+};
+
+function resolveCategoryIcon(dto: CategoryDto): string {
+  const raw = dto.icon != null ? String(dto.icon).trim() : '';
+  if (raw) return iconAliases[raw] ?? raw;
+  return slugToIcon[dto.slug] ?? 'devices';
+}
+
 export function mapCategoryDtoToCategory(dto: CategoryDto): Category {
+  const img = dto.imageUrl != null ? String(dto.imageUrl).trim() : '';
   return {
     id: String(dto.id),
     name: dto.name,
     slug: dto.slug,
-    icon: slugToIcon[dto.slug] ?? 'category',
+    icon: resolveCategoryIcon(dto),
+    imageUrl: img || undefined,
   };
 }
 

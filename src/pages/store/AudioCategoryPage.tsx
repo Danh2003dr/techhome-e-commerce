@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { audioCategoryProducts } from '@/data';
-import type { AccessoriesProduct } from '@/types';
 import ProductCard from '@/features/products/components/ProductCard';
+import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
+import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
+import { isApiConfigured } from '@/services/api';
 
 const HERO_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCi1GpWnEhQSlHntiNLVve9xzux9Uvoto9E-Mw4dCOwR502O-eYrKgv20d47lGjmX0Fsn0gFdDcd8tqCBTRkNIvqZcW0uBuumshu6Rg5c2zf6cXEVNcANj1ZzFLq_3xDURsHq7NJt-RLN0YAVi8ft535Ct-Kxt9FUAqYuX0d6gGiHx5P2gTpggxpKUA_QW1Ep06u5P6O8WYHbCW_nr_tdn5OqfcF5k1h7yqKkW_iQ-q_iNXmagg9U4j3ivnwHdYBpTl_EZlRFPV5oY';
@@ -20,6 +22,15 @@ const AudioCategoryPage: React.FC = () => {
   const [activeSub, setActiveSub] = useState('Headphones');
   const [sortBy, setSortBy] = useState('Most Popular');
   const [page, setPage] = useState(1);
+  const { data: apiCategories } = useApiCategories();
+  const audioCategory = findCategoryInGroup(apiCategories, slugGroups.audio);
+  const audioCategoryId = audioCategory ? Number(audioCategory.id) : undefined;
+  const { data: apiAudioProducts } = useApiProducts({
+    category: Number.isFinite(audioCategoryId) ? audioCategoryId : undefined,
+    page: 0,
+    size: 100,
+  });
+  const storefrontProducts = isApiConfigured() && apiAudioProducts.length > 0 ? apiAudioProducts : audioCategoryProducts;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -142,7 +153,7 @@ const AudioCategoryPage: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <p className="text-slate-500 font-medium">Showing 1-12 of 156 products</p>
+              <p className="text-slate-500 font-medium">Showing 1-{Math.min(12, storefrontProducts.length)} of {storefrontProducts.length} products</p>
               <div className="flex items-center gap-4">
                 <span className="text-sm text-slate-500 whitespace-nowrap">Sort by:</span>
                 <select
@@ -159,7 +170,7 @@ const AudioCategoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {audioCategoryProducts.map((product) => (
+              {storefrontProducts.map((product) => (
                 <ProductCard key={product.id} product={product as any} />
               ))}
             </div>

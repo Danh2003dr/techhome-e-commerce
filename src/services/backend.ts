@@ -7,7 +7,6 @@ import {
   apiGet,
   apiPost,
   apiPut,
-  apiPatch,
   apiDelete,
   setToken as storeToken,
   setStoredUser,
@@ -24,6 +23,45 @@ import type {
   ProfileDto,
 } from '@/types/api';
 import type { CartItem } from '@/types';
+
+interface BackendCartItemRaw {
+  id?: string | number;
+  _id?: string;
+  productId?: string | number;
+  name?: string;
+  quantity?: number;
+  variant?: string | null;
+  price?: number;
+  image?: string | null;
+}
+
+interface BackendCartRaw {
+  items?: BackendCartItemRaw[];
+}
+
+function mapBackendCartItem(raw: BackendCartItemRaw, index: number): CartItem {
+  const id = String(raw.id ?? raw._id ?? `cart-item-${index}`);
+  const productId = String(raw.productId ?? '');
+  return {
+    id,
+    productId,
+    name: raw.name ?? '',
+    variant: raw.variant ?? undefined,
+    price: Number(raw.price ?? 0),
+    quantity: Number(raw.quantity ?? 1),
+    image: raw.image ?? '',
+  };
+}
+
+function mapBackendCartResponse(raw: unknown): CartItem[] {
+  if (Array.isArray(raw)) {
+    return raw.map((item, idx) => mapBackendCartItem(item as BackendCartItemRaw, idx));
+  }
+  if (raw && typeof raw === 'object' && Array.isArray((raw as BackendCartRaw).items)) {
+    return (raw as BackendCartRaw).items!.map((item, idx) => mapBackendCartItem(item, idx));
+  }
+  return [];
+}
 
 export interface ProductsParams {
   category?: number;
@@ -109,10 +147,11 @@ export function logout(): void {
 
 /** GET /api/cart */
 export async function getCart(): Promise<CartItem[]> {
-  return apiGet<CartItem[]>('/cart', { auth: true });
+  const res = await apiGet<unknown>('/cart', { auth: true });
+  return mapBackendCartResponse(res);
 }
 
-/** POST /api/cart/items */
+/** POST /api/cart */
 export async function addCartItem(payload: {
   productId: string;
   name: string;
@@ -121,36 +160,102 @@ export async function addCartItem(payload: {
   quantity?: number;
   variant?: string;
 }): Promise<CartItem[]> {
-  const res = await apiPost<CartItem[]>('/cart/items', payload, { auth: true });
-  return res;
+  const res = await apiPost<unknown>(
+    '/cart',
+    {
+      product_id: payload.productId,
+      price: payload.price,
+      quantity: payload.quantity ?? 1,
+      variant: payload.variant,
+      name: payload.name,
+      image: payload.image,
+    },
+    { auth: true }
+  );
+  return mapBackendCartResponse(res);
 }
 
-/** PATCH /api/cart/items/:id */
+/** PUT /api/cart/:id */
 export async function updateCartItemQuantity(cartItemId: string, quantity: number): Promise<CartItem[]> {
-  return apiPatch<CartItem[]>(`/cart/items/${encodeURIComponent(cartItemId)}`, { quantity }, { auth: true });
+  const res = await apiPut<unknown>(
+    `/cart/${encodeURIComponent(cartItemId)}`,
+    { quantity },
+    { auth: true }
+  );
+  return mapBackendCartResponse(res);
 }
 
-/** DELETE /api/cart/items/:id */
+/** DELETE /api/cart/:id */
 export async function removeCartItem(cartItemId: string): Promise<CartItem[]> {
-  return apiDelete<CartItem[]>(`/cart/items/${encodeURIComponent(cartItemId)}`, { auth: true });
+  const res = await apiDelete<unknown>(`/cart/${encodeURIComponent(cartItemId)}`, { auth: true });
+  return mapBackendCartResponse(res);
 }
 
-/** PUT /api/cart – replace entire cart */
+/** PUT /api/cart — replace entire cart */
 export async function setCart(items: CartItem[]): Promise<CartItem[]> {
-  return apiPut<CartItem[]>('/cart', { items }, { auth: true });
+  const res = await apiPut<unknown>('/cart', { items }, { auth: true });
+  return mapBackendCartResponse(res);
 }
 
 // ——— Profile & Password (requires auth) ———
 
 /** GET /api/profile */
 export async function getProfile(): Promise<ProfileDto> {
-  return apiGet<ProfileDto>('/profile', { auth: true });
+  const res = await apiGet<Record<string, unknown>>('/profile', { auth: true });
+  return {
+    id: (res.id ?? '') as string | number,
+    name: String(res.name ?? ''),
+    email: String(res.email ?? ''),
+    phone: (res.phone as string | null | undefined) ?? null,
+    gender: (res.gender as string | null | undefined) ?? null,
+    dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
+    defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
+    passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
+  };
+}
+
+/** PUT /api/profile */
+export async function updateProfile(payload: {
+  name?: string;
+  phone?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  defaultAddress?: string;
+}): Promise<ProfileDto> {
+  const res = await apiPut<Record<string, unknown>>('/profile', {
+    name: payload.name,
+    phone: payload.phone,
+    gender: payload.gender,
+    dateOfBirth: payload.dateOfBirth,
+    defaultAddress: payload.defaultAddress,
+  }, { auth: true });
+  return {
+    id: (res.id ?? '') as string | number,
+    name: String(res.name ?? ''),
+    email: String(res.email ?? ''),
+    phone: (res.phone as string | null | undefined) ?? null,
+    gender: (res.gender as string | null | undefined) ?? null,
+    dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
+    defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
+    passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
+  };
 }
 
 /** POST /api/auth/change-password */
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string; passwordChangedAt?: string }> {
-  return apiPost<{ message: string; passwordChangedAt?: string }>('/auth/change-password', {
+  const res = await apiPost<unknown>('/auth/change-password', {
     currentPassword,
     newPassword,
   }, { auth: true });
+  if (typeof res === 'string') {
+    return { message: res };
+  }
+  if (res && typeof res === 'object') {
+    const body = res as Record<string, unknown>;
+    return {
+      message: String(body.message ?? 'Password changed successfully'),
+      passwordChangedAt: body.passwordChangedAt as string | undefined,
+    };
+  }
+  return { message: 'Password changed successfully' };
 }

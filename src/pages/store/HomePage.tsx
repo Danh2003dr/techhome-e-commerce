@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { categories as mockCategories, banners as fallbackBanners, trendingProducts as mockTrendingProducts } from '@/data';
-import { getAdminBanners, getAdminProducts } from '@/services/adminMockStore';
-import { mapAdminProductToTrending } from '@/services/productCatalogBridge';
-import { useApiCategories, useApiFeaturedProducts } from '@/hooks/useProductApi';
+import { banners as fallbackBanners } from '@/data';
+import { getAdminBanners } from '@/services/adminMockStore';
+import { useApiFeaturedProducts } from '@/hooks/useProductApi';
+import { getFallbackTrendingProducts } from '@/services/fallbackAdapters';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -17,15 +17,6 @@ function bannerToPath(link: string) {
   if (link.startsWith('#/')) return link.slice(1);
   return link;
 }
-
-const categoryIcons: Record<string, string> = {
-  smartphone: 'smartphone',
-  tablet: 'tablet',
-  ac_unit: 'ac_unit',
-  keyboard: 'keyboard',
-  headset: 'headphones',
-  tv: 'home_max',
-};
 
 function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -148,26 +139,17 @@ const HomePage: React.FC = () => {
   const heroBanner = heroBanners[heroIndex] ?? heroBanners[0];
   const [activeTab, setActiveTab] = useState<'new' | 'bestseller' | 'featured'>('new');
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
-  const { data: apiCategories, loading: categoriesLoading } = useApiCategories();
-  const { data: apiFeaturedProducts, loading: featuredLoading } = useApiFeaturedProducts();
+  const { data: apiFeaturedProducts } = useApiFeaturedProducts();
 
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
 
-  const categories = useMemo(
-    () => (isApiConfigured() && apiCategories.length > 0 ? apiCategories : mockCategories),
-    [apiCategories]
-  );
   const trendingProducts = useMemo(() => {
-    const fromAdmin = getAdminProducts()
-      .filter((p) => p.featured)
-      .map(mapAdminProductToTrending);
-    if (isApiConfigured() && apiFeaturedProducts.length > 0) {
-      const ids = new Set(apiFeaturedProducts.map((x) => x.id));
-      return [...fromAdmin.filter((a) => !ids.has(a.id)), ...apiFeaturedProducts].slice(0, 12);
+    if (isApiConfigured()) {
+      return apiFeaturedProducts.slice(0, 12);
     }
-    return [...fromAdmin, ...mockTrendingProducts].slice(0, 12);
+    return getFallbackTrendingProducts();
   }, [apiFeaturedProducts]);
-  const isUsingApiProducts = isApiConfigured() && apiFeaturedProducts.length > 0;
+  const isUsingApiProducts = isApiConfigured();
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">
@@ -232,38 +214,6 @@ const HomePage: React.FC = () => {
                 </div>
               </>
             )}
-          </div>
-        </section>
-
-        <section className="mb-14 md:mb-16">
-          <h3 className="text-xl font-bold mb-6 md:mb-7 text-slate-900 dark:text-white">Shop by Category</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 sm:gap-5">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                to={
-                  cat.slug === 'mobile'
-                    ? '/category/mobile'
-                    : cat.slug === 'cooling'
-                      ? '/category/cooling'
-                      : cat.slug === 'accessories'
-                        ? '/category/accessories'
-                        : cat.slug === 'audio'
-                          ? '/category/audio'
-                          : cat.slug === 'smart-home'
-                            ? '/category/smart-home'
-                            : `/search?category=${cat.slug}`
-                }
-                className="group text-center"
-              >
-                <div className="w-[88px] h-[88px] sm:w-[92px] sm:h-[92px] mx-auto rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-5 sm:p-6 transition-all hover:border-primary hover:shadow-lg mb-3">
-                  <span className="material-icons text-[30px] sm:text-[32px] text-slate-700 dark:text-slate-300 group-hover:text-primary" aria-hidden>
-                    {categoryIcons[cat.icon] || cat.icon}
-                  </span>
-                </div>
-                <p className="font-semibold text-sm group-hover:text-primary font-display" style={{ fontFamily: "inherit" }}>{cat.name}</p>
-              </Link>
-            ))}
           </div>
         </section>
 

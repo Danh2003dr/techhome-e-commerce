@@ -1,10 +1,68 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { orderConfirmationSample } from '@/data';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { getOrder } from '@/services/backend';
+import { isApiConfigured } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { getFallbackOrderConfirmation } from '@/services/fallbackAdapters';
+import type { OrderDto } from '@/types/api';
 import { formatVND } from '@/utils';
 
+function mapOrderDtoToConfirmation(order: OrderDto) {
+  return {
+    orderId: String(order.id),
+    lineItems: order.items.map((item, idx) => ({
+      id: `${item.productId}-${idx}`,
+      name: item.productName,
+      image: item.productImage || 'https://picsum.photos/100/100?random=order-confirmation',
+      quantity: item.quantity,
+      price: Number(item.priceAtOrder) * Number(item.quantity),
+    })),
+    subtotal: Number(order.totalPrice),
+    shipping: 0,
+    tax: 0,
+    total: Number(order.totalPrice),
+    delivery: {
+      estimatedDelivery: 'Đang cập nhật',
+      shippingAddress: {
+        name: '—',
+        street: '—',
+        city: '—',
+        stateZip: '—',
+        country: '—',
+      },
+    },
+    payment: {
+      brand: '—',
+      last4: '—',
+    },
+    showInstallationBanner: false,
+    installationMessage: '',
+  };
+}
+
 const OrderConfirmationPage: React.FC = () => {
-  const order = orderConfirmationSample;
+  const { orderId } = useParams<{ orderId?: string }>();
+  const { isAuthenticated } = useAuth();
+  const [apiOrder, setApiOrder] = useState<OrderDto | null>(null);
+  const [apiUnavailable, setApiUnavailable] = useState(false);
+
+  useEffect(() => {
+    if (!orderId || !isApiConfigured() || !isAuthenticated) return;
+    getOrder(orderId)
+      .then((res) => {
+        setApiOrder(res);
+        setApiUnavailable(false);
+      })
+      .catch(() => {
+        setApiOrder(null);
+        setApiUnavailable(true);
+      });
+  }, [orderId, isAuthenticated]);
+
+  const order = useMemo(() => {
+    if (apiOrder) return mapOrderDtoToConfirmation(apiOrder);
+    return getFallbackOrderConfirmation();
+  }, [apiOrder]);
   const { delivery, payment } = order;
 
   return (
@@ -35,6 +93,9 @@ const OrderConfirmationPage: React.FC = () => {
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-3">Cảm ơn bạn đã đặt hàng!</h1>
           <p className="text-lg text-slate-600 dark:text-slate-400">Đơn hàng #{order.orderId}</p>
           <p className="text-slate-500 dark:text-slate-500 mt-2">Email xác nhận đã được gửi đến hộp thư của bạn.</p>
+          {orderId && isApiConfigured() && isAuthenticated && apiUnavailable && (
+            <p className="text-amber-600 mt-2">Backend chưa có API orders, đang hiển thị dữ liệu mẫu tạm thời.</p>
+          )}
         </div>
 
         {/* Action Buttons */}

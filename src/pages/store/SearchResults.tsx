@@ -1,15 +1,31 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '@/features/products/components/ProductCard';
+import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
+import { isApiConfigured } from '@/services/api';
 import { searchProducts, getPopularProducts, getProductsByCategorySlug, products } from '@/data';
+import { findCategoryIdByUrlSlug } from '@/services/categoryNavigation';
 
 const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || searchParams.get('query') || '';
   const categorySlug = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
+  const { data: apiCategories } = useApiCategories();
 
-  const results = useMemo(() => {
+  const apiCategoryId = useMemo(() => {
+    if (!categorySlug) return undefined;
+    return findCategoryIdByUrlSlug(apiCategories, categorySlug);
+  }, [apiCategories, categorySlug]);
+
+  const { data: apiProducts } = useApiProducts({
+    category: apiCategoryId,
+    q: query || undefined,
+    page: 0,
+    size: 100,
+  });
+
+  const fallbackResults = useMemo(() => {
     let filteredProducts: typeof products = [];
     
     if (categorySlug) {
@@ -37,7 +53,21 @@ const SearchResults: React.FC = () => {
     
     return filteredProducts;
   }, [query, categorySlug, sort]);
-  const popularProducts = getPopularProducts(4);
+  const results = useMemo(() => {
+    if (!isApiConfigured()) return fallbackResults;
+    let list = [...apiProducts];
+    if (sort === 'newest') {
+      list = list.sort((a, b) => Number(b.id) - Number(a.id));
+    }
+    return list;
+  }, [apiProducts, fallbackResults, sort]);
+
+  const popularProducts = useMemo(() => {
+    if (!isApiConfigured()) return getPopularProducts(4);
+    return [...apiProducts]
+      .sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))
+      .slice(0, 4);
+  }, [apiProducts]);
   const hasResults = results.length > 0;
 
   return (

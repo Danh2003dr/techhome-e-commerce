@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { orderHistoryCards } from '@/data';
 import type { OrderHistoryCardItem, OrderStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { getOrders } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
+import { getFallbackOrderHistoryCards } from '@/services/fallbackAdapters';
 import type { OrderDto } from '@/types/api';
 import { formatDate } from '@/utils/formatDate';
 import { formatVND } from '@/utils';
@@ -54,6 +54,7 @@ const OrderHistoryPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState('Tất cả đơn hàng');
   const [apiOrders, setApiOrders] = useState<OrderHistoryCardItem[]>([]);
+  const [apiUnavailable, setApiUnavailable] = useState(false);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -61,12 +62,20 @@ const OrderHistoryPage: React.FC = () => {
     if (!isApiConfigured() || !isAuthenticated) return;
     setLoading(true);
     getOrders()
-      .then((list) => setApiOrders(list.map(mapOrderDtoToCard)))
-      .catch(() => setApiOrders([]))
+      .then((list) => {
+        setApiOrders(list.map(mapOrderDtoToCard));
+        setApiUnavailable(false);
+      })
+      .catch(() => {
+        // Backend orders is not available yet -> keep temporary mock fallback.
+        setApiOrders([]);
+        setApiUnavailable(true);
+      })
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  const orders = isApiConfigured() && isAuthenticated ? apiOrders : orderHistoryCards;
+  const useApiOrders = isApiConfigured() && isAuthenticated && !apiUnavailable;
+  const orders = useApiOrders ? apiOrders : getFallbackOrderHistoryCards();
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -92,6 +101,9 @@ const OrderHistoryPage: React.FC = () => {
               </div>
               {(isApiConfigured() && isAuthenticated && loading) && (
                 <p className="text-sm text-slate-500">Đang tải đơn hàng...</p>
+              )}
+              {(isApiConfigured() && isAuthenticated && apiUnavailable && !loading) && (
+                <p className="text-sm text-amber-600">Backend chưa có API đơn hàng, đang hiển thị dữ liệu mẫu tạm thời.</p>
               )}
               <div className="flex gap-3">
                 <div className="relative">

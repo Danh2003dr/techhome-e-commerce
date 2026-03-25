@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { listingProducts as mockListingProducts } from '@/data';
 import { useApiProducts } from '@/hooks/useProductApi';
+import { getFallbackListingProducts } from '@/services/fallbackAdapters';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -20,7 +20,7 @@ const ProductListingPage: React.FC = () => {
   const { data: apiProducts } = useApiProducts({ page: 0, size: 100 });
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
   const listingProducts = useMemo(
-    () => (isApiConfigured() && apiProducts.length > 0 ? apiProducts : mockListingProducts),
+    () => (isApiConfigured() ? apiProducts : getFallbackListingProducts()),
     [apiProducts]
   );
   const totalResults = listingProducts.length;

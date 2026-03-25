@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
+import { getProducts } from '@/services/backend';
+import { isApiConfigured } from '@/services/api';
+import type { ProductDto } from '@/types/api';
 import { products as catalogProducts } from '@/data';
 
 const PAGE_SIZE = 10;
@@ -24,6 +27,22 @@ const MOCK_PRODUCTS: AdminProductCardModel[] = catalogProducts.map((p) => ({
   reviewCount: p.reviews,
   images: p.images?.filter(Boolean).length ? (p.images as string[]) : [p.image],
 }));
+
+function mapProductDtoToAdminCardModel(dto: ProductDto): AdminProductCardModel {
+  const images = dto.images?.filter(Boolean).length
+    ? (dto.images.filter(Boolean) as string[])
+    : dto.image
+      ? [dto.image]
+      : ['https://picsum.photos/400/400'];
+  return {
+    id: String(dto.id),
+    name: dto.name,
+    priceUsd: Number(dto.salePrice ?? dto.price ?? 0),
+    rating: 4,
+    reviewCount: 0,
+    images,
+  };
+}
 
 /** Số trang hiển thị dạng 1,2,3,…,10 */
 function getPaginationPages(current: number, total: number): (number | 'ellipsis')[] {
@@ -224,16 +243,41 @@ const ProductListPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [apiProducts, setApiProducts] = useState<AdminProductCardModel[]>([]);
+  const [apiUnavailable, setApiUnavailable] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isApiConfigured()) return;
+    setApiLoading(true);
+    getProducts({ page: 0, size: 200 })
+      .then((list) => {
+        setApiProducts(list.map(mapProductDtoToAdminCardModel));
+        setApiUnavailable(false);
+      })
+      .catch(() => {
+        setApiProducts([]);
+        setApiUnavailable(true);
+      })
+      .finally(() => setApiLoading(false));
+  }, []);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(searchInput.trim().toLowerCase()), 300);
     return () => window.clearTimeout(t);
   }, [searchInput]);
 
+  const sourceProducts = useMemo(() => {
+    if (isApiConfigured() && !apiUnavailable) {
+      return apiProducts;
+    }
+    return MOCK_PRODUCTS;
+  }, [apiProducts, apiUnavailable]);
+
   const filtered = useMemo(() => {
-    if (!debouncedSearch) return MOCK_PRODUCTS;
-    return MOCK_PRODUCTS.filter((p) => p.name.toLowerCase().includes(debouncedSearch));
-  }, [debouncedSearch]);
+    if (!debouncedSearch) return sourceProducts;
+    return sourceProducts.filter((p) => p.name.toLowerCase().includes(debouncedSearch));
+  }, [debouncedSearch, sourceProducts]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
@@ -260,6 +304,12 @@ const ProductListPage: React.FC = () => {
             Products
           </h1>
           <p className="text-xs font-semibold text-slate-500 mt-1">Quản lý danh sách sản phẩm</p>
+          {isApiConfigured() && apiLoading && (
+            <p className="text-xs text-slate-500 mt-1">Đang tải sản phẩm từ backend...</p>
+          )}
+          {isApiConfigured() && apiUnavailable && !apiLoading && (
+            <p className="text-xs text-amber-600 mt-1">Backend products chưa sẵn sàng, đang hiển thị dữ liệu mẫu tạm thời.</p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center sm:justify-end">

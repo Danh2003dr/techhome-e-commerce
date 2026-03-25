@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { isApiConfigured, ApiError } from '@/services/api';
-import { getProfile, changePassword } from '@/services/backend';
+import { getProfile, changePassword, updateProfile } from '@/services/backend';
 import type { ProfileDto } from '@/types/api';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
@@ -75,6 +75,16 @@ function displayValue(value: string, placeholder: string) {
   return value?.trim() ? value : placeholder;
 }
 
+function mapApiProfileToExtension(dto: ProfileDto): ProfileExtension {
+  return {
+    fullName: dto.name || '',
+    phone: dto.phone || '',
+    gender: dto.gender || '',
+    dateOfBirth: dto.dateOfBirth || '',
+    defaultAddress: dto.defaultAddress || '',
+  };
+}
+
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, isInitialized } = useAuth();
   const { avatarUrl, setAvatarUrl } = useAvatar();
@@ -87,6 +97,8 @@ const ProfilePage: React.FC = () => {
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<ProfileExtension>({ ...profile });
+  const [saveProfileLoading, setSaveProfileLoading] = useState(false);
+  const [saveProfileError, setSaveProfileError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,7 +114,12 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     if (!isApiConfigured() || !isAuthenticated) return;
     getProfile()
-      .then(setApiProfile)
+      .then((p) => {
+        setApiProfile(p);
+        const mapped = mapApiProfileToExtension(p);
+        setProfile(mapped);
+        saveProfile(mapped);
+      })
       .catch(() => setApiProfile(null));
   }, [isAuthenticated]);
 
@@ -132,6 +149,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const openEdit = useCallback(() => {
+    setSaveProfileError(null);
     setEditForm({ ...profile });
     setEditOpen(true);
   }, [profile]);
@@ -140,10 +158,39 @@ const ProfilePage: React.FC = () => {
     setEditOpen(false);
   }, []);
 
-  const saveEdit = useCallback(() => {
-    setProfile(editForm);
-    saveProfile(editForm);
-    setEditOpen(false);
+  const saveEdit = useCallback(async () => {
+    setSaveProfileError(null);
+    if (!isApiConfigured()) {
+      setProfile(editForm);
+      saveProfile(editForm);
+      setEditOpen(false);
+      return;
+    }
+    setSaveProfileLoading(true);
+    try {
+      const updated = await updateProfile({
+        name: editForm.fullName,
+        phone: editForm.phone,
+        gender: editForm.gender,
+        dateOfBirth: editForm.dateOfBirth,
+        defaultAddress: editForm.defaultAddress,
+      });
+      setApiProfile(updated);
+      const mapped = mapApiProfileToExtension(updated);
+      setProfile(mapped);
+      saveProfile(mapped);
+      setEditOpen(false);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof ApiError && err.body?.message
+          ? String(err.body.message)
+          : err instanceof Error
+            ? err.message
+            : 'Cập nhật hồ sơ thất bại.';
+      setSaveProfileError(msg);
+    } finally {
+      setSaveProfileLoading(false);
+    }
   }, [editForm]);
 
   const displayPasswordUpdated = isApiConfigured() && apiProfile?.passwordChangedAt
@@ -432,7 +479,7 @@ const ProfilePage: React.FC = () => {
               className="p-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                saveEdit();
+                void saveEdit();
               }}
             >
               <div>
@@ -485,6 +532,9 @@ const ProfilePage: React.FC = () => {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary"
                 />
               </div>
+              {saveProfileError && (
+                <p className="text-sm text-red-600 dark:text-red-400">{saveProfileError}</p>
+              )}
               <div className="pt-4 flex gap-3">
                 <button
                   type="button"
@@ -493,8 +543,12 @@ const ProfilePage: React.FC = () => {
                 >
                   Hủy
                 </button>
-                <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors">
-                  Lưu
+                <button
+                  type="submit"
+                  disabled={saveProfileLoading}
+                  className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60"
+                >
+                  {saveProfileLoading ? 'Đang lưu...' : 'Lưu'}
                 </button>
               </div>
             </form>

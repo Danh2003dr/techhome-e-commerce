@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { mobileCategoryProducts } from '@/data';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
+import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
+import { isApiConfigured } from '@/services/api';
 import { formatVND } from '@/utils';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -56,6 +59,14 @@ function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' |
 const MobileCategoryPage: React.FC = () => {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
+  const { data: apiCategories } = useApiCategories();
+  const mobileCategory = findCategoryInGroup(apiCategories, slugGroups.mobile);
+  const mobileCategoryId = mobileCategory ? Number(mobileCategory.id) : undefined;
+  const { data: apiMobileProducts } = useApiProducts({
+    category: Number.isFinite(mobileCategoryId) ? mobileCategoryId : undefined,
+    page: 0,
+    size: 100,
+  });
   const [sortBy, setSortBy] = useState('Most Relevant');
   const [selectedSub, setSelectedSub] = useState('All Products');
   const [selectedRam, setSelectedRam] = useState<string | null>('12 GB');
@@ -63,6 +74,7 @@ const MobileCategoryPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
+  const storefrontProducts = isApiConfigured() && apiMobileProducts.length > 0 ? apiMobileProducts : mobileCategoryProducts;
 
   const getBadgeVariant = (badge: string): 'primary' | 'red' | 'slate' | 'green' => {
     if (badge === 'New Arrival') return 'primary';
@@ -209,7 +221,7 @@ const MobileCategoryPage: React.FC = () => {
           <div className="flex-grow">
             <div className="flex items-center justify-between mb-8">
               <p className="text-sm text-slate-500">
-                Showing <span className="font-bold text-slate-900 dark:text-white">{mobileCategoryProducts.length}</span> products from{' '}
+                Showing <span className="font-bold text-slate-900 dark:text-white">{storefrontProducts.length}</span> products from{' '}
                 <span className="font-bold text-slate-900 dark:text-white">{TOTAL_PRODUCTS}</span>
               </p>
               <div className="flex items-center gap-2">
@@ -228,7 +240,7 @@ const MobileCategoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {mobileCategoryProducts.map((product) => {
+              {storefrontProducts.map((product) => {
                 const productId = product.productDetailId || product.id;
                 const productPath = `/product/${productId}`;
                 return (

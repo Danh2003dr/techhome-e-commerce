@@ -4,9 +4,13 @@
  */
 
 export interface CategoryDto {
-  id: number;
+  id: number | string;
   name: string;
   slug: string;
+  /** Tên icon (ví dụ Material Icons) — tuỳ chọn */
+  icon?: string | null;
+  /** URL ảnh đại diện danh mục — tuỳ chọn */
+  imageUrl?: string | null;
 }
 
 export interface ProductColorDto {
@@ -15,7 +19,7 @@ export interface ProductColorDto {
 }
 
 export interface ProductDto {
-  id: number;
+  id: number | string;
   name: string;
   slug: string;
   description: string | null;
@@ -46,14 +50,15 @@ export interface RegisterRequest {
 }
 
 export interface AuthUserDto {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
+  role?: 'USER' | 'ADMIN' | 'MODERATOR' | string;
 }
 
 /** Profile từ GET /api/profile (UserDto). */
 export interface ProfileDto {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   phone?: string | null;
@@ -88,8 +93,8 @@ export interface OrderItemDto {
 }
 
 export interface OrderDto {
-  id: number;
-  userId: number;
+  id: number | string;
+  userId: number | string;
   totalPrice: number;
   status: string;
   createdAt: string;

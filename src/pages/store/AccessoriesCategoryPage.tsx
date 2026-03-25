@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { accessoriesCategoryProducts } from '@/data';
-import type { AccessoriesProduct } from '@/types';
 import ProductCard from '@/features/products/components/ProductCard';
+import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
+import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
+import { isApiConfigured } from '@/services/api';
 
 const HERO_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCi1GpWnEhQSlHntiNLVve9xzux9Uvoto9E-Mw4dCOwR502O-eYrKgv20d47lGjmX0Fsn0gFdDcd8tqCBTRkNIvqZcW0uBuumshu6Rg5c2zf6cXEVNcANj1ZzFLq_3xDURsHq7NJt-RLN0YAVi8ft535Ct-Kxt9FUAqYuX0d6gGiHx5P2gTpggxpKUA_QW1Ep06u5P6O8WYHbCW_nr_tdn5OqfcF5k1h7yqKkW_iQ-q_iNXmagg9U4j3ivnwHdYBpTl_EZlRFPV5oY';
@@ -21,14 +23,24 @@ const AccessoriesCategoryPage: React.FC = () => {
   const [activeSub, setActiveSub] = useState('Charging & Cables');
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const [page, setPage] = useState(1);
+  const { data: apiCategories } = useApiCategories();
+  const accessoriesCategory = findCategoryInGroup(apiCategories, slugGroups.accessories);
+  const accessoriesCategoryId = accessoriesCategory ? Number(accessoriesCategory.id) : undefined;
+  const { data: apiAccessoriesProducts } = useApiProducts({
+    category: Number.isFinite(accessoriesCategoryId) ? accessoriesCategoryId : undefined,
+    page: 0,
+    size: 100,
+  });
+  const storefrontProducts =
+    isApiConfigured() && apiAccessoriesProducts.length > 0
+      ? apiAccessoriesProducts
+      : accessoriesCategoryProducts;
 
   return (
     <div className="container mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6">
           <Link to="/" className="hover:text-primary">Home</Link>
-          <span className="material-icons text-xs">chevron_right</span>
-          <Link to="/search" className="hover:text-primary">Shop by Category</Link>
           <span className="material-icons text-xs">chevron_right</span>
           <span className="text-slate-900 dark:text-slate-200 font-semibold">Accessories</span>
         </nav>
@@ -158,7 +170,7 @@ const AccessoriesCategoryPage: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <p className="text-slate-500 font-medium">Showing 1-12 of 84 products</p>
+              <p className="text-slate-500 font-medium">Showing 1-{Math.min(12, storefrontProducts.length)} of {storefrontProducts.length} products</p>
               <div className="flex items-center gap-4">
                 <span className="text-sm text-slate-500 whitespace-nowrap">Sort by:</span>
                 <select
@@ -175,7 +187,7 @@ const AccessoriesCategoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {accessoriesCategoryProducts.map((product) => (
+              {storefrontProducts.map((product) => (
                 <ProductCard key={product.id} product={product as any} />
               ))}
             </div>
