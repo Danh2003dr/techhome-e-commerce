@@ -39,9 +39,10 @@ export function findCategoryIdByUrlSlug(categories: Category[], urlSlug: string)
 /** Link đích cho một danh mục (dropdown header). */
 export function resolveStorefrontPathForCategorySlug(slug: string): string {
   const s = slug.toLowerCase();
-  if (slugGroups.mobile.some((x) => x === s)) return '/category/mobile';
-  if (slugGroups.accessories.some((x) => x === s)) return '/category/accessories';
-  if (slugGroups.audio.some((x) => x === s)) return '/category/audio';
+  // Category pages are dynamic; for known top-level groups we route to /category/<slug>.
+  if (slugGroups.mobile.some((x) => x === s)) return `/category/${encodeURIComponent(s)}`;
+  if (slugGroups.accessories.some((x) => x === s)) return `/category/${encodeURIComponent(s)}`;
+  if (slugGroups.audio.some((x) => x === s)) return `/category/${encodeURIComponent(s)}`;
   if (slugGroups.tablet.some((x) => x === s)) return '/search?category=tablets';
   if (slugGroups.laptop.some((x) => x === s)) return '/search?category=laptops';
   if (slugGroups.smartwatch.some((x) => x === s)) return '/search?category=smartwatch';

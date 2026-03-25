@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { banners as fallbackBanners } from '@/data';
 import { getAdminBanners } from '@/services/adminMockStore';
 import { useApiFeaturedProducts } from '@/hooks/useProductApi';
-import { getFallbackTrendingProducts } from '@/services/fallbackAdapters';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -144,10 +143,8 @@ const HomePage: React.FC = () => {
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
 
   const trendingProducts = useMemo(() => {
-    if (isApiConfigured()) {
-      return apiFeaturedProducts.slice(0, 12);
-    }
-    return getFallbackTrendingProducts();
+    if (!isApiConfigured()) return [];
+    return apiFeaturedProducts.slice(0, 12);
   }, [apiFeaturedProducts]);
   const isUsingApiProducts = isApiConfigured();
 

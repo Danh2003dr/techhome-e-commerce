@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useApiCategories } from '@/hooks/useProductApi';
-import { getFallbackCategories } from '@/services/fallbackAdapters';
 import { isApiConfigured } from '@/services/api';
 import { resolveStorefrontPathForCategorySlug } from '@/services/categoryNavigation';
 import type { Category } from '@/types';
@@ -39,8 +38,10 @@ const Header: React.FC = () => {
   const { data: apiCategories } = useApiCategories();
 
   const categoryMenuItems = useMemo(() => {
-    const raw = isApiConfigured() && apiCategories.length > 0 ? apiCategories : getFallbackCategories();
-    return [...raw].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    const raw = isApiConfigured() ? apiCategories : [];
+    // Only show top-level categories (danh mục cha) in the header menu.
+    const topLevel = raw.filter((c) => c.parentId == null);
+    return [...topLevel].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
   }, [apiCategories]);
 
   useEffect(() => {

@@ -7,6 +7,8 @@ export interface CategoryDto {
   id: number | string;
   name: string;
   slug: string;
+  /** Optional parent category id for hierarchy (null for top-level). */
+  parentId?: number | string | null;
   /** Tên icon (ví dụ Material Icons) — tuỳ chọn */
   icon?: string | null;
   /** URL ảnh đại diện danh mục — tuỳ chọn */

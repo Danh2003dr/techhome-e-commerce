@@ -183,6 +183,8 @@ export interface Category {
   name: string;
   icon: string;
   slug: string;
+  /** null/undefined for top-level categories (danh mục cha) */
+  parentId?: string | number | null;
   /** Ảnh đại diện từ API; khi có thì UI ưu tiên thay cho icon */
   imageUrl?: string | null;
 }

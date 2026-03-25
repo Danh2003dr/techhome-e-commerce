@@ -19,7 +19,7 @@ Tài liệu tham chiếu khi implement: bám **`TECHHOME_BACKEND_API_SPEC.md`** 
 ## 2. Hướng giải quyết tổng thể
 
 1. **Một cây route dưới `/api`** trùng bảng endpoint trong spec (có thể giữ alias `/api/v1/...` tạm cho tương thích cũ).
-2. **Danh mục storefront:** `GET /categories` → `CategoryDto` (gồm `icon?`, `imageUrl?`); header `techhome-e-commerce` dùng danh sách này + `src/services/categoryNavigation.ts` để link `/category/...` hoặc `/search?category=...` — đồng bộ với `docs/TECHHOME_BACKEND_API_SPEC.md` (repo backend).
+2. **Danh mục storefront (cha-con):** `GET /categories` → `CategoryDto` (gồm `icon?`, `imageUrl?`, `parentId?`); header chỉ hiển thị danh mục cha (top-level) và trang `/category/:slug` lấy danh mục con theo quan hệ `parentId` — đồng bộ với `docs/TECHHOME_BACKEND_API_SPEC.md` (repo backend).
 3. **Lớp mapper:** DB (`snake_case`, kiểu DB) → `toProductDto`, `toProfileDto`, `toCartItem`, `toOrderDto` — response luôn đúng contract TypeScript.
 4. **Auth:** JWT; **register** trả `{ token, user }`; **change-password** đúng path/body spec (`POST /auth/change-password`, `currentPassword` / `newPassword`).
 5. **Orders:** module mới + bảng `orders` / `order_items`; transaction; **tính lại giá/tồn server-side**, không tin mù `totalPrice` / `items[].price` từ client.

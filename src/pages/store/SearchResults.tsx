@@ -3,7 +3,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '@/features/products/components/ProductCard';
 import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
-import { searchProducts, getPopularProducts, getProductsByCategorySlug, products } from '@/data';
 import { findCategoryIdByUrlSlug } from '@/services/categoryNavigation';
 
 const SearchResults: React.FC = () => {
@@ -25,45 +24,17 @@ const SearchResults: React.FC = () => {
     size: 100,
   });
 
-  const fallbackResults = useMemo(() => {
-    let filteredProducts: typeof products = [];
-    
-    if (categorySlug) {
-      filteredProducts = getProductsByCategorySlug(categorySlug);
-    } else if (query) {
-      filteredProducts = searchProducts(query);
-    } else if (sort === 'newest') {
-      // New Releases: Filter products with "New Release" tag
-      filteredProducts = products.filter((p) => p.tag === 'New Release');
-    } else {
-      // Shop Categories: Show all products when no query/category
-      filteredProducts = products;
-    }
-    
-    // Apply sorting
-    if (sort === 'newest') {
-      return [...filteredProducts].sort((a, b) => {
-        // Sort by "New Release" tag first, then by reviews (newer products might have fewer reviews initially)
-        const aIsNew = a.tag === 'New Release' ? 1 : 0;
-        const bIsNew = b.tag === 'New Release' ? 1 : 0;
-        if (aIsNew !== bIsNew) return bIsNew - aIsNew;
-        return b.reviews - a.reviews; // More reviews = newer (assuming)
-      });
-    }
-    
-    return filteredProducts;
-  }, [query, categorySlug, sort]);
   const results = useMemo(() => {
-    if (!isApiConfigured()) return fallbackResults;
+    if (!isApiConfigured()) return [];
     let list = [...apiProducts];
     if (sort === 'newest') {
       list = list.sort((a, b) => Number(b.id) - Number(a.id));
     }
     return list;
-  }, [apiProducts, fallbackResults, sort]);
+  }, [apiProducts, sort]);
 
   const popularProducts = useMemo(() => {
-    if (!isApiConfigured()) return getPopularProducts(4);
+    if (!isApiConfigured()) return [];
     return [...apiProducts]
       .sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))
       .slice(0, 4);

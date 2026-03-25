@@ -24,6 +24,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       ? discountPercentFromPrices(product.oldPrice, product.price)
       : null;
 
+  // Support unified badge rendering for both:
+  // - API/real DTO: `tag` + `isBestSeller`
+  // - mocks: `badge` + `badgeVariant`
+  const rawBadgeText: string | null = (product as any).tag ?? (product as any).badge ?? null;
+  const rawBadgeVariant: string | null | undefined = (product as any).badgeVariant ?? undefined;
+  const hasDiscountBadge = discountPct != null && discountPct > 0;
+
+  const badgeBgClass = (() => {
+    if (rawBadgeVariant === 'primary') return 'bg-indigo-600';
+    if (rawBadgeVariant === 'red') return 'bg-red-500';
+
+    const t = (rawBadgeText ?? '').toLowerCase();
+    if (!t) return 'bg-indigo-600';
+    if (t.includes('in stock')) return 'bg-emerald-500';
+    if (t.includes('refurbished')) return 'bg-slate-800';
+    if (t.includes('save')) return 'bg-red-500';
+    if (t.includes('off')) return 'bg-red-500';
+    if (t.includes('new arrival')) return 'bg-indigo-600';
+    if (t.includes('top rated')) return 'bg-indigo-600';
+    if (t.includes('best seller')) return 'bg-indigo-600';
+    return 'bg-indigo-600';
+  })();
+
+  const badgeTopClass = hasDiscountBadge ? 'top-12' : 'top-3';
+
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -69,9 +94,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             Best Seller
           </span>
         )}
-        {product.tag && (
-          <span className={`absolute left-3 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase ${product.tag === 'In Stock' ? 'bg-emerald-500' : 'bg-red-500'} ${product.isBestSeller ? 'top-10' : 'top-3'}`}>
-            {product.tag}
+        {rawBadgeText && (
+          <span
+            className={`absolute left-3 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase ${badgeBgClass} ${product.isBestSeller ? 'top-10' : badgeTopClass}`}
+          >
+            {rawBadgeText}
           </span>
         )}
         <button

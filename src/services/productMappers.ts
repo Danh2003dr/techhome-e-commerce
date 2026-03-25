@@ -42,6 +42,7 @@ export function mapCategoryDtoToCategory(dto: CategoryDto): Category {
     id: String(dto.id),
     name: dto.name,
     slug: dto.slug,
+    parentId: dto.parentId ?? undefined,
     icon: resolveCategoryIcon(dto),
     imageUrl: img || undefined,
   };

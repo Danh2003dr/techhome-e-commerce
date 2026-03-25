@@ -1,12 +1,5 @@
 import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress, WishlistItem } from '@/types';
 
-export const categories: Category[] = [
-  { id: '1', name: 'Mobile', icon: 'smartphone', slug: 'mobile' },
-  { id: '2', name: 'Tablets', icon: 'tablet', slug: 'tablets' },
-  { id: '4', name: 'Accessories', icon: 'keyboard', slug: 'accessories' },
-  { id: '5', name: 'Audio', icon: 'headset', slug: 'audio' },
-];
-
 export const products: Product[] = [
   {
     id: 'iphone-15-pro',
