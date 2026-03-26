@@ -24,6 +24,10 @@ import type {
   ProfileDto,
   AvatarPresignResponse,
   AssetUploadScope,
+  AdminUserDto,
+  AdminRoleDto,
+  InventoryDto,
+  InventoryIdempotencyDto,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -184,9 +188,13 @@ export async function getOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/${id}`, { auth: true });
 }
 
-/** Logout: clear token and user from storage (no backend call). */
-export function logout(): void {
-  clearToken();
+/** POST /api/auth/logout, luôn dọn token local kể cả khi API lỗi. */
+export async function logout(): Promise<void> {
+  try {
+    await apiPost<unknown>('/auth/logout', {}, { auth: true });
+  } finally {
+    clearToken();
+  }
 }
 
 // ——— Cart API (requires auth) ———
@@ -362,4 +370,126 @@ export async function changePassword(currentPassword: string, newPassword: strin
     };
   }
   return { message: 'Password changed successfully' };
+}
+
+// --- Admin users / roles ---
+
+export async function getAdminUsers(): Promise<AdminUserDto[]> {
+  return apiGet<AdminUserDto[]>('/users', { auth: true });
+}
+
+export async function getAdminUser(id: number | string): Promise<AdminUserDto> {
+  return apiGet<AdminUserDto>(`/users/${id}`, { auth: true });
+}
+
+export async function createAdminUser(payload: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<AdminUserDto> {
+  return apiPost<AdminUserDto>('/users', payload, { auth: true });
+}
+
+export async function updateAdminUser(
+  id: number | string,
+  payload: Partial<{
+    name: string;
+    email: string;
+    status: boolean;
+    loginCount: number;
+    avatar_url: string | null;
+    role: string;
+  }>
+): Promise<AdminUserDto> {
+  return apiPut<AdminUserDto>(`/users/${id}`, payload, { auth: true });
+}
+
+export async function deleteAdminUser(id: number | string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/users/${id}`, { auth: true });
+}
+
+export async function enableAdminUser(emailOrUsername: string): Promise<AdminUserDto> {
+  return apiPost<AdminUserDto>('/users/enable', { email: emailOrUsername }, { auth: true });
+}
+
+export async function disableAdminUser(emailOrUsername: string): Promise<AdminUserDto> {
+  return apiPost<AdminUserDto>('/users/disable', { email: emailOrUsername }, { auth: true });
+}
+
+export async function getAdminRoles(): Promise<AdminRoleDto[]> {
+  return apiGet<AdminRoleDto[]>('/roles', { auth: true });
+}
+
+export async function getAdminRole(id: number | string): Promise<AdminRoleDto> {
+  return apiGet<AdminRoleDto>(`/roles/${id}`, { auth: true });
+}
+
+export async function createAdminRole(payload: {
+  name: string;
+  description?: string;
+}): Promise<AdminRoleDto> {
+  return apiPost<AdminRoleDto>('/roles', payload, { auth: true });
+}
+
+export async function updateAdminRole(
+  id: number | string,
+  payload: Partial<{ name: string; description: string | null }>
+): Promise<AdminRoleDto> {
+  return apiPut<AdminRoleDto>(`/roles/${id}`, payload, { auth: true });
+}
+
+export async function deleteAdminRole(id: number | string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/roles/${id}`, { auth: true });
+}
+
+// --- Admin inventories ---
+
+export async function getAdminInventories(): Promise<InventoryDto[]> {
+  return apiGet<InventoryDto[]>('/inventories', { auth: true });
+}
+
+export async function getAdminInventory(id: number | string): Promise<InventoryDto> {
+  return apiGet<InventoryDto>(`/inventories/${id}`, { auth: true });
+}
+
+export async function addInventoryStock(product: number, quantity: number): Promise<InventoryDto> {
+  return apiPost<InventoryDto>('/inventories/add-stock', { product, quantity }, { auth: true });
+}
+
+export async function removeInventoryStock(product: number, quantity: number): Promise<InventoryDto> {
+  return apiPost<InventoryDto>('/inventories/remove-stock', { product, quantity }, { auth: true });
+}
+
+export async function reserveInventoryStock(
+  product: number,
+  quantity: number,
+  idempotencyKey: string
+): Promise<InventoryDto> {
+  return apiPost<InventoryDto>(
+    '/inventories/reservation',
+    { product, quantity, idempotencyKey },
+    { auth: true }
+  );
+}
+
+export async function soldInventoryStock(
+  product: number,
+  quantity: number,
+  idempotencyKey: string
+): Promise<InventoryDto> {
+  return apiPost<InventoryDto>(
+    '/inventories/sold',
+    { product, quantity, idempotencyKey },
+    { auth: true }
+  );
+}
+
+export async function getInventoryIdempotency(
+  action: 'reservation' | 'sold',
+  key: string
+): Promise<InventoryIdempotencyDto> {
+  return apiGet<InventoryIdempotencyDto>(
+    `/inventories/idempotency/${encodeURIComponent(action)}/${encodeURIComponent(key)}`,
+    { auth: true }
+  );
 }

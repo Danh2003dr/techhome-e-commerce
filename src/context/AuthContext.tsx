@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [setAvatarUrl]);
 
   const logout = useCallback(() => {
-    backend.logout();
+    void backend.logout();
     setUser(null);
     setAvatarUrl(null);
   }, [setAvatarUrl]);

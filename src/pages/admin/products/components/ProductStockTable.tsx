@@ -2,17 +2,17 @@ import React from 'react';
 import type { StockProduct } from '../productStockMock';
 import { formatUsd } from '../productStockMock';
 import ColorDots from './ColorDots';
+import type { StockActionType } from './ProductStockModal';
 
 type ProductStockTableProps = {
   rows: StockProduct[];
-  onEdit: (p: StockProduct) => void;
-  onDelete: (p: StockProduct) => void;
+  onAction: (p: StockProduct, action: StockActionType) => void;
 };
 
-const ProductStockTable: React.FC<ProductStockTableProps> = ({ rows, onEdit, onDelete }) => {
+const ProductStockTable: React.FC<ProductStockTableProps> = ({ rows, onAction }) => {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-[900px] w-full text-left">
+      <table className="min-w-[980px] w-full text-left">
         <thead>
           <tr className="text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-100">
             <th className="py-4 px-4">Image</th>
@@ -21,7 +21,7 @@ const ProductStockTable: React.FC<ProductStockTableProps> = ({ rows, onEdit, onD
             <th className="py-4 px-4">Price</th>
             <th className="py-4 px-4">Piece</th>
             <th className="py-4 px-4">Available Color</th>
-            <th className="py-4 px-4 text-right">Action</th>
+            <th className="py-4 px-4 text-right">Stock Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -49,22 +49,38 @@ const ProductStockTable: React.FC<ProductStockTableProps> = ({ rows, onEdit, onD
                   <ColorDots colors={row.colors} />
                 </td>
                 <td className="py-4 px-4 text-right whitespace-nowrap">
-                  <div className="inline-flex items-center gap-2 justify-end">
+                  <div className="inline-flex items-center gap-1 justify-end">
                     <button
                       type="button"
-                      onClick={() => onEdit(row)}
-                      className="w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 inline-flex items-center justify-center transition-colors"
-                      aria-label="Edit product"
+                      onClick={() => onAction(row, 'add')}
+                      className="h-8 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-emerald-700 hover:bg-emerald-100 inline-flex items-center justify-center transition-colors text-xs font-semibold"
+                      aria-label="Add stock"
                     >
-                      <span className="material-icons text-[18px]">edit</span>
+                      +Stock
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(row)}
-                      className="w-9 h-9 rounded-lg border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 inline-flex items-center justify-center transition-colors"
-                      aria-label="Delete product"
+                      onClick={() => onAction(row, 'remove')}
+                      className="h-8 rounded-lg border border-amber-200 bg-amber-50 px-2 text-amber-700 hover:bg-amber-100 inline-flex items-center justify-center transition-colors text-xs font-semibold"
+                      aria-label="Remove stock"
                     >
-                      <span className="material-icons text-[18px]">delete_outline</span>
+                      -Stock
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAction(row, 'reservation')}
+                      className="h-8 rounded-lg border border-blue-200 bg-blue-50 px-2 text-blue-700 hover:bg-blue-100 inline-flex items-center justify-center transition-colors text-xs font-semibold"
+                      aria-label="Reserve stock"
+                    >
+                      Reserve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAction(row, 'sold')}
+                      className="h-8 rounded-lg border border-violet-200 bg-violet-50 px-2 text-violet-700 hover:bg-violet-100 inline-flex items-center justify-center transition-colors text-xs font-semibold"
+                      aria-label="Mark sold"
+                    >
+                      Sold
                     </button>
                   </div>
                 </td>

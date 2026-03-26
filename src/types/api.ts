@@ -125,3 +125,41 @@ export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;
 }
+
+export interface AdminUserDto {
+  id: number | string;
+  name: string;
+  email: string;
+  username?: string;
+  fullName?: string;
+  role?: string;
+  status?: boolean;
+  loginCount?: number;
+  avatarUrl?: string | null;
+}
+
+export interface AdminRoleDto {
+  id: number | string;
+  name: string;
+  description?: string | null;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+}
+
+export interface InventoryDto {
+  id: number | string;
+  product: number;
+  stock: number;
+  reserved: number;
+  soldCount: number;
+}
+
+export interface InventoryIdempotencyDto {
+  id?: number | string;
+  action: 'reservation' | 'sold' | string;
+  key: string;
+  product: number;
+  quantity: number;
+  status: 'PENDING' | 'COMPLETED' | string;
+  response?: unknown;
+}

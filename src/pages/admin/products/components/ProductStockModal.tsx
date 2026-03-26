@@ -1,99 +1,74 @@
 import React, { useEffect, useState } from 'react';
 import type { StockProduct } from '../productStockMock';
-import { STOCK_CATEGORY_OPTIONS, STOCK_COLOR_PRESETS } from '../productStockMock';
+import { formatUsd } from '../productStockMock';
 
 type ProductStockModalProps = {
   open: boolean;
   onClose: () => void;
-  /** null = tạo mới */
   initialProduct: StockProduct | null;
-  onSave: (product: StockProduct) => void;
+  actionType: StockActionType;
+  onSave: (payload: StockActionPayload) => void;
+  saving?: boolean;
 };
 
-type FormState = {
-  name: string;
-  category: string;
-  price: string;
-  piece: string;
-  colors: string[];
-  image: string;
+export type StockActionType = 'add' | 'remove' | 'reservation' | 'sold';
+
+export type StockActionPayload = {
+  actionType: StockActionType;
+  quantity: number;
 };
 
-const emptyForm = (): FormState => ({
-  name: '',
-  category: STOCK_CATEGORY_OPTIONS[0],
-  price: '',
-  piece: '',
-  colors: [],
-  image: '',
-});
+type ActionMeta = { title: string; hint: string; buttonLabel: string };
+
+const ACTION_META: Record<StockActionType, ActionMeta> = {
+  add: {
+    title: 'Add Stock',
+    hint: 'Tang so luong ton kho hien tai.',
+    buttonLabel: 'Add',
+  },
+  remove: {
+    title: 'Remove Stock',
+    hint: 'Tru bot ton kho hien tai.',
+    buttonLabel: 'Remove',
+  },
+  reservation: {
+    title: 'Reserve Stock',
+    hint: 'Chuyen stock sang reserved cho quy trinh dat hang.',
+    buttonLabel: 'Reserve',
+  },
+  sold: {
+    title: 'Mark as Sold',
+    hint: 'Giam reserved va tang soldCount.',
+    buttonLabel: 'Mark Sold',
+  },
+};
 
 const ProductStockModal: React.FC<ProductStockModalProps> = ({
   open,
   onClose,
   initialProduct,
+  actionType,
   onSave,
+  saving = false,
 }) => {
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [quantity, setQuantity] = useState('');
 
   useEffect(() => {
     if (!open) return;
-    if (initialProduct) {
-      setForm({
-        name: initialProduct.name,
-        category: initialProduct.category,
-        price: String(initialProduct.price),
-        piece: String(initialProduct.piece),
-        colors: [...initialProduct.colors],
-        image: initialProduct.image,
-      });
-    } else {
-      setForm(emptyForm());
-    }
-  }, [open, initialProduct]);
+    setQuantity('');
+  }, [open, initialProduct, actionType]);
 
-  if (!open) return null;
-
-  const toggleColor = (hex: string) => {
-    setForm((f) => {
-      const has = f.colors.includes(hex);
-      return {
-        ...f,
-        colors: has ? f.colors.filter((c) => c !== hex) : [...f.colors, hex],
-      };
-    });
-  };
-
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const url = typeof reader.result === 'string' ? reader.result : '';
-      setForm((f) => ({ ...f, image: url }));
-    };
-    reader.readAsDataURL(file);
-  };
+  if (!open || !initialProduct) return null;
+  const meta = ACTION_META[actionType];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const name = form.name.trim();
-    if (!name) return;
-    const price = Number.parseFloat(form.price);
-    const piece = Number.parseInt(form.piece, 10);
-    if (Number.isNaN(price) || price < 0) return;
-    if (Number.isNaN(piece) || piece < 0) return;
-
-    const product: StockProduct = {
-      id: initialProduct?.id ?? `ps-${Date.now()}`,
-      name,
-      category: form.category,
-      price,
-      piece,
-      colors: form.colors.length > 0 ? form.colors : [STOCK_COLOR_PRESETS[0].hex],
-      image: form.image || 'https://picsum.photos/seed/placeholder/120/120',
-    };
-    onSave(product);
+    const q = Number.parseInt(quantity, 10);
+    if (Number.isNaN(q) || q <= 0) return;
+    onSave({
+      actionType,
+      quantity: q,
+    });
   };
 
   return (
@@ -101,18 +76,19 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      onClick={saving ? undefined : onClose}
     >
       <div
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">{initialProduct ? 'Edit Product' : 'Add Product'}</h2>
+          <h2 className="text-lg font-bold text-slate-900">{meta.title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+            disabled={saving}
+            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="material-icons">close</span>
@@ -120,101 +96,51 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <label className="block">
-            <span className="text-xs font-bold text-slate-600">Image (optional)</span>
-            <input type="file" accept="image/*" onChange={onFile} className="mt-2 block w-full text-sm text-slate-600" />
-            {form.image ? (
-              <img src={form.image} alt="" className="mt-2 w-20 h-20 rounded-lg object-cover border border-slate-100" />
-            ) : null}
-          </label>
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <img
+              src={initialProduct.image}
+              alt=""
+              className="h-14 w-14 rounded-lg object-cover border border-slate-200 bg-white"
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 truncate">{initialProduct.name}</p>
+              <p className="text-xs text-slate-500">{initialProduct.category}</p>
+              <p className="text-xs font-semibold text-slate-700">
+                {formatUsd(initialProduct.price)} | In stock: {initialProduct.piece}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500">{meta.hint}</p>
 
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">Product Name</span>
+            <span className="text-xs font-bold text-slate-600">Quantity</span>
             <input
               required
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
               className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-              placeholder="Product name"
+              placeholder="Nhap so luong"
             />
           </label>
-
-          <label className="block">
-            <span className="text-xs font-bold text-slate-600">Category</span>
-            <select
-              value={form.category}
-              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/25 bg-white"
-            >
-              {STOCK_CATEGORY_OPTIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">Price (USD)</span>
-              <input
-                required
-                type="number"
-                step="0.01"
-                min={0}
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-                placeholder="0.00"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">Piece</span>
-              <input
-                required
-                type="number"
-                min={0}
-                value={form.piece}
-                onChange={(e) => setForm((f) => ({ ...f, piece: e.target.value }))}
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-                placeholder="0"
-              />
-            </label>
-          </div>
-
-          <div>
-            <span className="text-xs font-bold text-slate-600 block mb-2">Available Colors</span>
-            <div className="flex flex-wrap gap-2">
-              {STOCK_COLOR_PRESETS.map(({ hex, label }) => {
-                const on = form.colors.includes(hex);
-                return (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => toggleColor(hex)}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
-                      on ? 'border-primary bg-primary text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="w-4 h-4 rounded-full border border-white/30" style={{ backgroundColor: hex }} />
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-[11px] text-slate-500">Chọn một hoặc nhiều màu (mặc định dùng màu đầu nếu không chọn).</p>
-          </div>
 
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              disabled={saving}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600">
-              Save
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-60"
+            >
+              {saving ? 'Processing...' : meta.buttonLabel}
             </button>
           </div>
         </form>
