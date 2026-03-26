@@ -83,17 +83,26 @@ async function parseErrorResponse(res: Response): Promise<ApiError> {
   return new ApiError(message, res.status, body);
 }
 
+/** Gắn Bearer khi có token; giữ nguyên hành vi `auth !== false` như trước. */
+function mergeAuthHeaders(
+  base: Record<string, string>,
+  options: { auth?: boolean }
+): Record<string, string> {
+  const headers = { ...base };
+  if (options.auth !== false && API_BASE) {
+    const token = getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export interface ApiGetOptions {
   /** Send Authorization: Bearer token (default true when API_BASE is set) */
   auth?: boolean;
 }
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (options.auth !== false && API_BASE) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = mergeAuthHeaders({}, options);
   const res = await fetch(`${API_BASE}${path}`, { headers });
   if (!res.ok) throw await parseErrorResponse(res);
   return res.json();
@@ -104,11 +113,7 @@ export interface ApiPostOptions {
 }
 
 export async function apiPost<T>(path: string, body: unknown, options: ApiPostOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (options.auth !== false && API_BASE) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers,
@@ -120,11 +125,7 @@ export async function apiPost<T>(path: string, body: unknown, options: ApiPostOp
 }
 
 export async function apiPut<T>(path: string, body: unknown, options: ApiPostOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (options.auth !== false && API_BASE) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
     headers,
@@ -136,11 +137,7 @@ export async function apiPut<T>(path: string, body: unknown, options: ApiPostOpt
 }
 
 export async function apiPatch<T>(path: string, body: unknown, options: ApiPostOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (options.auth !== false && API_BASE) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PATCH',
     headers,
@@ -152,11 +149,7 @@ export async function apiPatch<T>(path: string, body: unknown, options: ApiPostO
 }
 
 export async function apiDelete<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (options.auth !== false && API_BASE) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = mergeAuthHeaders({}, options);
   const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE', headers });
   if (!res.ok) throw await parseErrorResponse(res);
   if (res.status === 204) return undefined as T;

@@ -6,6 +6,25 @@ import type { CategoryDto, ProductDto } from '@/types/api';
 import type { Category, Product, TrendingProduct, ListingProduct } from '@/types';
 import { discountPercentFromPrices, effectiveUnitPrice } from '@/utils/pricing';
 
+/** Giá list + sale + đơn giá hiển thị — dùng chung cho map product DTO. */
+function computeProductPricing(dto: ProductDto) {
+  const listPrice = Number(dto.price);
+  const sale = dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
+  const price = effectiveUnitPrice(listPrice, sale);
+  const onSale = sale != null && sale < listPrice;
+  return { listPrice, sale, price, onSale };
+}
+
+function primaryImageFromDto(dto: ProductDto): string {
+  return (dto.images && dto.images.length > 0 ? dto.images[0] : null) ?? dto.image ?? '';
+}
+
+function galleryFromDto(dto: ProductDto): string[] {
+  if (dto.images && dto.images.length > 0) return dto.images;
+  if (dto.image) return [dto.image];
+  return [];
+}
+
 const slugToIcon: Record<string, string> = {
   mobile: 'smartphone',
   smartphones: 'smartphone',
@@ -49,15 +68,10 @@ export function mapCategoryDtoToCategory(dto: CategoryDto): Category {
 }
 
 export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
-  const listPrice = Number(dto.price);
-  const sale =
-    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
-  const price = effectiveUnitPrice(listPrice, sale);
-  const onSale = sale != null && sale < listPrice;
+  const { listPrice, sale, price, onSale } = computeProductPricing(dto);
   const oldPrice = onSale ? listPrice : dto.featured ? Math.round(listPrice * 1.15) : undefined;
-  const discountPercent = onSale ? discountPercentFromPrices(listPrice, sale) : undefined;
-  const img =
-    (dto.images && dto.images.length > 0 ? dto.images[0] : null) ?? dto.image ?? '';
+  const discountPercent = onSale && sale != null ? discountPercentFromPrices(listPrice, sale) : undefined;
+  const img = primaryImageFromDto(dto);
   return {
     id: String(dto.id),
     name: dto.name,
@@ -74,19 +88,14 @@ export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
 }
 
 export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
-  const listPrice = Number(dto.price);
-  const sale =
-    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
-  const price = effectiveUnitPrice(listPrice, sale);
-  const onSale = sale != null && sale < listPrice;
-  const img =
-    (dto.images && dto.images.length > 0 ? dto.images[0] : null) ?? dto.image ?? '';
+  const { listPrice, sale, price, onSale } = computeProductPricing(dto);
+  const img = primaryImageFromDto(dto);
   return {
     id: String(dto.id),
     name: dto.name,
     price,
     oldPrice: onSale ? listPrice : undefined,
-    discountPercent: onSale ? discountPercentFromPrices(listPrice, sale!) : undefined,
+    discountPercent: onSale && sale != null ? discountPercentFromPrices(listPrice, sale) : undefined,
     image: img,
     rating: 4,
     reviews: 0,
@@ -95,17 +104,8 @@ export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
 }
 
 export function mapProductDtoToProduct(dto: ProductDto): Product {
-  const listPrice = Number(dto.price);
-  const sale =
-    dto.salePrice != null && dto.salePrice > 0 ? Number(dto.salePrice) : null;
-  const price = effectiveUnitPrice(listPrice, sale);
-  const onSale = sale != null && sale < listPrice;
-  const gallery =
-    dto.images && dto.images.length > 0
-      ? dto.images
-      : dto.image
-        ? [dto.image]
-        : [];
+  const { listPrice, sale, price, onSale } = computeProductPricing(dto);
+  const gallery = galleryFromDto(dto);
   const image = gallery[0] ?? dto.image ?? '';
   return {
     id: String(dto.id),
@@ -113,7 +113,7 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
     category: dto.categoryName,
     price,
     oldPrice: onSale ? listPrice : undefined,
-    salePrice: onSale ? sale! : undefined,
+    salePrice: onSale && sale != null ? sale : undefined,
     rating: 4,
     reviews: 0,
     image,

@@ -7,6 +7,7 @@ import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
 import { isApiConfigured } from '@/services/api';
 import { formatVND } from '@/utils';
+import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
@@ -25,20 +26,6 @@ const TOTAL_PAGES = 10;
 
 const HeroImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDHLyESEYHifHLCZfb_t_OVSm83EIh7cZEL4UoYDHCs36uf4SxLL1DMuyCkEMFXuT0dmQ0mvgIe8NNkRdb1MtDDK591tZdUINYAaoyFIWFyAj36R0eFWMn9HZoBphKn7nwbKb3Nq2G1fTtbyOVhb9gRvM_HMfRXfgABdAXDQm8faMkmbEMPJkXrzA9W4B6yW9btt6CViheK4akmAURCpdfmJx58KMvV2w_d7KgmzxOg622k7l-6MRWn5g9dY1d9zbyiQwbEqm1dJq4';
-
-function StarRating({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return (
-    <>
-      {[...Array(5)].map((_, i) => {
-        if (i < full) return <span key={i} className="material-icons text-yellow-400 text-sm">star</span>;
-        if (i === full && half) return <span key={i} className="material-icons text-yellow-400 text-sm">star_half</span>;
-        return <span key={i} className="material-icons text-slate-300 text-sm">star</span>;
-      })}
-    </>
-  );
-}
 
 function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' | 'slate' | 'green' }) {
   const bg =
@@ -283,7 +270,7 @@ const MobileCategoryPage: React.FC = () => {
                   </div>
                   <div className="p-6 flex-grow flex flex-col">
                     <div className="flex items-center gap-1 mb-2">
-                      <StarRating rating={product.rating} />
+                      <StarRating variant="category" rating={product.rating} />
                       <span className="text-xs text-slate-400 ml-1">({product.reviews} đánh giá)</span>
                     </div>
                     <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">

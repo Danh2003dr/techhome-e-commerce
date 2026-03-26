@@ -7,26 +7,9 @@ import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
+import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
-
-function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  const empty = 5 - full - (hasHalf ? 1 : 0);
-  return (
-    <div className="flex items-center gap-1 text-amber-400 mb-2">
-      {Array.from({ length: full }, (_, i) => (
-        <span key={`f-${i}`} className="material-icons text-sm">star</span>
-      ))}
-      {hasHalf && <span className="material-icons text-sm">star_half</span>}
-      {Array.from({ length: empty }, (_, i) => (
-        <span key={`e-${i}`} className="material-icons text-sm text-slate-200">star</span>
-      ))}
-      <span className="text-xs text-slate-400 font-bold ml-1">({reviews})</span>
-    </div>
-  );
-}
 
 const WishlistPage: React.FC = () => {
   const { items, removeItem } = useWishlist();
@@ -124,7 +107,7 @@ const WishlistPage: React.FC = () => {
                       )}
                     </Link>
                     <div className="p-6 flex flex-col flex-grow">
-                      <StarRating rating={item.rating} reviews={item.reviews} />
+                      <StarRating variant="wishlist" rating={item.rating} reviews={item.reviews} />
                       <Link to={productPath}>
                         <h3 className="font-bold text-slate-900 dark:text-white line-clamp-2 mb-2 group-hover:text-primary transition-colors">{item.name}</h3>
                       </Link>

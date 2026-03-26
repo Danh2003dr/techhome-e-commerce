@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
 import type { TrendingProduct as TrendingProductType } from '@/types';
+import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
@@ -15,20 +16,6 @@ function bannerToPath(link: string) {
   if (link.startsWith('/#/')) return link.slice(2);
   if (link.startsWith('#/')) return link.slice(1);
   return link;
-}
-
-function StarRating({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return (
-    <div className="flex text-amber-400">
-      {[...Array(5)].map((_, i) => {
-        if (i < full) return <span key={i} className="material-icons text-sm">star</span>;
-        if (i === full && half) return <span key={i} className="material-icons text-sm">star_half</span>;
-        return <span key={i} className="material-icons text-sm">star_border</span>;
-      })}
-    </div>
-  );
 }
 
 function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
@@ -101,7 +88,7 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category}</span>
         <h4 className="font-bold text-slate-900 dark:text-white mt-1 mb-2 line-clamp-2">{product.name}</h4>
         <div className="flex items-center gap-1 mb-3">
-          <StarRating rating={product.rating} />
+          <StarRating variant="home" rating={product.rating} />
           <span className="text-xs text-slate-400 font-medium">({product.reviews.toLocaleString()})</span>
         </div>
       </div>
