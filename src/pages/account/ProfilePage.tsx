@@ -2,8 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
-import { isApiConfigured, ApiError } from '@/services/api';
-import { getProfile, changePassword, updateProfile } from '@/services/backend';
+import { isApiConfigured, ApiError, getStoredUser, setStoredUser } from '@/services/api';
+import { getProfile, changePassword, updateProfile, uploadAvatarFile } from '@/services/backend';
 import type { ProfileDto } from '@/types/api';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
@@ -85,6 +85,17 @@ function mapApiProfileToExtension(dto: ProfileDto): ProfileExtension {
   };
 }
 
+/** Giữ techhome_user khớp profile (avatar/name) để sau reload Auth không xóa avatar. */
+function syncStoredUserFromProfile(p: ProfileDto) {
+  const u = getStoredUser();
+  if (!u) return;
+  setStoredUser({
+    ...u,
+    name: typeof p.name === 'string' && p.name.trim() ? p.name.trim() : u.name,
+    avatarUrl: p.avatarUrl ?? null,
+  });
+}
+
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, isInitialized } = useAuth();
   const { avatarUrl, setAvatarUrl } = useAvatar();
@@ -100,6 +111,7 @@ const ProfilePage: React.FC = () => {
   const [saveProfileLoading, setSaveProfileLoading] = useState(false);
   const [saveProfileError, setSaveProfileError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarSaveLoading, setAvatarSaveLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentAvatar = avatarUrl ?? DEFAULT_AVATAR;
@@ -116,12 +128,14 @@ const ProfilePage: React.FC = () => {
     getProfile()
       .then((p) => {
         setApiProfile(p);
+        setAvatarUrl(p.avatarUrl ?? null);
+        syncStoredUserFromProfile(p);
         const mapped = mapApiProfileToExtension(p);
         setProfile(mapped);
         saveProfile(mapped);
       })
       .catch(() => setApiProfile(null));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAvatarUrl]);
 
   const handleUploadClick = () => {
     setAvatarError(null);
@@ -140,12 +154,48 @@ const ProfilePage: React.FC = () => {
       setAvatarError('Ảnh tối đa 2MB.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatarUrl(reader.result as string);
-      setAvatarError(null);
-    };
-    reader.readAsDataURL(file);
+    setAvatarError(null);
+    if (!isApiConfigured() || !isAuthenticated) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    setAvatarSaveLoading(true);
+    uploadAvatarFile(file)
+      .then((updated) => {
+        setApiProfile(updated);
+        setAvatarUrl(updated.avatarUrl ?? null);
+        syncStoredUserFromProfile(updated);
+        setAvatarError(null);
+      })
+      .catch((err: unknown) => {
+        if (
+          err instanceof ApiError &&
+          (err.status === 503 || err.body?.code === 'AVATAR_STORAGE_NOT_CONFIGURED')
+        ) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setAvatarUrl(reader.result as string);
+            setAvatarError(
+              'Chưa cấu hình lưu ảnh (Cloudflare R2 / biến môi trường) trên server — ảnh chỉ lưu trên trình duyệt này, không đồng bộ tài khoản.'
+            );
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+        const msg =
+          err instanceof ApiError && err.body?.message
+            ? String(err.body.message)
+            : err instanceof Error
+              ? err.message
+              : 'Không thể tải ảnh lên.';
+        setAvatarError(msg);
+      })
+      .finally(() => setAvatarSaveLoading(false));
   };
 
   const openEdit = useCallback(() => {
@@ -176,6 +226,7 @@ const ProfilePage: React.FC = () => {
         defaultAddress: editForm.defaultAddress,
       });
       setApiProfile(updated);
+      syncStoredUserFromProfile(updated);
       const mapped = mapApiProfileToExtension(updated);
       setProfile(mapped);
       saveProfile(mapped);
@@ -305,7 +356,8 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleUploadClick}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  disabled={avatarSaveLoading}
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:pointer-events-none"
                   aria-label="Đổi ảnh"
                 >
                   <span className="material-icons text-white">photo_camera</span>
@@ -317,9 +369,10 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleUploadClick}
-                  className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors"
+                  disabled={avatarSaveLoading}
+                  className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Tải ảnh lên
+                  {avatarSaveLoading ? 'Đang lưu…' : 'Tải ảnh lên'}
                 </button>
               </div>
             </div>

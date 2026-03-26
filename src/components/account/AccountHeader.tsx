@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useAvatar } from '@/context/AvatarContext';
-import { DEFAULT_PROFILE_IMAGE, DEFAULT_USER_NAME, DEFAULT_USER_TIER } from '@/constants/user';
+import { DEFAULT_PROFILE_IMAGE, DEFAULT_USER_NAME } from '@/constants/user';
 
 const AccountHeader: React.FC = () => {
   const { user } = useAuth();
@@ -69,7 +69,6 @@ const AccountHeader: React.FC = () => {
               />
               <div className="text-left hidden sm:block">
                 <p className="text-xs font-bold leading-none text-slate-900 dark:text-white">{displayName}</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">{DEFAULT_USER_TIER}</p>
               </div>
             </Link>
           </div>

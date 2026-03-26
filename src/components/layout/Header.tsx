@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAvatar } from '@/context/AvatarContext';
 import { useCart } from '@/context/CartContext';
+import { DEFAULT_PROFILE_IMAGE } from '@/constants/user';
 import { useWishlist } from '@/context/WishlistContext';
 import { useApiCategories } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
@@ -28,6 +30,7 @@ function CategoryMenuThumb({ cat }: { cat: Category }) {
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const { avatarUrl } = useAvatar();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -36,6 +39,8 @@ const Header: React.FC = () => {
   const { totalCount: cartCount } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
   const { data: apiCategories } = useApiCategories();
+
+  const displayAvatar = avatarUrl ?? user?.avatarUrl ?? DEFAULT_PROFILE_IMAGE;
 
   const categoryMenuItems = useMemo(() => {
     const raw = isApiConfigured() ? apiCategories : [];
@@ -119,14 +124,25 @@ const Header: React.FC = () => {
                     onClick={() => setAccountOpen(!accountOpen)}
                     className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
                   >
-                    <span className="material-icons">person_outline</span>
+                    <img
+                      src={displayAvatar}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover border border-slate-200 dark:border-slate-600"
+                    />
                     <span className="text-[10px] font-bold uppercase max-w-[72px] truncate">{user.name}</span>
                   </button>
                   {accountOpen && (
-                    <div className="absolute top-full right-0 mt-1 w-48 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-[100]">
-                      <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    <div className="absolute top-full right-0 mt-1 w-56 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-[100]">
+                      <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 flex gap-3 items-center min-w-0">
+                        <img
+                          src={displayAvatar}
+                          alt=""
+                          className="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                        </div>
                       </div>
                       <Link to="/profile" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Hồ sơ
@@ -137,6 +153,15 @@ const Header: React.FC = () => {
                       <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Yêu thích
                       </Link>
+                      {String(user?.role ?? '').trim().toUpperCase() === 'ADMIN' && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setAccountOpen(false)}
+                          className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        >
+                          Quản trị
+                        </Link>
+                      )}
                       <button type="button" onClick={() => { setAccountOpen(false); logout(); }} className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Đăng xuất
                       </button>

@@ -48,8 +48,9 @@ const SignUpPage: React.FC = () => {
     if (isApiConfigured()) {
       setLoading(true);
       try {
-        await register({ name: name.trim(), email: email.trim(), password });
-        navigate('/profile');
+        const res = await register({ name: name.trim(), email: email.trim(), password });
+        const path = res.postLoginRedirect?.trim() || '/profile';
+        navigate(path, { replace: true });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Đăng ký thất bại.');
       } finally {

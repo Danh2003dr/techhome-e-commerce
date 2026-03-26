@@ -56,6 +56,8 @@ export interface AuthUserDto {
   name: string;
   email: string;
   role?: 'USER' | 'ADMIN' | 'MODERATOR' | string;
+  /** URL ảnh đại diện (CDN) — đồng bộ với GET /profile */
+  avatarUrl?: string | null;
 }
 
 /** Profile từ GET /api/profile (UserDto). */
@@ -68,11 +70,27 @@ export interface ProfileDto {
   dateOfBirth?: string | null;
   defaultAddress?: string | null;
   passwordChangedAt?: string | null;
+  /** URL http(s) tới ảnh (CDN/S3); bản ghi cũ có thể còn data URL từ trước khi đổi luồng */
+  avatarUrl?: string | null;
 }
+
+/** POST /api/profile/avatar/presign — cùng shape với POST /uploads/presign */
+export interface AvatarPresignResponse {
+  uploadUrl: string;
+  publicUrl: string;
+  method: string;
+  headers: Record<string, string>;
+  expiresIn: number;
+}
+
+/** POST /api/uploads/presign — scope product | category (ADMIN) */
+export type AssetUploadScope = 'product' | 'category';
 
 export interface AuthResponse {
   token: string;
   user: AuthUserDto;
+  /** Gợi ý từ API (ví dụ `/admin` khi role ADMIN) — storefront có thể dùng sau đăng nhập. */
+  postLoginRedirect?: string | null;
 }
 
 export interface CreateOrderItemRequest {

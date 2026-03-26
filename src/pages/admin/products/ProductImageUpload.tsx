@@ -1,4 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { isApiConfigured, ApiError } from '@/services/api';
+import { uploadImageFileToR2 } from '@/services/backend';
+import type { AssetUploadScope } from '@/types/api';
+
+const MAX_BYTES = 2 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 
 type PreviewImage = {
   id: string;
@@ -8,9 +15,18 @@ type PreviewImage = {
 type Props = {
   images: string[];
   onChange: (urls: string[]) => void;
+  /** Prefix object trên R2: products/ hoặc categories/ */
+  assetScope?: AssetUploadScope;
 };
 
-export default function ProductImageUpload({ images, onChange }: Props) {
+export default function ProductImageUpload({ images, onChange, assetScope = 'product' }: Props) {
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const canUseR2 =
+    isApiConfigured() && user && (user.role === 'ADMIN' || user.role === 'MODERATOR');
+
   const previews: PreviewImage[] = images.map((url, i) => ({
     id: `img-${i}-${url.slice(0, 24)}`,
     url,
@@ -31,6 +47,49 @@ export default function ProductImageUpload({ images, onChange }: Props) {
     onChange(images.filter((_, i) => i !== idx));
   };
 
+  const handleFiles = async (files: File[]) => {
+    setUploadError(null);
+    if (files.length === 0) return;
+
+    if (canUseR2) {
+      setUploading(true);
+      const added: string[] = [];
+      try {
+        for (const f of files) {
+          if (!ALLOWED_TYPES.includes(f.type)) {
+            setUploadError('Chỉ chấp nhận JPG, PNG hoặc GIF (khớp backend).');
+            continue;
+          }
+          if (f.size > MAX_BYTES) {
+            setUploadError('Mỗi ảnh tối đa 2MB.');
+            continue;
+          }
+          try {
+            const url = await uploadImageFileToR2(f, assetScope);
+            added.push(url);
+          } catch (e: unknown) {
+            const msg =
+              e instanceof ApiError && e.body?.message
+                ? String(e.body.message)
+                : e instanceof Error
+                  ? e.message
+                  : 'Upload thất bại.';
+            setUploadError(msg);
+          }
+        }
+        if (added.length > 0) {
+          onChange([...images, ...added]);
+        }
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    const blobUrls = files.map((f) => URL.createObjectURL(f));
+    onChange([...images, ...blobUrls]);
+  };
+
   return (
     <div className="space-y-3">
       <div
@@ -39,21 +98,23 @@ export default function ProductImageUpload({ images, onChange }: Props) {
         aria-label="Upload ảnh sản phẩm"
       >
         <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Kéo thả hoặc chọn ảnh</span>
-        <span className="text-[11px] text-slate-500 mb-3">Ảnh đầu tiên dùng làm ảnh đại diện trên storefront.</span>
-        <label className="inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-blue-600 transition-colors">
+        <span className="text-[11px] text-slate-500 mb-3">
+          Ảnh đầu tiên dùng làm ảnh đại diện trên storefront. JPG/PNG/GIF, tối đa 2MB.
+          {canUseR2 ? ' Đang lưu lên R2.' : ' Chưa đăng nhập admin hoặc chưa cấu API — dùng ảnh tạm trên trình duyệt.'}
+        </span>
+        {uploadError && <p className="text-xs text-red-600 mb-2 text-center px-2">{uploadError}</p>}
+        <label className="inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:pointer-events-none">
           <span className="material-icons text-[18px]">upload</span>
-          Chọn file
+          {uploading ? 'Đang tải…' : 'Chọn file'}
           <input
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif"
             multiple
+            disabled={uploading}
             className="sr-only"
             onChange={(e) => {
               const files = Array.from(e.target.files ?? []);
-              const next = files.map((f) => ({
-                url: URL.createObjectURL(f),
-              }));
-              onChange([...images, ...next.map((n) => n.url)]);
+              void handleFiles(files);
               e.target.value = '';
             }}
           />

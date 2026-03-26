@@ -26,17 +26,35 @@ export function clearToken(): void {
   localStorage.removeItem(USER_KEY);
 }
 
-export function getStoredUser(): { id: number | string; name: string; email: string; role?: string } | null {
+export function getStoredUser(): {
+  id: number | string;
+  name: string;
+  email: string;
+  role?: string;
+  avatarUrl?: string | null;
+} | null {
   try {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as { id: number | string; name: string; email: string; role?: string };
+    return JSON.parse(raw) as {
+      id: number | string;
+      name: string;
+      email: string;
+      role?: string;
+      avatarUrl?: string | null;
+    };
   } catch {
     return null;
   }
 }
 
-export function setStoredUser(user: { id: number | string; name: string; email: string; role?: string }): void {
+export function setStoredUser(user: {
+  id: number | string;
+  name: string;
+  email: string;
+  role?: string;
+  avatarUrl?: string | null;
+}): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 

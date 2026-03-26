@@ -9,8 +9,8 @@ import AppRoutes from '@/routes/AppRoutes';
 
 const App: React.FC = () => (
   <HashRouter>
-    <AuthProvider>
-      <AvatarProvider>
+    <AvatarProvider>
+      <AuthProvider>
         <CartProvider>
           <WishlistProvider>
             <CheckoutProvider>
@@ -18,8 +18,8 @@ const App: React.FC = () => (
             </CheckoutProvider>
           </WishlistProvider>
         </CartProvider>
-      </AvatarProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </AvatarProvider>
   </HashRouter>
 );
 

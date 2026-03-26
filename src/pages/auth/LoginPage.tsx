@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, ApiError } from '@/context/AuthContext';
 import { isApiConfigured } from '@/services/api';
+import type { AuthResponse } from '@/types/api';
 
 const LIFESTYLE_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBRdFsiGk4SP_bjqG5nhQ3WnkqM5_kHiLF-HzDJE_CzwScqXmpJL3QwB150GmyuDskBohtdzEbtIE9FIvZHnjlwJ-dThhEzlz86iO9PZUAQsrU3uHTAS8OIdsvSksMprpdAUQl09DiwICQVQKAGvUAuCXs6-yqhr8PWpak4ZdQZlfdg3R5tHj986A884VRx_pzQRrsPmu0UoIC4wKvvZWAIp805uqdiIKueCNTM7UTV6W21NxWakcxMjHbuFN6ipipXQGvysqtBIec';
@@ -13,7 +14,18 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const resolveAfterLoginPath = (res: AuthResponse): string => {
+    const trimmed = res.postLoginRedirect?.trim();
+    if (trimmed) return trimmed;
+    const role = String(res.user?.role ?? '').trim().toUpperCase();
+    if (role === 'ADMIN') return '/admin';
+    const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+    if (from && typeof from === 'string') return from;
+    return '/profile';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +37,8 @@ const LoginPage: React.FC = () => {
     if (isApiConfigured()) {
       setLoading(true);
       try {
-        await login({ email: email.trim(), password });
-        navigate('/profile');
+        const res = await login({ email: email.trim(), password });
+        navigate(resolveAfterLoginPath(res), { replace: true });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Đăng nhập thất bại.');
       } finally {

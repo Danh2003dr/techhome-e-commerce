@@ -21,6 +21,8 @@ import type {
   CreateOrderRequest,
   OrderDto,
   ProfileDto,
+  AvatarPresignResponse,
+  AssetUploadScope,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -211,7 +213,62 @@ export async function getProfile(): Promise<ProfileDto> {
     dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
     defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
     passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
+    avatarUrl: (res.avatarUrl as string | null | undefined) ?? null,
   };
+}
+
+/** POST /api/profile/avatar/presign — S3-compatible (Cloudflare R2: S3_ENDPOINT + token + PUBLIC_ASSET_BASE_URL) */
+export async function requestAvatarPresign(contentType: string, fileSize: number): Promise<AvatarPresignResponse> {
+  return apiPost<AvatarPresignResponse>(
+    '/profile/avatar/presign',
+    { contentType, fileSize },
+    { auth: true }
+  );
+}
+
+/** POST /api/uploads/presign — ADMIN/MODERATOR; ảnh catalog (product | category) */
+export async function requestAssetUploadPresign(
+  scope: AssetUploadScope,
+  contentType: string,
+  fileSize: number
+): Promise<AvatarPresignResponse> {
+  return apiPost<AvatarPresignResponse>(
+    '/uploads/presign',
+    { scope, contentType, fileSize },
+    { auth: true }
+  );
+}
+
+async function putFileToPresignedUrl(file: File, presign: AvatarPresignResponse): Promise<void> {
+  const method = presign.method?.toUpperCase() === 'PUT' ? 'PUT' : 'PUT';
+  const putRes = await fetch(presign.uploadUrl, {
+    method,
+    body: file,
+    headers: presign.headers,
+  });
+  if (!putRes.ok) {
+    const text = await putRes.text().catch(() => '');
+    throw new Error(text || `Upload thất bại (${putRes.status})`);
+  }
+}
+
+/**
+ * Upload một ảnh catalog lên R2 (presign admin), trả publicUrl — không gọi API Node cho binary.
+ */
+export async function uploadImageFileToR2(file: File, scope: AssetUploadScope): Promise<string> {
+  const presign = await requestAssetUploadPresign(scope, file.type, file.size);
+  await putFileToPresignedUrl(file, presign);
+  return presign.publicUrl;
+}
+
+/**
+ * Upload file thẳng lên bucket (presigned PUT), sau đó PUT profile chỉ lưu publicUrl.
+ * Không gửi file qua API Node.
+ */
+export async function uploadAvatarFile(file: File): Promise<ProfileDto> {
+  const presign = await requestAvatarPresign(file.type, file.size);
+  await putFileToPresignedUrl(file, presign);
+  return updateProfile({ avatarUrl: presign.publicUrl });
 }
 
 /** PUT /api/profile */
@@ -221,6 +278,7 @@ export async function updateProfile(payload: {
   gender?: string;
   dateOfBirth?: string;
   defaultAddress?: string;
+  avatarUrl?: string | null;
 }): Promise<ProfileDto> {
   const res = await apiPut<Record<string, unknown>>('/profile', {
     name: payload.name,
@@ -228,6 +286,7 @@ export async function updateProfile(payload: {
     gender: payload.gender,
     dateOfBirth: payload.dateOfBirth,
     defaultAddress: payload.defaultAddress,
+    avatarUrl: payload.avatarUrl,
   }, { auth: true });
   return {
     id: (res.id ?? '') as string | number,
@@ -238,6 +297,7 @@ export async function updateProfile(payload: {
     dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
     defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
     passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
+    avatarUrl: (res.avatarUrl as string | null | undefined) ?? null,
   };
 }
 
