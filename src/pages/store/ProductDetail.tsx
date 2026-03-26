@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApiProduct } from '@/hooks/useProductApi';
-import { isApiConfigured } from '@/services/api';
-import { getFallbackProductById, getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
+import { getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
 import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
 import { hasPurchasedProduct } from '@/services/purchasesStore';
 import { useCart } from '@/context/CartContext';
@@ -38,8 +37,7 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
   const { user, isAuthenticated } = useAuth();
-  const mockProduct = getFallbackProductById(id);
-  const product = isApiConfigured() ? apiProduct : mockProduct;
+  const product = apiProduct;
   const extras = getFallbackProductDetailExtras(id);
 
   const { addItem } = useCart();
@@ -118,7 +116,7 @@ const ProductDetail: React.FC = () => {
     else if (product.name?.includes('iPad')) setSelectedSize(DEFAULT_IPAD_STORAGE[1] ?? DEFAULT_IPAD_STORAGE[0]);
   }, [product?.id, product?.name, product?.colors, product?.storageOptions, product?.variants]);
 
-  if (isApiConfigured() && apiLoading) {
+  if (apiLoading) {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center">
         <div className="text-center text-slate-500">Đang tải sản phẩm...</div>

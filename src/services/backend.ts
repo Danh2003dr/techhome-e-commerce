@@ -7,6 +7,7 @@ import {
   apiGet,
   apiPost,
   apiPut,
+  apiPatch,
   apiDelete,
   setToken as storeToken,
   setStoredUser,
@@ -72,6 +73,21 @@ export interface ProductsParams {
   size?: number;
 }
 
+export interface AdminProductUpsertPayload {
+  name: string;
+  categoryId: number;
+  price: number;
+  description?: string;
+  image?: string | null;
+  images?: string[] | null;
+  salePrice?: number | null;
+  stock?: number;
+  featured?: boolean;
+  colors?: { name: string; hex: string }[];
+  storageOptions?: string[];
+  specifications?: string | null;
+}
+
 /** GET /api/health */
 export async function health(): Promise<{ status: string }> {
   return apiGet<{ status: string }>('/health', { auth: false });
@@ -80,6 +96,16 @@ export async function health(): Promise<{ status: string }> {
 /** GET /api/categories */
 export async function getCategories(): Promise<CategoryDto[]> {
   return apiGet<CategoryDto[]>('/categories', { auth: false });
+}
+
+/** POST /api/categories (ADMIN) */
+export async function createAdminCategory(payload: {
+  name: string;
+  icon?: string | null;
+  imageUrl?: string | null;
+  parentId?: number | null;
+}): Promise<CategoryDto> {
+  return apiPost<CategoryDto>('/categories', payload, { auth: true });
 }
 
 /** GET /api/products?category=&q=&page=&size= */
@@ -92,6 +118,24 @@ export async function getProducts(params: ProductsParams = {}): Promise<ProductD
   const query = sp.toString();
   const path = query ? `/products?${query}` : '/products';
   return apiGet<ProductDto[]>(path, { auth: false });
+}
+
+/** POST /api/products (ADMIN) */
+export async function createAdminProduct(payload: AdminProductUpsertPayload): Promise<ProductDto> {
+  return apiPost<ProductDto>('/products', payload, { auth: true });
+}
+
+/** PUT /api/products/:id (ADMIN) */
+export async function updateAdminProduct(
+  id: number | string,
+  payload: Partial<AdminProductUpsertPayload>
+): Promise<ProductDto> {
+  return apiPut<ProductDto>(`/products/${id}`, payload, { auth: true });
+}
+
+/** DELETE /api/products/:id (ADMIN) */
+export async function deleteAdminProduct(id: number | string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/products/${id}`, { auth: true });
 }
 
 /** GET /api/products/{id} */
@@ -153,7 +197,7 @@ export async function getCart(): Promise<CartItem[]> {
   return mapBackendCartResponse(res);
 }
 
-/** POST /api/cart */
+/** POST /api/cart/items */
 export async function addCartItem(payload: {
   productId: string;
   name: string;
@@ -163,9 +207,9 @@ export async function addCartItem(payload: {
   variant?: string;
 }): Promise<CartItem[]> {
   const res = await apiPost<unknown>(
-    '/cart',
+    '/cart/items',
     {
-      product_id: payload.productId,
+      productId: payload.productId,
       price: payload.price,
       quantity: payload.quantity ?? 1,
       variant: payload.variant,
@@ -177,19 +221,19 @@ export async function addCartItem(payload: {
   return mapBackendCartResponse(res);
 }
 
-/** PUT /api/cart/:id */
+/** PATCH /api/cart/items/:id */
 export async function updateCartItemQuantity(cartItemId: string, quantity: number): Promise<CartItem[]> {
-  const res = await apiPut<unknown>(
-    `/cart/${encodeURIComponent(cartItemId)}`,
+  const res = await apiPatch<unknown>(
+    `/cart/items/${encodeURIComponent(cartItemId)}`,
     { quantity },
     { auth: true }
   );
   return mapBackendCartResponse(res);
 }
 
-/** DELETE /api/cart/:id */
+/** DELETE /api/cart/items/:id */
 export async function removeCartItem(cartItemId: string): Promise<CartItem[]> {
-  const res = await apiDelete<unknown>(`/cart/${encodeURIComponent(cartItemId)}`, { auth: true });
+  const res = await apiDelete<unknown>(`/cart/items/${encodeURIComponent(cartItemId)}`, { auth: true });
   return mapBackendCartResponse(res);
 }
 

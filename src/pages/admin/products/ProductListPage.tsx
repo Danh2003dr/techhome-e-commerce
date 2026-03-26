@@ -4,11 +4,9 @@ import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
 import { getProducts } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import type { ProductDto } from '@/types/api';
-import { products as catalogProducts } from '@/data';
 
 const PAGE_SIZE = 10;
 
-/** Dữ liệu từ catalog — ID khớp `/product/:id` (resolveProductById); sau này thay bằng API */
 type AdminProductCardModel = {
   id: string;
   name: string;
@@ -18,15 +16,6 @@ type AdminProductCardModel = {
   reviewCount: number;
   images: string[];
 };
-
-const MOCK_PRODUCTS: AdminProductCardModel[] = catalogProducts.map((p) => ({
-  id: p.id,
-  name: p.name,
-  priceUsd: p.price,
-  rating: p.rating,
-  reviewCount: p.reviews,
-  images: p.images?.filter(Boolean).length ? (p.images as string[]) : [p.image],
-}));
 
 function mapProductDtoToAdminCardModel(dto: ProductDto): AdminProductCardModel {
   const images = dto.images?.filter(Boolean).length
@@ -244,20 +233,20 @@ const ProductListPage: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [apiProducts, setApiProducts] = useState<AdminProductCardModel[]>([]);
-  const [apiUnavailable, setApiUnavailable] = useState(false);
   const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isApiConfigured()) return;
     setApiLoading(true);
+    setApiError(null);
     getProducts({ page: 0, size: 200 })
       .then((list) => {
         setApiProducts(list.map(mapProductDtoToAdminCardModel));
-        setApiUnavailable(false);
       })
       .catch(() => {
         setApiProducts([]);
-        setApiUnavailable(true);
+        setApiError('Không tải được danh sách sản phẩm từ backend.');
       })
       .finally(() => setApiLoading(false));
   }, []);
@@ -268,11 +257,9 @@ const ProductListPage: React.FC = () => {
   }, [searchInput]);
 
   const sourceProducts = useMemo(() => {
-    if (isApiConfigured() && !apiUnavailable) {
-      return apiProducts;
-    }
-    return MOCK_PRODUCTS;
-  }, [apiProducts, apiUnavailable]);
+    if (!isApiConfigured()) return [];
+    return apiProducts;
+  }, [apiProducts]);
 
   const filtered = useMemo(() => {
     if (!debouncedSearch) return sourceProducts;
@@ -307,8 +294,8 @@ const ProductListPage: React.FC = () => {
           {isApiConfigured() && apiLoading && (
             <p className="text-xs text-slate-500 mt-1">Đang tải sản phẩm từ backend...</p>
           )}
-          {isApiConfigured() && apiUnavailable && !apiLoading && (
-            <p className="text-xs text-amber-600 mt-1">Backend products chưa sẵn sàng, đang hiển thị dữ liệu mẫu tạm thời.</p>
+          {isApiConfigured() && apiError && !apiLoading && (
+            <p className="text-xs text-red-600 mt-1">{apiError}</p>
           )}
         </div>
 

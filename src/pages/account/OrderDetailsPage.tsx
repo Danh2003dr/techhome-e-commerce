@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getOrder } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
-import { getFallbackOrderDetails } from '@/services/fallbackAdapters';
 import { useAuth } from '@/context/AuthContext';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
@@ -66,7 +65,6 @@ const OrderDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [order, setOrder] = useState<OrderDetailsData | null>(null);
-  const [apiUnavailable, setApiUnavailable] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -79,16 +77,13 @@ const OrderDetailsPage: React.FC = () => {
       getOrder(orderId)
         .then((dto) => {
           setOrder(mapOrderDtoToDetails(dto));
-          setApiUnavailable(false);
         })
         .catch(() => {
-          // Backend orders is not available yet -> keep temporary mock fallback.
-          setOrder(getFallbackOrderDetails(orderId));
-          setApiUnavailable(true);
+          setOrder(null);
         })
         .finally(() => setLoading(false));
     } else {
-      setOrder(getFallbackOrderDetails(orderId));
+      setOrder(null);
     }
   }, [orderId, isAuthenticated]);
 
@@ -151,11 +146,6 @@ const OrderDetailsPage: React.FC = () => {
                   <span className="w-2 h-2 bg-primary rounded-full" />
                   {order.statusLabel}
                 </span>
-                {isApiConfigured() && isAuthenticated && apiUnavailable && (
-                  <span className="px-4 py-1.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
-                    Mock tạm (chưa có API orders)
-                  </span>
-                )}
               </div>
             </div>
           </div>
