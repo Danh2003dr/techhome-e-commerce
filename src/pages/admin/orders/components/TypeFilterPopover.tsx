@@ -27,9 +27,9 @@ const TypeFilterPopover: React.FC<TypeFilterPopoverProps> = ({ initialTypes, onA
     <div
       className="absolute left-0 top-full z-40 mt-2 w-[min(100vw-2rem,380px)] rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
       role="dialog"
-      aria-label="Select order type"
+      aria-label="Chọn loại đơn"
     >
-      <div className="text-sm font-bold text-slate-900 mb-3">Select Order Type</div>
+      <div className="text-sm font-bold text-slate-900 mb-3">Chọn loại đơn</div>
       <div className="flex flex-wrap gap-2">
         {ORDER_TYPE_OPTIONS.map((opt) => {
           const on = draft.has(opt);
@@ -49,14 +49,14 @@ const TypeFilterPopover: React.FC<TypeFilterPopoverProps> = ({ initialTypes, onA
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] text-slate-500 italic">*You can choose multiple Order type</p>
+      <p className="mt-3 text-[11px] text-slate-500 italic">*Bạn có thể chọn nhiều loại đơn</p>
       <div className="mt-4 flex justify-center gap-2">
         <button
           type="button"
           onClick={onClose}
           className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200"
         >
-          Cancel
+          Hủy
         </button>
         <button
           type="button"
@@ -66,7 +66,7 @@ const TypeFilterPopover: React.FC<TypeFilterPopoverProps> = ({ initialTypes, onA
           }}
           className="px-6 py-2 text-sm font-semibold text-white bg-[#4880FF] hover:bg-blue-600 rounded-lg"
         >
-          Apply Now
+          Áp dụng
         </button>
       </div>
     </div>

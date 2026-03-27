@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
 import type { SavedAddress, CartItem } from '@/types';
 
 export interface ShippingMethod {
@@ -10,14 +10,14 @@ export interface ShippingMethod {
 }
 
 export interface PaymentMethod {
-  type: 'credit_card' | 'paypal' | 'paypal_credit';
+  type: 'credit_card' | 'paypal' | 'paypal_credit' | 'cash_on_delivery';
   cardNumber?: string;
   cardHolder?: string;
   expiryDate?: string;
   cvv?: string;
 }
 
-export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit';
+export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit' | 'cash_on_delivery';
 
 export interface CheckoutData {
   // Step 1: Shipping Address
@@ -62,39 +62,38 @@ export const CheckoutProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [checkoutData, setCheckoutData] = useState<CheckoutData>(defaultCheckoutData);
   const [currentStep, setCurrentStep] = useState(1);
 
-  const updateCheckoutData = (data: Partial<CheckoutData>) => {
+  const updateCheckoutData = useCallback((data: Partial<CheckoutData>) => {
     setCheckoutData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+  const nextStep = useCallback(() => {
+    setCurrentStep((s) => (s < 3 ? s + 1 : s));
+  }, []);
 
-  const previousStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const previousStep = useCallback(() => {
+    setCurrentStep((s) => (s > 1 ? s - 1 : s));
+  }, []);
 
-  const resetCheckout = () => {
+  const resetCheckout = useCallback(() => {
     setCheckoutData(defaultCheckoutData);
     setCurrentStep(1);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      checkoutData,
+      currentStep,
+      setCurrentStep,
+      updateCheckoutData,
+      nextStep,
+      previousStep,
+      resetCheckout,
+    }),
+    [checkoutData, currentStep, updateCheckoutData, nextStep, previousStep, resetCheckout]
+  );
 
   return (
-    <CheckoutContext.Provider
-      value={{
-        checkoutData,
-        currentStep,
-        setCurrentStep,
-        updateCheckoutData,
-        nextStep,
-        previousStep,
-        resetCheckout,
-      }}
-    >
+    <CheckoutContext.Provider value={value}>
       {children}
     </CheckoutContext.Provider>
   );

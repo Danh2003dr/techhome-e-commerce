@@ -34,6 +34,7 @@ interface CartContextType {
   addItem: (payload: AddToCartPayload) => void;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
+  clearCart: () => void;
   totalCount: number;
 }
 
@@ -44,6 +45,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   const isLoggedIn = Boolean(getToken());
+
+  // Lắng nghe event logout để clear giỏ hàng ngay lập tức
+  useEffect(() => {
+    const onLogout = () => {
+      setItems([]);
+      localStorage.removeItem(CART_STORAGE_KEY);
+    };
+    window.addEventListener('techhome:logout', onLogout);
+    return () => window.removeEventListener('techhome:logout', onLogout);
+  }, []);
 
   useEffect(() => {
     setItems(loadCartFromStorage());
@@ -146,12 +157,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, [removeItem]);
 
+  const clearCart = useCallback(() => {
+    setItems([]);
+    try {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    // Không gọi backend ở đây để tránh phụ thuộc endpoint; chỉ xóa UI/local trước.
+  }, []);
+
   const safeItems = Array.isArray(items) ? items : [];
   const totalCount = safeItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items: safeItems, addItem, removeItem, updateQuantity, totalCount }}
+      value={{ items: safeItems, addItem, removeItem, updateQuantity, clearCart, totalCount }}
     >
       {children}
     </CartContext.Provider>

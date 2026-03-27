@@ -33,7 +33,7 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
       role="dialog"
       aria-label="Select order status"
     >
-      <div className="text-sm font-bold text-slate-900 mb-3">Select Order Status</div>
+      <div className="text-sm font-bold text-slate-900 mb-3">Chọn trạng thái đơn</div>
       <div className="flex flex-wrap gap-2">
         {ORDER_STATUS_OPTIONS.map((opt) => {
           const on = draft.has(opt);
@@ -53,14 +53,14 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] text-slate-500 italic">*You can choose multiple Order Status</p>
+      <p className="mt-3 text-[11px] text-slate-500 italic">*Bạn có thể chọn nhiều trạng thái đơn</p>
       <div className="mt-4 flex justify-center gap-2">
         <button
           type="button"
           onClick={onClose}
           className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200"
         >
-          Cancel
+          Hủy
         </button>
         <button
           type="button"
@@ -70,7 +70,7 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
           }}
           className="px-6 py-2 text-sm font-semibold text-white bg-[#4880FF] hover:bg-blue-600 rounded-lg"
         >
-          Apply Now
+          Áp dụng
         </button>
       </div>
     </div>

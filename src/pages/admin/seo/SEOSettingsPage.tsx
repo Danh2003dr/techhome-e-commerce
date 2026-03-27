@@ -6,7 +6,7 @@ const SEOSettingsPage: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900">Settings</h1>
+          <h1 className="text-xl font-extrabold text-slate-900">Cài đặt SEO</h1>
           <p className="text-xs font-semibold text-slate-500">Trống (sẽ nối API + save)</p>
         </div>
 
@@ -15,19 +15,19 @@ const SEOSettingsPage: React.FC = () => {
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <span className="material-icons text-[18px]">arrow_back</span>
-          Back to Dashboard
+          Quay lại trang dashboard
         </Link>
       </div>
 
       <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
-          <div className="text-sm font-bold text-slate-900">Settings form (placeholder)</div>
-          <div className="text-xs font-semibold text-slate-500">Title / Description / Keywords / Meta tags</div>
+          <div className="text-sm font-bold text-slate-900">Biểu mẫu cài đặt (tạm)</div>
+          <div className="text-xs font-semibold text-slate-500">Tiêu đề / Mô tả / Từ khóa / Meta tags</div>
         </div>
 
         <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">SEO Title</span>
+            <span className="text-xs font-bold text-slate-600">Tiêu đề SEO</span>
             <input
               disabled
               placeholder="(Placeholder)"
@@ -36,7 +36,7 @@ const SEOSettingsPage: React.FC = () => {
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">SEO Keywords</span>
+            <span className="text-xs font-bold text-slate-600">Từ khóa SEO</span>
             <input
               disabled
               placeholder="(Placeholder)"
@@ -45,7 +45,7 @@ const SEOSettingsPage: React.FC = () => {
           </label>
 
           <label className="block lg:col-span-2">
-            <span className="text-xs font-bold text-slate-600">SEO Description</span>
+            <span className="text-xs font-bold text-slate-600">Mô tả SEO</span>
             <textarea
               disabled
               placeholder="(Placeholder)"
@@ -71,7 +71,7 @@ const SEOSettingsPage: React.FC = () => {
               className="opacity-60 cursor-not-allowed inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2 text-sm font-semibold"
             >
               <span className="material-icons text-[18px]">save</span>
-              Save (disabled)
+              Lưu (tạm khóa)
             </button>
           </div>
         </div>

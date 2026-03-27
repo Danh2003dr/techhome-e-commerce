@@ -126,15 +126,15 @@ const InboxThreadPage: React.FC = () => {
             <input
               value={messageDraft}
               onChange={(e) => setMessageDraft(e.target.value)}
-              placeholder="Write message"
+              placeholder="Nhập tin nhắn..."
             />
             <button
               type="button"
               className="admin-btn"
               onClick={() => setMessageDraft('')}
-              aria-label="Send message"
+              aria-label="Gửi tin nhắn"
             >
-              Send
+              Gửi
             </button>
           </div>
         </div>

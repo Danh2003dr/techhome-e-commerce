@@ -91,7 +91,7 @@ const ProductDetail: React.FC = () => {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Product not found</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Không tìm thấy sản phẩm</h1>
           <Link to="/" className="text-primary hover:underline">Về trang chủ</Link>
         </div>
       </div>
@@ -162,7 +162,7 @@ const ProductDetail: React.FC = () => {
                 <h1 className="text-4xl font-bold mt-2 leading-tight">{product.name}</h1>
                 <div className="flex items-center gap-4 mt-4">
                   {renderStars(product.rating)}
-                  <span className="text-sm font-medium text-slate-500 underline cursor-pointer">{product.reviews} reviews</span>
+                  <span className="text-sm font-medium text-slate-500 underline cursor-pointer">{product.reviews} đánh giá</span>
                   {product.sku && <><span className="text-sm text-slate-400">|</span><span className="text-sm text-slate-500">SKU: {product.sku}</span></>}
                 </div>
               </div>
@@ -171,7 +171,7 @@ const ProductDetail: React.FC = () => {
                   <span className="text-3xl font-bold text-slate-900 dark:text-white">{formatVND(product.price)}</span>
                   {product.oldPrice && <span className="text-lg text-slate-400 line-through">{formatVND(product.oldPrice)}</span>}
                 </div>
-                <p className={`text-sm font-medium mt-1 ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>{product.inStock !== false ? 'In Stock - Ready to ship' : 'Out of Stock'}</p>
+                <p className={`text-sm font-medium mt-1 ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>{product.inStock !== false ? 'Còn hàng - Sẵn sàng giao' : 'Hết hàng'}</p>
               </div>
               {colors.length > 0 && (
                 <div className="mb-6">
@@ -355,7 +355,7 @@ const ProductDetail: React.FC = () => {
           if (extras && extras.specs.length > 0) {
             return (
               <section className="mb-20" key="mock-specs">
-                <h2 className="text-2xl font-bold mb-8">Technical Specifications</h2>
+                <h2 className="text-2xl font-bold mb-8">Thông số kỹ thuật</h2>
                 <div className="overflow-hidden border border-slate-200 dark:border-slate-800 rounded-xl">
                   <table className="w-full text-left">
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -377,10 +377,10 @@ const ProductDetail: React.FC = () => {
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Customer Reviews</h2>
+                <h2 className="text-2xl font-bold mb-2">Đánh giá của khách hàng</h2>
                 <div className="flex items-center gap-4">
                   <span className="text-5xl font-bold">{extras.reviewScore}</span>
-                  <div>{renderStars(extras.reviewScore, '')}<p className="text-sm text-slate-500 font-medium">Based on {product.reviews} ratings</p></div>
+                  <div>{renderStars(extras.reviewScore, '')}<p className="text-sm text-slate-500 font-medium">Dựa trên {product.reviews} đánh giá</p></div>
                 </div>
               </div>
               {extras.reviewDistribution && (
@@ -396,14 +396,14 @@ const ProductDetail: React.FC = () => {
                   </div>
                 </div>
               )}
-              <button type="button" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Write a Review</button>
+              <button type="button" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Viết đánh giá</button>
             </div>
             {extras.customerPhotos && extras.customerPhotos.length > 0 && (
               <div className="mb-10">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">Customer Photos</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">Ảnh của khách hàng</h3>
                 <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
                   {extras.customerPhotos.map((photo, i) => <img key={i} src={photo} alt="" className="w-32 h-32 rounded-lg object-cover flex-shrink-0" />)}
-                  <div className="w-32 h-32 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center cursor-pointer text-slate-500 flex-shrink-0"><span className="text-sm font-bold">+24 more</span></div>
+                  <div className="w-32 h-32 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center cursor-pointer text-slate-500 flex-shrink-0"><span className="text-sm font-bold">+24 ảnh khác</span></div>
                 </div>
               </div>
             )}
@@ -414,7 +414,7 @@ const ProductDetail: React.FC = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${i === 0 ? 'bg-primary/20 text-primary' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>{review.initials}</div>
-                        <div><p className="font-bold">{review.author}</p><p className="text-xs text-slate-500">{review.verified ? 'Verified Buyer' : ''} • {review.date}</p></div>
+                        <div><p className="font-bold">{review.author}</p><p className="text-xs text-slate-500">{review.verified ? 'Người mua đã xác nhận' : ''} • {review.date}</p></div>
                       </div>
                       {renderStars(review.rating, 'text-xs')}
                     </div>
@@ -428,7 +428,7 @@ const ProductDetail: React.FC = () => {
         {extras && extras.relatedProducts && extras.relatedProducts.length > 0 && (
           <section className="mb-20">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Related Products</h2>
+              <h2 className="text-2xl font-bold">Sản phẩm liên quan</h2>
               <div className="flex gap-2">
                 <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_left</span></button>
                 <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_right</span></button>

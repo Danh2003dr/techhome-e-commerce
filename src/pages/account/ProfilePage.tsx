@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { isApiConfigured, ApiError } from '@/services/api';
-import { getProfile, updateProfile, changePassword } from '@/services/backend';
+import { getProfile, updateProfile, changePassword, uploadImage } from '@/services/backend';
 import type { ProfileDto } from '@/types/api';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
@@ -82,9 +82,14 @@ function displayValue(value: string, placeholder: string) {
   return value?.trim() ? value : placeholder;
 }
 
-const ProfilePage: React.FC = () => {
+type ProfilePageProps = {
+  variant?: 'customer' | 'admin';
+};
+
+const ProfilePage: React.FC<ProfilePageProps> = ({ variant = 'customer' }) => {
   const { user, isAuthenticated, isInitialized, updateCurrentUser } = useAuth();
   const { avatarUrl, setAvatarUrl } = useAvatar();
+  const isAdminProfile = variant === 'admin';
   const [profile, setProfile] = useState<ProfileExtension>(loadProfile);
   const [passwordUpdated, setPasswordUpdated] = useState(loadPasswordUpdated);
   const [apiProfile, setApiProfile] = useState<ProfileDto | null>(null);
@@ -95,6 +100,7 @@ const ProfilePage: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<ProfileExtension>({ ...profile });
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentAvatar = avatarUrl ?? DEFAULT_AVATAR;
@@ -115,20 +121,24 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (!apiProfile) return;
+    // Keep avatar (and header image) in sync with backend.
+    setAvatarUrl(apiProfile.avatarUrl ?? null);
     const mapped = toProfileExtension(apiProfile);
     setProfile(mapped);
     saveProfile(mapped);
   }, [apiProfile]);
 
   const handleUploadClick = () => {
+    if (avatarUploading) return;
     setAvatarError(null);
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+
     if (!ALLOWED_TYPES.includes(file.type)) {
       setAvatarError('Vui lòng chọn ảnh JPG, PNG hoặc GIF.');
       return;
@@ -137,12 +147,20 @@ const ProfilePage: React.FC = () => {
       setAvatarError('Ảnh tối đa 2MB.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatarUrl(reader.result as string);
-      setAvatarError(null);
-    };
-    reader.readAsDataURL(file);
+
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      const url = await uploadImage(file);
+      const updated = await updateProfile({ avatarUrl: url });
+      setApiProfile(updated);
+      setAvatarUrl(url);
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Tải ảnh thất bại';
+      setAvatarError(msg);
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const openEdit = useCallback(() => {
@@ -245,17 +263,27 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
-      <AccountHeader />
+      {!isAdminProfile && <AccountHeader />}
 
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-8 py-10 flex gap-10">
-        <AccountSidebar />
+      <div
+        className={
+          isAdminProfile
+            ? 'max-w-[1440px] mx-auto px-6 sm:px-8 py-10'
+            : 'max-w-[1440px] mx-auto px-6 sm:px-8 py-10 flex gap-10'
+        }
+      >
+        {!isAdminProfile && <AccountSidebar />}
 
-        <main className="flex-grow space-y-8 min-w-0">
+        <main
+          className={
+            isAdminProfile ? 'space-y-8 min-w-0' : 'flex-grow space-y-8 min-w-0'
+          }
+        >
           <div>
             <Breadcrumb
               items={[
                 { label: 'Trang chủ', path: '/' },
-                { label: 'Tài khoản', path: '/profile' },
+                { label: 'Tài khoản', path: isAdminProfile ? '/admin/profile' : '/profile' },
                 { label: 'Hồ sơ' },
               ]}
             />
@@ -286,6 +314,7 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleUploadClick}
+                  disabled={avatarUploading}
                   className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                   aria-label="Đổi ảnh"
                 >
@@ -298,9 +327,10 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleUploadClick}
+                  disabled={avatarUploading}
                   className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors"
                 >
-                  Tải ảnh lên
+                  {avatarUploading ? 'Đang tải...' : 'Tải ảnh lên'}
                 </button>
               </div>
             </div>
@@ -584,7 +614,7 @@ const ProfilePage: React.FC = () => {
         </div>
       )}
 
-      <AccountFooter />
+      {!isAdminProfile && <AccountFooter />}
     </div>
   );
 };

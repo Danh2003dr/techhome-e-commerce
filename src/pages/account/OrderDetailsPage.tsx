@@ -1,34 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getOrderDetails } from '@/data';
-import { getOrder } from '@/services/backend';
+import { getOrder, receiveOrder, getAddresses } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
 import type { OrderDto } from '@/types/api';
-import type { OrderDetailsData } from '@/types';
+import type { OrderDetailsData, SavedAddress } from '@/types';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
+import { addressDtoToSaved } from '@/services/addressMapper';
 
 const PLACEHOLDER_IMG = 'https://picsum.photos/100/100?random=product';
 
 function statusToLabel(status: string): string {
+  const s = String(status ?? '').trim().toUpperCase();
   const map: Record<string, string> = {
     PENDING: 'Đang xử lý',
-    Processing: 'Đang xử lý',
-    Shipped: 'Đã giao',
-    Shipping: 'Đang giao',
-    Delivered: 'Đã giao',
-    Cancelled: 'Đã hủy',
+    PROCESSING: 'Đang xử lý',
+    PAID: 'Đã thanh toán',
+    SHIPPED: 'Đã giao',
+    SHIPPING: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    CANCELLED: 'Đã hủy',
   };
-  return map[status] || status;
+  return map[s] || status;
 }
 
-function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
+function paymentMethodToBrand(method?: string | null): { brand: string; last4: string; expires: string } {
+  const m = String(method ?? '').trim().toLowerCase();
+  if (!m) return { brand: '—', last4: '—', expires: '—' };
+  if (m === 'credit_card') return { brand: 'Credit Card', last4: '—', expires: '—' };
+  if (m === 'paypal') return { brand: 'PayPal', last4: '—', expires: '—' };
+  if (m === 'paypal_credit') return { brand: 'PayPal Credit', last4: '—', expires: '—' };
+  if (m === 'cash_on_delivery') return { brand: 'Thanh toán khi nhận hàng', last4: '—', expires: '—' };
+  return { brand: method, last4: '—', expires: '—' };
+}
+
+function mapSavedAddressToShipping(saved?: SavedAddress | null): OrderDetailsData['shippingAddress'] {
+  if (!saved) {
+    return {
+      name: '—',
+      street: '—',
+      cityStateZip: '—',
+      country: '—',
+      phone: '—',
+    };
+  }
+
+  const streetLine = [saved.street, saved.apartment].filter((x) => x && String(x).trim()).join(', ');
+  const stateZip = [saved.state, saved.zipCode].filter((x) => x && String(x).trim()).join(' ').trim();
+  const cityStateZip =
+    saved.city && stateZip ? `${saved.city}, ${stateZip}` : [saved.city, stateZip].filter(Boolean).join(' ').trim();
+
+  return {
+    name: saved.name ?? '—',
+    street: streetLine || '—',
+    cityStateZip: cityStateZip || '—',
+    country: saved.country ?? '—',
+    phone: saved.phone ?? '—',
+  };
+}
+
+function mapOrderDtoToDetails(dto: OrderDto, shippingAddress?: SavedAddress | null): OrderDetailsData {
   const placedDate = formatDate(dto.createdAt);
+  const statusRaw = dto.status ?? null;
   const lineItems = dto.items.map((item) => ({
     name: item.productName,
     image: item.productImage || PLACEHOLDER_IMG,
@@ -41,23 +80,25 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
     orderId: String(dto.id),
     placedDate,
     statusLabel: statusToLabel(dto.status),
+    statusRaw,
     stepperSteps: [
       { label: 'Đã đặt hàng', sublabel: placedDate, completed: true, active: false, icon: 'check' },
-      { label: 'Trạng thái', sublabel: statusToLabel(dto.status), completed: dto.status !== 'PENDING', active: true, icon: 'local_shipping' },
+      {
+        label: 'Trạng thái',
+        sublabel: statusToLabel(dto.status),
+        completed: String(dto.status ?? '').trim().toUpperCase() !== 'PENDING',
+        active: true,
+        icon: 'local_shipping',
+      },
     ],
     lineItems,
     subtotal,
     shipping: 0,
     tax: 0,
     total: Number(dto.totalPrice),
-    shippingAddress: {
-      name: '—',
-      street: '—',
-      cityStateZip: '—',
-      country: '—',
-      phone: '—',
-    },
-    payment: { brand: '—', last4: '—', expires: '—' },
+    shippingAddress: mapSavedAddressToShipping(shippingAddress),
+    payment: paymentMethodToBrand(dto.paymentMethod),
+    paymentMethodRaw: dto.paymentMethod ?? null,
   };
 }
 
@@ -67,6 +108,9 @@ const OrderDetailsPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [order, setOrder] = useState<OrderDetailsData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [addressesCache, setAddressesCache] = useState<SavedAddress[]>([]);
+  const [receiving, setReceiving] = useState(false);
+  const [receiveError, setReceiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderId) {
@@ -76,13 +120,60 @@ const OrderDetailsPage: React.FC = () => {
     if (isApiConfigured() && isAuthenticated) {
       setLoading(true);
       getOrder(orderId)
-        .then((dto) => setOrder(mapOrderDtoToDetails(dto)))
+        .then(async (dto) => {
+          let shipping: SavedAddress | null = null;
+          try {
+            if (dto.shippingAddressId != null) {
+              const addrDtos = await getAddresses();
+              const savedList = addrDtos.map(addressDtoToSaved);
+              setAddressesCache(savedList);
+              shipping =
+                savedList.find((a) => Number(a.id) === Number(dto.shippingAddressId)) ?? null;
+            }
+          } catch {
+            // Nếu không load được address list thì vẫn hiển thị order, fallback sang '—'.
+          }
+          setOrder(mapOrderDtoToDetails(dto, shipping));
+        })
         .catch(() => setOrder(getOrderDetails(orderId) ?? null))
         .finally(() => setLoading(false));
     } else {
       setOrder(getOrderDetails(orderId) ?? null);
     }
   }, [orderId, isAuthenticated]);
+
+  const canReceiveAndPay =
+    String(order?.statusRaw ?? '').trim().toUpperCase() === 'PENDING' &&
+    String(order?.paymentMethodRaw ?? '').trim().toLowerCase() === 'cash_on_delivery';
+
+  const handleReceiveAndPay = async () => {
+    if (!order || !canReceiveAndPay) return;
+    setReceiveError(null);
+    setReceiving(true);
+    try {
+      const dto = await receiveOrder(order.orderId);
+      let shipping: SavedAddress | null = null;
+      try {
+        if (dto.shippingAddressId != null) {
+          shipping =
+            addressesCache.find((a) => Number(a.id) === Number(dto.shippingAddressId)) ?? null;
+          if (!shipping) {
+            const addrDtos = await getAddresses();
+            const savedList = addrDtos.map(addressDtoToSaved);
+            setAddressesCache(savedList);
+            shipping = savedList.find((a) => Number(a.id) === Number(dto.shippingAddressId)) ?? null;
+          }
+        }
+      } catch {
+        // fallback '—'
+      }
+      setOrder(mapOrderDtoToDetails(dto, shipping));
+    } catch (err: unknown) {
+      setReceiveError(err instanceof Error ? err.message : 'Không thể ghi nhận đã nhận hàng.');
+    } finally {
+      setReceiving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -143,8 +234,23 @@ const OrderDetailsPage: React.FC = () => {
                   <span className="w-2 h-2 bg-primary rounded-full" />
                   {order.statusLabel}
                 </span>
+                {canReceiveAndPay && (
+                  <button
+                    type="button"
+                    disabled={receiving}
+                    onClick={handleReceiveAndPay}
+                    className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60 disabled:pointer-events-none"
+                  >
+                    {receiving ? 'Đang ghi nhận...' : 'Đã nhận hàng - Thanh toán'}
+                  </button>
+                )}
               </div>
             </div>
+            {receiveError && (
+              <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+                {receiveError}
+              </div>
+            )}
           </div>
 
           {/* Stepper */}

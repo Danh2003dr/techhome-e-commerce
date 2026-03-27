@@ -35,8 +35,10 @@ export interface OrderItem {
 export interface OrderHistoryCardItem {
   id: string;
   date: string;
+  /** Raw createdAt from backend (ISO string). Used for filtering/sorting on the order history page. */
+  createdAtRaw?: string;
   total: number;
-  status: OrderStatus;
+  status: string;
   productImage: string;
   productName: string;
   specs: string;
@@ -97,6 +99,8 @@ export interface OrderDetailsData {
   orderId: string;
   placedDate: string;
   statusLabel: string;
+  statusRaw?: string | null;
+  paymentMethodRaw?: string | null;
   stepperSteps: OrderDetailsStep[];
   lineItems: OrderDetailsLineItem[];
   subtotal: number;

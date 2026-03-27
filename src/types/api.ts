@@ -45,6 +45,7 @@ export interface ProfileDto {
   id: number;
   name: string;
   email: string;
+  avatarUrl?: string | null;
   phone?: string | null;
   gender?: string | null;
   dateOfBirth?: string | null;
@@ -65,6 +66,12 @@ export interface CreateOrderItemRequest {
 export interface CreateOrderRequest {
   totalPrice: number;
   items: CreateOrderItemRequest[];
+  shippingAddressId?: number | null;
+  subtotal?: number | null;
+  discountAmount?: number | null;
+  shippingCost?: number | null;
+  paymentMethod?: string | null;
+  notes?: string | null;
 }
 
 export interface OrderItemDto {
@@ -80,8 +87,40 @@ export interface OrderDto {
   userId: number;
   totalPrice: number;
   status: string;
+  paymentMethod?: string | null;
   createdAt: string;
   items: OrderItemDto[];
+}
+
+/** Admin order payload used by /api/admin/orders */
+export interface AdminOrderItemDto {
+  productId: number | null;
+  productName: string;
+  productImage?: string | null;
+  quantity: number;
+  priceAtOrder: number;
+  lineTotal: number;
+  selectedColor?: string | null;
+  selectedStorage?: string | null;
+}
+
+export interface AdminOrderDto {
+  id: number;
+  customerName: string;
+  shippingAddressSummary: string;
+  items: AdminOrderItemDto[];
+  subtotal: number;
+  discountAmount: number;
+  shippingCost: number;
+  totalPrice: number;
+  paymentMethod?: string | null;
+  notes?: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface UpdateAdminOrderStatusRequest {
+  status: string;
 }
 
 export interface ApiErrorBody {

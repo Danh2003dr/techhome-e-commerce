@@ -108,12 +108,12 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">{initialProduct ? 'Edit Product' : 'Add Product'}</h2>
+          <h2 className="text-lg font-bold text-slate-900">{initialProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</h2>
           <button
             type="button"
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
-            aria-label="Close"
+            aria-label="Đóng"
           >
             <span className="material-icons">close</span>
           </button>
@@ -121,7 +121,7 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">Image (optional)</span>
+            <span className="text-xs font-bold text-slate-600">Ảnh (tuỳ chọn)</span>
             <input type="file" accept="image/*" onChange={onFile} className="mt-2 block w-full text-sm text-slate-600" />
             {form.image ? (
               <img src={form.image} alt="" className="mt-2 w-20 h-20 rounded-lg object-cover border border-slate-100" />
@@ -129,18 +129,18 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">Product Name</span>
+            <span className="text-xs font-bold text-slate-600">Tên sản phẩm</span>
             <input
               required
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-              placeholder="Product name"
+              placeholder="Tên sản phẩm"
             />
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold text-slate-600">Category</span>
+            <span className="text-xs font-bold text-slate-600">Danh mục</span>
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
@@ -156,7 +156,7 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-xs font-bold text-slate-600">Price (USD)</span>
+              <span className="text-xs font-bold text-slate-600">Giá (USD)</span>
               <input
                 required
                 type="number"
@@ -169,7 +169,7 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
               />
             </label>
             <label className="block">
-              <span className="text-xs font-bold text-slate-600">Piece</span>
+              <span className="text-xs font-bold text-slate-600">Số lượng</span>
               <input
                 required
                 type="number"
@@ -183,7 +183,7 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
           </div>
 
           <div>
-            <span className="text-xs font-bold text-slate-600 block mb-2">Available Colors</span>
+            <span className="text-xs font-bold text-slate-600 block mb-2">Màu có sẵn</span>
             <div className="flex flex-wrap gap-2">
               {STOCK_COLOR_PRESETS.map(({ hex, label }) => {
                 const on = form.colors.includes(hex);
@@ -211,10 +211,10 @@ const ProductStockModal: React.FC<ProductStockModalProps> = ({
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
-              Cancel
+              Hủy
             </button>
             <button type="submit" className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600">
-              Save
+              Lưu
             </button>
           </div>
         </form>

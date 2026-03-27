@@ -47,6 +47,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(() => {
     backend.logout();
     setUser(null);
+    localStorage.removeItem('techhome_cart');
+    window.dispatchEvent(new Event('techhome:logout'));
   }, []);
 
   const updateCurrentUser = useCallback((patch: Partial<AuthUserDto>) => {

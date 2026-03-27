@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createOrder } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { ApiError } from '@/services/api';
+import { useCart } from '@/context/CartContext';
 import PaymentTabs, { type PaymentMethodType } from './PaymentTabs';
 import CreditCardForm from './CreditCardForm';
 import CheckoutSummary from './CheckoutSummary';
@@ -17,6 +18,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   const navigate = useNavigate();
   const { checkoutData, updateCheckoutData } = useCheckout();
   const { isAuthenticated } = useAuth();
+  const { clearCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('credit_card');
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -71,26 +73,50 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
       agreeToTerms: true,
     });
 
-    const useBackend = isApiConfigured() && isAuthenticated && checkoutData.items.length > 0;
-    const items = checkoutData.items;
-    const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const { items } = checkoutData;
+    const useBackend = isApiConfigured() && isAuthenticated && items.length > 0;
+    const normalizedItems = items.map((i) => ({
+      productId: Number(i.productId),
+      quantity: Number(i.quantity),
+      price: Number(i.price),
+    }));
+    const totalPrice = normalizedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
     if (useBackend) {
-      const productIdsValid = items.every((i) => !Number.isNaN(Number(i.productId)));
-      if (!productIdsValid) {
-        setOrderError('Cart contains items that cannot be ordered via API. Please sign in and add products from the catalog.');
+      const { selectedAddress } = checkoutData;
+      const shippingAddressId = selectedAddress ? Number(selectedAddress.id) : undefined;
+      if (selectedAddress && shippingAddressId != null && Number.isNaN(shippingAddressId)) {
+        setOrderError('Địa chỉ giao hàng không hợp lệ. Vui lòng chọn lại địa chỉ.');
         return;
       }
+
+      const validItems = normalizedItems.every(
+        (i) =>
+          Number.isFinite(i.productId) &&
+          i.productId > 0 &&
+          Number.isFinite(i.quantity) &&
+          i.quantity >= 1 &&
+          Number.isFinite(i.price) &&
+          i.price >= 0,
+      );
+      if (!validItems) {
+        setOrderError('Giỏ hàng đang có dữ liệu không hợp lệ để tạo đơn. Vui lòng thêm lại sản phẩm từ danh sách.');
+        return;
+      }
+
       setPlacing(true);
       try {
         const order = await createOrder({
           totalPrice,
-          items: items.map((i) => ({
-            productId: Number(i.productId),
-            quantity: i.quantity,
-            price: i.price,
-          })),
+          paymentMethod,
+          shippingAddressId: shippingAddressId ?? null,
+          subtotal: totalPrice,
+          discountAmount: 0,
+          shippingCost: checkoutData.shippingMethod?.price ?? 0,
+          items: normalizedItems,
         });
+        // Payment simulate thành công => xóa giỏ
+        clearCart();
         navigate('/order-confirmation', { state: { orderId: order.id, fromApi: true } });
       } catch (err) {
         setOrderError(err instanceof ApiError ? err.message : 'Failed to create order.');
@@ -109,7 +135,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Payment Details */}
       <div className="lg:col-span-2">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Payment</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Thanh toán</h2>
 
         <PaymentTabs selectedMethod={paymentMethod} onSelectMethod={setPaymentMethod} />
 
@@ -120,10 +146,10 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         {paymentMethod === 'paypal' && (
           <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              You will be redirected to PayPal to complete your payment
+              Bạn sẽ được chuyển sang PayPal để hoàn tất thanh toán
             </p>
             <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-              Continue with PayPal
+              Tiếp tục với PayPal
             </button>
           </div>
         )}
@@ -131,11 +157,22 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         {paymentMethod === 'paypal_credit' && (
           <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              You will be redirected to PayPal Credit to complete your payment
+              Bạn sẽ được chuyển sang PayPal Credit để hoàn tất thanh toán
             </p>
             <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-              Continue with PayPal Credit
+              Tiếp tục với PayPal Credit
             </button>
+          </div>
+        )}
+
+        {paymentMethod === 'cash_on_delivery' && (
+          <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              Thanh toán khi nhận hàng. Vui lòng chuẩn bị tiền mặt để thanh toán.
+            </p>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              Sau khi bạn nhận hàng thành công, hệ thống sẽ ghi nhận thanh toán.
+            </div>
           </div>
         )}
 
@@ -155,13 +192,13 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
               className="mt-1 w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
             />
             <span className="text-sm text-slate-600 dark:text-slate-400">
-              I agree to the{' '}
+              Tôi đồng ý với{' '}
               <a href="#" className="text-primary hover:underline">
-                Terms and Conditions
+                Điều khoản & Điều kiện
               </a>{' '}
-              and{' '}
+              và{' '}
               <a href="#" className="text-primary hover:underline">
-                Privacy Policy
+                Chính sách bảo mật
               </a>
             </span>
           </label>
@@ -176,14 +213,14 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
             onClick={onBack}
             className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
-            Back
+            Quay lại
           </button>
           <button
             onClick={handlePlaceOrder}
             disabled={placing}
             className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-70 disabled:pointer-events-none"
           >
-            {placing ? 'Placing order...' : 'Place Order'}
+            {placing ? 'Đang đặt hàng...' : 'Đặt hàng'}
           </button>
         </div>
       </div>

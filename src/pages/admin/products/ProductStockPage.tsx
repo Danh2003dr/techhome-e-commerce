@@ -69,7 +69,7 @@ const ProductStockPage: React.FC = () => {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Product Stock</h1>
+          <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Quản lý tồn kho sản phẩm</h1>
           <p className="text-xs font-semibold text-slate-500 mt-1">Quản lý tồn kho sản phẩm</p>
         </div>
 
@@ -82,7 +82,7 @@ const ProductStockPage: React.FC = () => {
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search product name"
+              placeholder="Tìm theo tên sản phẩm"
               className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -92,7 +92,7 @@ const ProductStockPage: React.FC = () => {
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:bg-blue-600 transition-colors shrink-0"
           >
             <span className="material-icons text-[18px]">add</span>
-            Add Product
+            Thêm sản phẩm
           </button>
         </div>
       </div>
@@ -105,8 +105,8 @@ const ProductStockPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 md:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <p className="text-sm font-medium text-slate-500">
             {filtered.length === 0
-              ? 'Showing 0 of 0'
-              : `Showing ${String(startIdx).padStart(2, '0')}-${String(endIdx).padStart(2, '0')} of ${filtered.length}`}
+              ? 'Hiển thị 0 trên 0'
+              : `Hiển thị ${String(startIdx).padStart(2, '0')}-${String(endIdx).padStart(2, '0')} trên ${filtered.length}`}
           </p>
           <div className="flex items-center justify-end gap-2 self-end sm:self-auto">
             <button
@@ -114,7 +114,7 @@ const ProductStockPage: React.FC = () => {
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               className="rounded-lg border border-slate-200 bg-white min-w-[36px] h-9 inline-flex items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
-              aria-label="Previous page"
+              aria-label="Trang trước"
             >
               <span className="material-icons text-lg">chevron_left</span>
             </button>
@@ -123,7 +123,7 @@ const ProductStockPage: React.FC = () => {
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="rounded-lg border border-slate-200 bg-white min-w-[36px] h-9 inline-flex items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
-              aria-label="Next page"
+              aria-label="Trang sau"
             >
               <span className="material-icons text-lg">chevron_right</span>
             </button>

@@ -41,13 +41,13 @@ const ShippingMethodCard: React.FC<ShippingMethodCardProps> = ({
               <p className="text-sm text-slate-500 dark:text-slate-400">{method.description}</p>
             )}
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Estimated delivery: {method.estimatedDays}
+              Thời gian dự kiến: {method.estimatedDays}
             </p>
           </div>
         </div>
         <div className="text-right">
           <span className="text-2xl font-bold text-slate-900 dark:text-white">
-            {method.price === 0 ? 'FREE' : formatVND(method.price)}
+            {method.price === 0 ? 'MIỄN PHÍ' : formatVND(method.price)}
           </span>
         </div>
       </div>

@@ -158,18 +158,18 @@ const AccessoriesCategoryPage: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <p className="text-slate-500 font-medium">Showing 1-12 of 84 products</p>
+              <p className="text-slate-500 font-medium">Hiển thị 1-12 trên tổng 84 sản phẩm</p>
               <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-500 whitespace-nowrap">Sort by:</span>
+                <span className="text-sm text-slate-500 whitespace-nowrap">Sắp xếp theo:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm px-4 py-2 focus:ring-primary focus:border-primary"
                 >
-                  <option>Newest Arrivals</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Most Popular</option>
+                  <option>Hàng mới về</option>
+                  <option>Giá: Thấp đến cao</option>
+                  <option>Giá: Cao đến thấp</option>
+                  <option>Phổ biến nhất</option>
                 </select>
               </div>
             </div>

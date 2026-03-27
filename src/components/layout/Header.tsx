@@ -1,12 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAvatar } from '@/context/AvatarContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { DEFAULT_PROFILE_IMAGE } from '@/constants/user';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const { avatarUrl } = useAvatar();
+  const avatarSrc = avatarUrl ?? DEFAULT_PROFILE_IMAGE;
   const [searchQuery, setSearchQuery] = useState('');
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -100,19 +105,45 @@ const Header: React.FC = () => {
                     onClick={() => setAccountOpen(!accountOpen)}
                     className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
                   >
-                    <span className="material-icons">person_outline</span>
+                    <img
+                      src={avatarSrc}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                    />
                     <span className="text-[10px] font-bold uppercase max-w-[72px] truncate">{user.name}</span>
                   </button>
                   {accountOpen && (
                     <div className="absolute top-full right-0 mt-1 w-48 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-[100]">
                       <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700">
+                        <img
+                          src={avatarSrc}
+                          alt="Avatar"
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 mb-2"
+                        />
                         <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                       </div>
-                      <Link to="/profile" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <Link
+                        to={isAdmin ? '/admin/profile' : '/profile'}
+                        onClick={() => setAccountOpen(false)}
+                        className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
                         Hồ sơ
                       </Link>
-                      <Link to="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                      {isAdmin && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setAccountOpen(false)}
+                          className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <Link
+                        to={isAdmin ? '/admin/orders' : '/orders'}
+                        onClick={() => setAccountOpen(false)}
+                        className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
                         Đơn hàng
                       </Link>
                       <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
@@ -132,7 +163,10 @@ const Header: React.FC = () => {
                 </Link>
               )}
             </div>
-            <Link to="/orders" className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+            <Link
+              to={isAdmin ? '/admin/orders' : '/orders'}
+              className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
+            >
               <span className="material-icons">history</span>
               <span className="text-[10px] font-bold uppercase">Đơn hàng</span>
             </Link>

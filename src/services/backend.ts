@@ -20,6 +20,8 @@ import type {
   RegisterRequest,
   AuthResponse,
   CreateOrderRequest,
+  AdminOrderDto,
+  UpdateAdminOrderStatusRequest,
   OrderDto,
   ProfileDto,
   CartDto,
@@ -192,6 +194,25 @@ export async function adminDeleteCategory(id: number | string): Promise<void> {
   return apiDelete<void>(`/admin/categories/${id}`, { auth: true });
 }
 
+// ——— Admin: Orders ———
+/** GET /api/admin/orders */
+export async function adminGetOrders(): Promise<AdminOrderDto[]> {
+  return apiGet<AdminOrderDto[]>('/admin/orders', { auth: true });
+}
+
+/** GET /api/admin/orders/{id} */
+export async function adminGetOrder(orderId: number | string): Promise<AdminOrderDto> {
+  return apiGet<AdminOrderDto>(`/admin/orders/${orderId}`, { auth: true });
+}
+
+/** PATCH /api/admin/orders/{id}/status */
+export async function adminUpdateOrderStatus(
+  orderId: number | string,
+  body: UpdateAdminOrderStatusRequest,
+): Promise<AdminOrderDto> {
+  return apiPatch<AdminOrderDto>(`/admin/orders/${orderId}/status`, body, { auth: true });
+}
+
 /** POST /api/auth/login */
 export async function login(body: AuthRequest): Promise<AuthResponse> {
   const res = await apiPost<AuthResponse>('/auth/login', body, { auth: false });
@@ -221,6 +242,11 @@ export async function getOrders(): Promise<OrderDto[]> {
 /** GET /api/orders/:id – requires Authorization */
 export async function getOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/${id}`, { auth: true });
+}
+
+/** PATCH /api/orders/{id}/receive — COD: customer confirms received */
+export async function receiveOrder(orderId: number | string): Promise<OrderDto> {
+  return apiPatch<OrderDto>(`/orders/${orderId}/receive`, {}, { auth: true });
 }
 
 /** Logout: clear token and user from storage (no backend call). */
@@ -284,6 +310,7 @@ export async function updateProfile(body: {
   phone?: string | null;
   gender?: string | null;
   dateOfBirth?: string | null;
+  avatarUrl?: string | null;
 }): Promise<ProfileDto> {
   return apiPatch<ProfileDto>('/profile', body, { auth: true });
 }

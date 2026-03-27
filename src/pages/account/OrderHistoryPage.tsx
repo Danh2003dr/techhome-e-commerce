@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { orderHistoryCards } from '@/data';
-import type { OrderHistoryCardItem, OrderStatus } from '@/types';
+import type { OrderHistoryCardItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { getOrders } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
@@ -14,6 +14,7 @@ import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
 const PLACEHOLDER_IMG = 'https://picsum.photos/100/100?random=order';
+const PAGE_SIZE = 3;
 
 function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
   const first = dto.items[0];
@@ -21,8 +22,9 @@ function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
   return {
     id: String(dto.id),
     date: dateFormatted,
+    createdAtRaw: dto.createdAt,
     total: dto.totalPrice,
-    status: (dto.status as OrderStatus) || 'Processing',
+    status: String(dto.status ?? 'Processing'),
     productImage: first?.productImage || PLACEHOLDER_IMG,
     productName: first ? first.productName : 'Đơn hàng',
     specs: first ? `SL: ${first.quantity} · ${formatVND(first.priceAtOrder)}` : '',
@@ -32,20 +34,26 @@ function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
   };
 }
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const config: Record<string, { bg: string; text: string; dot: string }> = {
-    Delivered: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', dot: 'bg-green-500' },
-    Processing: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
-    PENDING: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
-    Shipped: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
-    Shipping: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
-    Cancelled: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-400' },
+function StatusBadge({ status }: { status: string }) {
+  const s = String(status ?? '').trim().toUpperCase();
+  const config: Record<
+    string,
+    { bg: string; text: string; dot: string; label: string }
+  > = {
+    DELIVERED: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', dot: 'bg-green-500', label: 'Đã giao' },
+    PROCESSING: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500', label: 'Đang xử lý' },
+    PENDING: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500', label: 'Đang xử lý' },
+    PAID: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500', label: 'Đã thanh toán' },
+    SHIPPED: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500', label: 'Đã giao' },
+    SHIPPING: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500', label: 'Đang giao' },
+    CANCELLED: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-400', label: 'Đã hủy' },
   };
-  const { bg, text, dot } = config[status] ?? config.Cancelled;
+  const cfg = config[s] ?? config.CANCELLED;
+  const { bg, text, dot, label } = cfg;
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${bg} ${text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      {status}
+      {label}
     </span>
   );
 }
@@ -57,16 +65,62 @@ const OrderHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  const useApi = isApiConfigured() && isAuthenticated;
+
   useEffect(() => {
-    if (!isApiConfigured() || !isAuthenticated) return;
+    if (!useApi) return;
     setLoading(true);
     getOrders()
       .then((list) => setApiOrders(list.map(mapOrderDtoToCard)))
       .catch(() => setApiOrders([]))
       .finally(() => setLoading(false));
-  }, [isAuthenticated]);
+  }, [useApi]);
 
-  const orders = isApiConfigured() && isAuthenticated ? apiOrders : orderHistoryCards;
+  const filteredOrders = useMemo(() => {
+    if (!useApi) return orderHistoryCards;
+    if (filter === 'Tất cả đơn hàng') return apiOrders;
+
+    const now = Date.now();
+    const ms30 = 30 * 24 * 60 * 60 * 1000;
+
+    // Fail-open: nếu parse date lỗi thì vẫn giữ đơn để tránh "mất đơn" do format.
+    return apiOrders.filter((o) => {
+      const t = o.createdAtRaw ? Date.parse(o.createdAtRaw) : NaN;
+      if (Number.isNaN(t)) return true;
+
+      if (filter === '30 ngày qua') return t >= now - ms30;
+
+      if (filter === '2023' || filter === '2022') {
+        return new Date(t).getFullYear() === Number(filter);
+      }
+
+      return true;
+    });
+  }, [apiOrders, filter, useApi]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const clampedPage = Math.max(1, Math.min(page, pageCount));
+  const displayedOrders = filteredOrders.slice(
+    (clampedPage - 1) * PAGE_SIZE,
+    clampedPage * PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, useApi]);
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount));
+  }, [pageCount]);
+
+  const maxButtons = 3;
+  const startCandidate = Math.max(1, clampedPage - 1);
+  const endCandidate = Math.min(pageCount, startCandidate + maxButtons - 1);
+  const startPage = Math.max(1, endCandidate - maxButtons + 1);
+  const pageNumbers = Array.from(
+    { length: endCandidate - startPage + 1 },
+    (_, i) => startPage + i
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -112,10 +166,10 @@ const OrderHistoryPage: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            {orders.length === 0 && !loading && (
+            {displayedOrders.length === 0 && !loading && (
               <p className="text-slate-500 py-8 text-center">Chưa có đơn hàng nào.</p>
             )}
-            {orders.map((order) => (
+            {displayedOrders.map((order) => (
               <div
                 key={order.id}
                 className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.03)] overflow-hidden"
@@ -152,7 +206,9 @@ const OrderHistoryPage: React.FC = () => {
                 <div className="p-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                     <div
-                      className={`w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-xl p-2 flex items-center justify-center flex-shrink-0 ${order.status === 'Cancelled' ? 'opacity-60' : ''}`}
+                      className={`w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-xl p-2 flex items-center justify-center flex-shrink-0 ${
+                        String(order.status ?? '').trim().toUpperCase() === 'CANCELLED' ? 'opacity-60' : ''
+                      }`}
                     >
                       <img
                         alt={order.productName}
@@ -196,18 +252,19 @@ const OrderHistoryPage: React.FC = () => {
             <nav className="flex items-center gap-2">
               <button
                 type="button"
+                disabled={clampedPage <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-colors disabled:opacity-60"
               >
                 <span className="material-icons text-lg">chevron_left</span>
               </button>
-              {[1, 2, 3].map((n) => (
+              {pageNumbers.map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setPage(n)}
                   className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-colors ${
-                    page === n
+                    clampedPage === n
                       ? 'bg-primary text-white'
                       : 'border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400'
                   }`}
@@ -217,8 +274,9 @@ const OrderHistoryPage: React.FC = () => {
               ))}
               <button
                 type="button"
-                onClick={() => setPage((p) => Math.min(3, p + 1))}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-colors"
+                disabled={clampedPage >= pageCount}
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-colors disabled:opacity-60"
               >
                 <span className="material-icons text-lg">chevron_right</span>
               </button>

@@ -1,11 +1,93 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { orderConfirmationSample } from '@/data';
 import { formatVND } from '@/utils';
+import { isApiConfigured } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { getOrder, getAddresses } from '@/services/backend';
+import type { OrderDto } from '@/types/api';
+import type { SavedAddress } from '@/types';
+import { addressDtoToSaved } from '@/services/addressMapper';
+
+function paymentMethodToBrand(method?: string | null): { brand: string; last4: string; expires: string } {
+  const m = String(method ?? '').trim().toLowerCase();
+  if (!m) return { brand: '—', last4: '—', expires: '—' };
+  if (m === 'credit_card') return { brand: 'Credit Card', last4: '—', expires: '—' };
+  if (m === 'paypal') return { brand: 'PayPal', last4: '—', expires: '—' };
+  if (m === 'paypal_credit') return { brand: 'PayPal Credit', last4: '—', expires: '—' };
+  if (m === 'cash_on_delivery') return { brand: 'Thanh toán khi nhận hàng', last4: '—', expires: '—' };
+  return { brand: method, last4: '—', expires: '—' };
+}
 
 const OrderConfirmationPage: React.FC = () => {
+  const location = useLocation();
+  const state = location.state as { orderId?: number; fromApi?: boolean } | null;
+  const { isAuthenticated } = useAuth();
+
+  const [apiOrder, setApiOrder] = useState<OrderDto | null>(null);
+  const [apiShipping, setApiShipping] = useState<{
+    name: string;
+    street: string;
+    city: string;
+    stateZip: string;
+    country: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const orderId = state?.orderId;
+    const fromApi = state?.fromApi;
+    if (!orderId || !fromApi) return;
+    if (!isApiConfigured() || !isAuthenticated) return;
+
+    getOrder(orderId)
+      .then(async (dto) => {
+        setApiOrder(dto);
+
+        if (dto.shippingAddressId == null) {
+          setApiShipping(null);
+          return;
+        }
+
+        try {
+          const addrDtos = await getAddresses();
+          const savedList: SavedAddress[] = addrDtos.map(addressDtoToSaved);
+          const shipping = savedList.find((a) => Number(a.id) === Number(dto.shippingAddressId)) ?? null;
+          if (!shipping) {
+            setApiShipping(null);
+            return;
+          }
+
+          const streetLine = [shipping.street, shipping.apartment]
+            .filter((x) => x && String(x).trim())
+            .join(', ');
+          const stateZip = [shipping.state, shipping.zipCode].filter((x) => x && String(x).trim()).join(' ').trim();
+
+          setApiShipping({
+            name: shipping.name ?? '—',
+            street: streetLine || '—',
+            city: shipping.city ?? '',
+            stateZip: stateZip || '',
+            country: shipping.country ?? '',
+          });
+        } catch {
+          setApiShipping(null);
+        }
+      })
+      .catch(() => {
+        setApiOrder(null);
+        setApiShipping(null);
+      });
+  }, [state?.orderId, state?.fromApi, isAuthenticated]);
+
   const order = orderConfirmationSample;
-  const { delivery, payment } = order;
+  const { delivery } = order;
+  const deliveryShippingToShow = apiShipping ?? delivery.shippingAddress;
+  const payment = useMemo(() => {
+    if (apiOrder?.paymentMethod) return paymentMethodToBrand(apiOrder.paymentMethod);
+    return { brand: order.payment.brand, last4: order.payment.last4 };
+  }, [apiOrder?.paymentMethod]);
+
+  const orderIdToShow = apiOrder?.id ? String(apiOrder.id) : String(order.orderId);
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
@@ -33,13 +115,13 @@ const OrderConfirmationPage: React.FC = () => {
             <span className="material-icons text-green-600 dark:text-green-400 text-5xl">check_circle</span>
           </div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-3">Cảm ơn bạn đã đặt hàng!</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">Đơn hàng #{order.orderId}</p>
+          <p className="text-lg text-slate-600 dark:text-slate-400">Đơn hàng #{orderIdToShow}</p>
           <p className="text-slate-500 dark:text-slate-500 mt-2">Email xác nhận đã được gửi đến hộp thư của bạn.</p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link
+            <Link
             to="/orders"
             className="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
           >
@@ -144,10 +226,13 @@ const OrderConfirmationPage: React.FC = () => {
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Giao đến</p>
                   <p className="text-slate-700 dark:text-slate-200 leading-relaxed">
-                    {delivery.shippingAddress.name}<br />
-                    {delivery.shippingAddress.street}<br />
-                    {delivery.shippingAddress.city}, {delivery.shippingAddress.stateZip}<br />
-                    {delivery.shippingAddress.country}
+                    {deliveryShippingToShow.name}
+                    <br />
+                    {deliveryShippingToShow.street}
+                    <br />
+                    {deliveryShippingToShow.city}, {deliveryShippingToShow.stateZip}
+                    <br />
+                    {deliveryShippingToShow.country}
                   </p>
                 </div>
               </div>

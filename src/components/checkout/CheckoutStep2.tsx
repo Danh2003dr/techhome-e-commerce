@@ -10,24 +10,24 @@ interface CheckoutStep2Props {
 const shippingMethods: ShippingMethod[] = [
   {
     id: 'free',
-    name: 'Free',
+    name: 'Miễn phí',
     price: 0,
-    estimatedDays: '5-7 business days',
-    description: 'Standard shipping',
+    estimatedDays: '5-7 ngày làm việc',
+    description: 'Giao hàng tiêu chuẩn',
   },
   {
     id: 'standard',
-    name: 'Standard',
+    name: 'Tiêu chuẩn',
     price: 29,
-    estimatedDays: '3-5 business days',
-    description: 'Faster delivery',
+    estimatedDays: '3-5 ngày làm việc',
+    description: 'Nhanh hơn',
   },
   {
     id: 'express',
-    name: 'Express',
+    name: 'Nhanh',
     price: 49,
-    estimatedDays: '1-2 business days',
-    description: 'Fastest delivery',
+    estimatedDays: '1-2 ngày làm việc',
+    description: 'Nhanh nhất',
   },
 ];
 
@@ -53,7 +53,7 @@ const CheckoutStep2: React.FC<CheckoutStep2Props> = ({ onNext, onBack }) => {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Shipping Method</h2>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Phương thức giao hàng</h2>
 
       <div className="space-y-4 mb-8">
         {shippingMethods.map((method) => (
@@ -71,14 +71,14 @@ const CheckoutStep2: React.FC<CheckoutStep2Props> = ({ onNext, onBack }) => {
           onClick={onBack}
           className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
-          Back
+          Quay lại
         </button>
         <button
           onClick={handleContinue}
           disabled={!selectedMethodId}
           className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          Tiếp tục
         </button>
       </div>
     </div>

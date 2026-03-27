@@ -24,6 +24,7 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
+import AdminProfilePage from '@/pages/admin/AdminProfilePage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
 import ProductStockPage from '@/pages/admin/products/ProductStockPage';
@@ -64,6 +65,7 @@ const AppRoutes: React.FC = () => (
     <Route element={<PrivateRoute requiredRole="admin"><AdminLayout /></PrivateRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
+      <Route path="/admin/profile" element={<AdminProfilePage />} />
       <Route path="/admin/calendar" element={<CalendarPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/products/stock" element={<ProductStockPage />} />

@@ -210,20 +210,20 @@ const MobileCategoryPage: React.FC = () => {
           <div className="flex-grow">
             <div className="flex items-center justify-between mb-8">
               <p className="text-sm text-slate-500">
-                Showing <span className="font-bold text-slate-900 dark:text-white">{mobileCategoryProducts.length}</span> products from{' '}
+                Hiển thị <span className="font-bold text-slate-900 dark:text-white">{mobileCategoryProducts.length}</span> sản phẩm trên tổng{' '}
                 <span className="font-bold text-slate-900 dark:text-white">{TOTAL_PRODUCTS}</span>
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 font-medium">Sort by:</span>
+                <span className="text-xs text-slate-400 font-medium">Sắp xếp theo:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="text-sm border-none bg-transparent font-bold focus:ring-0 cursor-pointer"
                 >
-                  <option>Most Relevant</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Top Rated</option>
+                  <option>Phù hợp nhất</option>
+                  <option>Giá: Thấp đến cao</option>
+                  <option>Giá: Cao đến thấp</option>
+                  <option>Đánh giá cao nhất</option>
                 </select>
               </div>
             </div>

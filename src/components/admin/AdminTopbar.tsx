@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAvatar } from '@/context/AvatarContext';
+import { DEFAULT_PROFILE_IMAGE } from '@/constants/user';
 
 const getInitials = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,6 +18,7 @@ type AdminTopbarProps = {
 
 const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarCollapsed = false }) => {
   const { user } = useAuth();
+  const { avatarUrl } = useAvatar();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -32,6 +35,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
   const displayName = user?.name ?? 'Admin';
   const email = user?.email ?? 'admin@techhome.local';
   const initials = getInitials(displayName);
+  const avatarSrc = avatarUrl ?? DEFAULT_PROFILE_IMAGE;
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
@@ -80,7 +84,11 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
               className="flex items-center gap-3 p-1 pr-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors border border-transparent"
             >
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center">
-                <span className="text-sm font-bold">{initials}</span>
+                <img
+                  src={avatarSrc}
+                  alt="Avatar"
+                  className="w-9 h-9 rounded-full object-cover"
+                />
               </div>
               <div className="hidden sm:block text-left leading-tight">
                 <div className="text-sm font-semibold text-slate-900 dark:text-white">{displayName}</div>
@@ -97,11 +105,18 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
                 </div>
                 <div className="py-2">
                   <Link
-                    to="/profile"
+                    to="/admin/profile"
                     className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                     onClick={() => setIsProfileOpen(false)}
                   >
                     Admin Profile
+                  </Link>
+                  <Link
+                    to="/admin/dashboard"
+                    className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    Admin Dashboard
                   </Link>
                   <Link
                     to="/login"

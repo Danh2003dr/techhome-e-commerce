@@ -198,10 +198,10 @@ const HomePage: React.FC = () => {
         <section className="mb-16">
           <div className="flex justify-between items-end mb-6">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Featured Products</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Sản phẩm nổi bật</h3>
             </div>
             <Link to="/search" className="text-primary font-bold hover:underline flex items-center gap-1">
-              View All <span className="material-icons text-sm">arrow_forward</span>
+              Xem tất cả <span className="material-icons text-sm">arrow_forward</span>
             </Link>
           </div>
           
@@ -215,7 +215,7 @@ const HomePage: React.FC = () => {
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              New Arrival
+              Hàng mới về
             </button>
             <button
               onClick={() => setActiveTab('bestseller')}
@@ -225,7 +225,7 @@ const HomePage: React.FC = () => {
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Bestseller
+              Bán chạy
             </button>
             <button
               onClick={() => setActiveTab('featured')}
@@ -235,7 +235,7 @@ const HomePage: React.FC = () => {
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Featured Products
+              Sản phẩm nổi bật
             </button>
           </div>
 
@@ -268,11 +268,11 @@ const HomePage: React.FC = () => {
         <section className="mb-16">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Discounts up to -50%</h3>
-              <p className="text-slate-500">Limited time offers on selected products</p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Giảm giá tới -50%</h3>
+              <p className="text-slate-500">Ưu đãi thời gian giới hạn cho sản phẩm chọn lọc</p>
             </div>
             <Link to="/deals" className="text-primary font-bold hover:underline flex items-center gap-1">
-              View All <span className="material-icons text-sm">arrow_forward</span>
+              Xem tất cả <span className="material-icons text-sm">arrow_forward</span>
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

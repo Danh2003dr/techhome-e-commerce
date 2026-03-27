@@ -90,7 +90,7 @@ const ProductListingPage: React.FC = () => {
                 <hr className="border-slate-200 dark:border-slate-800" />
                 <div>
                   <button type="button" onClick={() => setPowerOpen(!powerOpen)} className="flex items-center justify-between w-full text-sm font-bold text-slate-500 uppercase tracking-wider">
-                    Power Rating
+                    Đánh giá công suất
                     <span className={`material-icons text-sm transition-transform ${powerOpen ? 'rotate-180' : ''}`}>expand_more</span>
                   </button>
                 </div>
@@ -102,17 +102,17 @@ const ProductListingPage: React.FC = () => {
         <div className="flex-grow">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Top Deals</h1>
-              <p className="text-sm text-slate-500">Showing 1-{Math.min(PER_PAGE, totalResults)} of {totalResults} results</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Ưu đãi nổi bật</h1>
+              <p className="text-sm text-slate-500">Hiển thị 1-{Math.min(PER_PAGE, totalResults)} trên tổng {totalResults} kết quả</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-500 whitespace-nowrap">Sort by:</span>
+              <span className="text-sm text-slate-500 whitespace-nowrap">Sắp xếp theo:</span>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2 focus:ring-primary min-w-[160px]">
-                <option>Popularity</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Customer Rating</option>
-                <option>Newest First</option>
+                <option>Phổ biến</option>
+                <option>Giá: Thấp đến cao</option>
+                <option>Giá: Cao đến thấp</option>
+                <option>Đánh giá của khách hàng</option>
+                <option>Mới nhất</option>
               </select>
             </div>
           </div>
@@ -134,7 +134,7 @@ const ProductListingPage: React.FC = () => {
                       className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-500"
                       onError={() => markImageError(product.id)}
                     />
-                    {product.dealOfTheDay && <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold uppercase px-2 py-1 rounded z-10">Deal of the Day</div>}
+                    {product.dealOfTheDay && <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold uppercase px-2 py-1 rounded z-10">Ưu đãi hôm nay</div>}
                     <button
                       type="button"
                       className={`absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center transition-colors z-20 ${isInWishlist(productId) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}

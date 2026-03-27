@@ -4,23 +4,21 @@ import { formatVND } from '@/utils';
 
 const CheckoutSummary: React.FC = () => {
   const { checkoutData } = useCheckout();
-  const items = checkoutData.items;
-  
+  const { items, shippingMethod } = checkoutData;
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = checkoutData.shippingMethod?.price || 0;
+  const shipping = shippingMethod?.price || 0;
   const taxRate = 0.08;
   const tax = subtotal * taxRate;
   const total = subtotal + shipping + tax;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sticky top-24">
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Summary</h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Tóm tắt</h3>
 
       {/* Selected Products */}
       <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">
-          Selected Products
-        </h4>
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">Sản phẩm đã chọn</h4>
         <div className="space-y-3">
           {items.slice(0, 3).map((item) => (
             <div key={item.id} className="flex items-center gap-3">
@@ -36,7 +34,7 @@ const CheckoutSummary: React.FC = () => {
                   {item.name}
                 </p>
                 <p className="text-xs text-slate-500">
-                  Qty: {item.quantity} × {formatVND(item.price)}
+                  SL: {item.quantity} × {formatVND(item.price)}
                 </p>
               </div>
               <div className="text-sm font-bold text-slate-900 dark:text-white">
@@ -55,12 +53,12 @@ const CheckoutSummary: React.FC = () => {
       {/* Shipment Info */}
       {checkoutData.selectedAddress && checkoutData.shippingMethod && (
         <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-            Shipment Info
-          </h4>
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+              Thông tin vận chuyển
+            </h4>
           <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
             <div>
-              <span className="font-medium">Address:</span>
+              <span className="font-medium">Địa chỉ:</span>
               <p className="mt-1">
                 {checkoutData.selectedAddress.addressLines[0]}
                 {checkoutData.selectedAddress.addressLines.length > 1 && (
@@ -71,7 +69,7 @@ const CheckoutSummary: React.FC = () => {
               </p>
             </div>
             <div>
-              <span className="font-medium">Shipment:</span>
+              <span className="font-medium">Vận chuyển:</span>
               <p className="mt-1">{checkoutData.shippingMethod.name}</p>
             </div>
           </div>
@@ -81,23 +79,23 @@ const CheckoutSummary: React.FC = () => {
       {/* Price Info */}
       <div className="space-y-3 text-sm">
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Subtotal</span>
+          <span>Tạm tính</span>
           <span className="font-semibold text-slate-900 dark:text-white">
             {formatVND(subtotal)}
           </span>
         </div>
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Estimated Tax</span>
+          <span>Thuế ước tính</span>
           <span className="font-semibold text-slate-900 dark:text-white">{formatVND(tax)}</span>
         </div>
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Estimated Shipping & Handling</span>
+          <span>Phí vận chuyển</span>
           <span className="font-semibold text-slate-900 dark:text-white">
-            {shipping === 0 ? 'FREE' : formatVND(shipping)}
+            {shipping === 0 ? 'MIỄN PHÍ' : formatVND(shipping)}
           </span>
         </div>
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <span className="text-lg font-bold text-slate-900 dark:text-white">Total</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">Tổng</span>
           <span className="text-2xl font-black text-primary">{formatVND(total)}</span>
         </div>
       </div>

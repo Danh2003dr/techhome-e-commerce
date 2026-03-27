@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import OrderFilterBar, { type FilterPanel } from './components/OrderFilterBar';
 import OrderTable from './components/OrderTable';
-import { MOCK_ADMIN_ORDERS, type OrderStatus, type OrderTypeOption } from './orderListMock';
+import { ORDER_TYPE_OPTIONS, type AdminOrderRow, type OrderStatus, type OrderTypeOption } from './orderListMock';
 import { datesAvailableForNav, filterOrders, isSameDay } from './orderListUtils';
+import { adminGetOrders } from '@/services/backend';
+import type { AdminOrderDto } from '@/types/api';
 
 const PAGE_SIZE = 9;
 
@@ -13,22 +15,68 @@ const OrderListPage: React.FC = () => {
   const [appliedStatuses, setAppliedStatuses] = useState<Set<OrderStatus>>(new Set());
   const [page, setPage] = useState(1);
 
+  const [rows, setRows] = useState<AdminOrderRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const mapBackendStatusToAdminStatus = (statusRaw: string): OrderStatus => {
+    const s = String(statusRaw ?? '').trim().toLowerCase();
+    if (s === 'cancelled' || s === 'canceled' || s === 'reject') return 'Rejected';
+    if (s === 'paid') return 'Completed';
+    if (s === 'pending') return 'Processing';
+    if (s === 'shipped' || s === 'shipping' || s === 'delivered') return 'In Transit';
+    return 'Processing';
+  };
+
+  const mapOrderDtoToRow = (o: AdminOrderDto): AdminOrderRow => {
+    const date = o.createdAt ? new Date(o.createdAt) : new Date();
+    return {
+      id: String(o.id),
+      name: o.customerName ?? '—',
+      address: o.shippingAddressSummary ?? '—',
+      date,
+      typeLabel: 'Order',
+      typeKeys: ORDER_TYPE_OPTIONS.slice() as unknown as OrderTypeOption[],
+      status: mapBackendStatusToAdminStatus(o.status),
+    };
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    adminGetOrders()
+      .then((list) => {
+        if (cancelled) return;
+        setRows(list.map(mapOrderDtoToRow));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRows([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const filtered = useMemo(
     () =>
-      filterOrders(MOCK_ADMIN_ORDERS, {
+      filterOrders(rows, {
         dates: appliedDates,
         types: appliedTypes,
         statuses: appliedStatuses,
       }),
-    [appliedDates, appliedTypes, appliedStatuses],
+    [rows, appliedDates, appliedTypes, appliedStatuses],
   );
 
   /** Chỉ đúng 1 ngày đã apply → điều hướng Prev/Next Date thay cho phân trang số trang */
   const dateNavMode = appliedDates.length === 1;
 
   const navDates = useMemo(
-    () => datesAvailableForNav(MOCK_ADMIN_ORDERS, appliedTypes, appliedStatuses),
-    [appliedTypes, appliedStatuses],
+    () => datesAvailableForNav(rows, appliedTypes, appliedStatuses),
+    [rows, appliedTypes, appliedStatuses],
   );
 
   const currentDateIdx = useMemo(() => {
@@ -75,7 +123,7 @@ const OrderListPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Order Lists</h1>
+        <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Danh sách đơn hàng</h1>
         <p className="text-xs font-semibold text-slate-500 mt-1">Quản lý danh sách đơn hàng</p>
       </div>
 
@@ -108,8 +156,8 @@ const OrderListPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 md:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <p className="text-sm font-medium text-slate-500">
             {filtered.length === 0
-              ? 'Showing 0 of 0'
-              : `Showing ${String(startIdx).padStart(2, '0')}-${String(endIdx).padStart(2, '0')} of ${filtered.length}`}
+              ? 'Hiển thị 0 trên 0'
+              : `Hiển thị ${String(startIdx).padStart(2, '0')}-${String(endIdx).padStart(2, '0')} trên ${filtered.length}`}
           </p>
 
           {dateNavMode ? (
@@ -121,7 +169,7 @@ const OrderListPage: React.FC = () => {
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
               >
                 <span className="material-icons text-lg">chevron_left</span>
-                Prev. Date
+                Ngày trước
               </button>
               <button
                 type="button"
@@ -129,7 +177,7 @@ const OrderListPage: React.FC = () => {
                 onClick={goNextDate}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
               >
-                Next Date
+                Ngày sau
                 <span className="material-icons text-lg">chevron_right</span>
               </button>
             </div>
@@ -140,7 +188,7 @@ const OrderListPage: React.FC = () => {
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="rounded-lg border border-slate-200 bg-white min-w-[36px] h-9 inline-flex items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
-                aria-label="Previous page"
+                aria-label="Trang trước"
               >
                 <span className="material-icons text-lg">chevron_left</span>
               </button>
@@ -149,7 +197,7 @@ const OrderListPage: React.FC = () => {
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="rounded-lg border border-slate-200 bg-white min-w-[36px] h-9 inline-flex items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
-                aria-label="Next page"
+                aria-label="Trang sau"
               >
                 <span className="material-icons text-lg">chevron_right</span>
               </button>

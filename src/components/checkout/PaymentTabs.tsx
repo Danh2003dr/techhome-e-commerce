@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit';
+export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit' | 'cash_on_delivery';
 
 interface PaymentTabsProps {
   selectedMethod: PaymentMethodType;
@@ -12,6 +12,7 @@ const PaymentTabs: React.FC<PaymentTabsProps> = ({ selectedMethod, onSelectMetho
     { id: 'credit_card' as PaymentMethodType, label: 'Credit Card' },
     { id: 'paypal' as PaymentMethodType, label: 'PayPal' },
     { id: 'paypal_credit' as PaymentMethodType, label: 'PayPal Credit' },
+    { id: 'cash_on_delivery' as PaymentMethodType, label: 'Cash on Delivery' },
   ];
 
   return (

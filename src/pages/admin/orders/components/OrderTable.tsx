@@ -16,20 +16,20 @@ const OrderTable: React.FC<OrderTableProps> = ({ rows }) => {
       <table className="min-w-full text-left">
         <thead>
           <tr className="text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-100">
-            <th className="py-4 px-4">ID</th>
-            <th className="py-4 px-4">Name</th>
-            <th className="py-4 px-4">Address</th>
-            <th className="py-4 px-4">Date</th>
-            <th className="py-4 px-4">Type</th>
-            <th className="py-4 px-4">Status</th>
-            <th className="py-4 px-4 text-right">Action</th>
+            <th className="py-4 px-4">Mã</th>
+            <th className="py-4 px-4">Khách hàng</th>
+            <th className="py-4 px-4">Địa chỉ</th>
+            <th className="py-4 px-4">Ngày đặt</th>
+            <th className="py-4 px-4">Loại</th>
+            <th className="py-4 px-4">Trạng thái</th>
+            <th className="py-4 px-4 text-right">Hành động</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
           {rows.length === 0 ? (
             <tr>
               <td colSpan={7} className="py-12 px-4 text-center text-sm font-semibold text-slate-500">
-                No orders match the current filters.
+                Không có đơn hàng phù hợp với bộ lọc hiện tại.
               </td>
             </tr>
           ) : (
@@ -50,14 +50,14 @@ const OrderTable: React.FC<OrderTableProps> = ({ rows }) => {
                       className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       <span className="material-icons text-[16px]">visibility</span>
-                      View
+                      Xem
                     </Link>
                     <Link
                       to={`/admin/orders/invoice?orderId=${encodeURIComponent(row.id)}`}
                       className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       <span className="material-icons text-[16px]">receipt_long</span>
-                      View Invoice
+                      Xem hóa đơn
                     </Link>
                     <button
                       type="button"
@@ -69,7 +69,7 @@ const OrderTable: React.FC<OrderTableProps> = ({ rows }) => {
                       className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
                     >
                       <span className="material-icons text-[16px]">picture_as_pdf</span>
-                      Download PDF
+                      Tải PDF
                     </button>
                   </div>
                 </td>

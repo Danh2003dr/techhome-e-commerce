@@ -161,7 +161,7 @@ const EventModal: React.FC<EventModalProps> = ({ open, initial, onClose, onSave,
           />
 
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Product (optional)</label>
+            <label className="block text-sm font-medium text-slate-700">Sản phẩm (tùy chọn)</label>
             <select
               className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm"
               value={form.productId ?? ''}
@@ -169,7 +169,7 @@ const EventModal: React.FC<EventModalProps> = ({ open, initial, onClose, onSave,
                 setForm((f) => ({ ...f, productId: ev.target.value === '' ? undefined : ev.target.value }))
               }
             >
-              <option value="">— None —</option>
+              <option value="">— Không chọn —</option>
               {MOCK_PRODUCT_OPTIONS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -183,16 +183,16 @@ const EventModal: React.FC<EventModalProps> = ({ open, initial, onClose, onSave,
           <div>
             {initial && onDelete && (
               <Button type="button" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={handleDelete}>
-                Delete
+                Xóa
               </Button>
             )}
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose}>
-              Cancel
+              Hủy
             </Button>
             <Button type="button" onClick={handleSave}>
-              Save
+              Lưu
             </Button>
           </div>
         </div>

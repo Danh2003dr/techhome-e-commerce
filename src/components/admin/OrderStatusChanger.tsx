@@ -23,7 +23,7 @@ export default function OrderStatusChanger({
     if (isOpen) setSelected(currentStatus);
   }, [isOpen, currentStatus]);
 
-  const title = useMemo(() => 'Select Order Status', []);
+  const title = useMemo(() => 'Chọn trạng thái đơn', []);
 
   if (!isOpen) return null;
 
@@ -50,7 +50,7 @@ export default function OrderStatusChanger({
 
         <div className="admin-modal-actions">
           <button className="admin-btn secondary" type="button" onClick={onClose}>
-            Cancel
+            Hủy
           </button>
           <button
             className="admin-btn"
@@ -60,7 +60,7 @@ export default function OrderStatusChanger({
               onClose();
             }}
           >
-            Apply Now
+            Áp dụng
           </button>
         </div>
       </div>
