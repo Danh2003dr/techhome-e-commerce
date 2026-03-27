@@ -33,6 +33,7 @@ const Header: React.FC = () => {
   const { avatarUrl } = useAvatar();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [hoveredParentId, setHoveredParentId] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -42,12 +43,36 @@ const Header: React.FC = () => {
 
   const displayAvatar = avatarUrl ?? user?.avatarUrl ?? DEFAULT_PROFILE_IMAGE;
 
-  const categoryMenuItems = useMemo(() => {
+  const categoryMenu = useMemo(() => {
     const raw = isApiConfigured() ? apiCategories : [];
-    // Only show top-level categories (danh mục cha) in the header menu.
-    const topLevel = raw.filter((c) => c.parentId == null);
-    return [...topLevel].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    const normalizeId = (value: Category['id'] | Category['parentId']): string | null => {
+      if (value == null) return null;
+      const s = String(value).trim();
+      return s === '' ? null : s;
+    };
+
+    // Only show top-level categories (danh mục cha) in the first column.
+    const parents = [...raw.filter((c) => c.parentId == null)].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    const childrenByParent = new Map<string, Category[]>();
+    for (const c of raw) {
+      const parentKey = normalizeId(c.parentId);
+      if (!parentKey) continue;
+      const bucket = childrenByParent.get(parentKey) ?? [];
+      bucket.push(c);
+      childrenByParent.set(parentKey, bucket);
+    }
+    for (const [key, items] of childrenByParent) {
+      childrenByParent.set(key, [...items].sort((a, b) => a.name.localeCompare(b.name, 'vi')));
+    }
+
+    return { parents, childrenByParent, normalizeId };
   }, [apiCategories]);
+
+  const activeParentId = hoveredParentId ?? categoryMenu.normalizeId(categoryMenu.parents[0]?.id);
+  const activeParent = activeParentId
+    ? categoryMenu.parents.find((p) => categoryMenu.normalizeId(p.id) === activeParentId) ?? null
+    : null;
+  const activeChildren = activeParentId ? categoryMenu.childrenByParent.get(activeParentId) ?? [] : [];
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -80,6 +105,16 @@ const Header: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isCategoriesOpen]);
+
+  useEffect(() => {
+    if (!isCategoriesOpen) {
+      setHoveredParentId(null);
+      return;
+    }
+    if (hoveredParentId != null) return;
+    const firstParentId = categoryMenu.normalizeId(categoryMenu.parents[0]?.id);
+    if (firstParentId) setHoveredParentId(firstParentId);
+  }, [isCategoriesOpen, hoveredParentId, categoryMenu]);
 
   return (
     <>
@@ -222,22 +257,83 @@ const Header: React.FC = () => {
 
               {/* Dropdown: padding-top thay cho margin — tránh khe hở khiến mouseleave đóng menu trước khi vào panel */}
               {isCategoriesOpen && (
-                <div className="absolute left-0 top-full z-[100] w-64 pt-2">
+                <div className="absolute left-0 top-full z-[100] w-[36rem] pt-2">
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800">
-                    <div className="py-2">
-                      {categoryMenuItems.map((cat) => (
-                        <Link
-                          key={cat.id}
-                          to={resolveStorefrontPathForCategorySlug(cat.slug)}
-                          onClick={() => setIsCategoriesOpen(false)}
-                          className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
-                        >
-                          <CategoryMenuThumb cat={cat} />
-                          <span className="text-sm font-medium text-slate-700 transition-colors group-hover:text-primary dark:text-slate-200">
-                            {cat.name}
-                          </span>
-                        </Link>
-                      ))}
+                    <div className="grid min-h-72 grid-cols-[15rem_1fr]">
+                      <div className="border-r border-slate-200 py-2 dark:border-slate-700">
+                        {categoryMenu.parents.map((cat) => {
+                          const parentId = categoryMenu.normalizeId(cat.id);
+                          const isActive = parentId != null && parentId === activeParentId;
+                          const hasChildren = parentId != null && (categoryMenu.childrenByParent.get(parentId)?.length ?? 0) > 0;
+                          return (
+                            <Link
+                              key={cat.id}
+                              to={resolveStorefrontPathForCategorySlug(cat.slug)}
+                              onMouseEnter={() => setHoveredParentId(parentId)}
+                              onFocus={() => setHoveredParentId(parentId)}
+                              onClick={() => setIsCategoriesOpen(false)}
+                              className={`group flex items-center gap-3 px-4 py-3 transition-colors ${
+                                isActive
+                                  ? 'bg-slate-100 dark:bg-slate-700'
+                                  : 'hover:bg-slate-100 dark:hover:bg-slate-700'
+                              }`}
+                            >
+                              <CategoryMenuThumb cat={cat} />
+                              <span className="flex-1 text-sm font-medium text-slate-700 transition-colors group-hover:text-primary dark:text-slate-200">
+                                {cat.name}
+                              </span>
+                              {hasChildren && (
+                                <span className="material-icons text-base text-slate-400 dark:text-slate-500">chevron_right</span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+
+                      <div className="p-3">
+                        {activeParent ? (
+                          <>
+                            <div className="mb-2 flex items-center justify-between border-b border-slate-100 px-2 pb-2 dark:border-slate-700">
+                              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {activeParent.name}
+                              </span>
+                              <Link
+                                to={resolveStorefrontPathForCategorySlug(activeParent.slug)}
+                                onClick={() => setIsCategoriesOpen(false)}
+                                className="text-xs font-semibold text-primary hover:underline"
+                              >
+                                Xem tất cả
+                              </Link>
+                            </div>
+
+                            {activeChildren.length > 0 ? (
+                              <div className="grid grid-cols-1 gap-1">
+                                {activeChildren.map((child) => (
+                                  <Link
+                                    key={child.id}
+                                    to={resolveStorefrontPathForCategorySlug(child.slug)}
+                                    onClick={() => setIsCategoriesOpen(false)}
+                                    className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  >
+                                    <CategoryMenuThumb cat={child} />
+                                    <span className="text-sm text-slate-700 group-hover:text-primary dark:text-slate-200">
+                                      {child.name}
+                                    </span>
+                                  </Link>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="px-2 py-3 text-sm text-slate-500 dark:text-slate-400">
+                                Chưa có danh mục con.
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="px-2 py-3 text-sm text-slate-500 dark:text-slate-400">
+                            Chưa có dữ liệu danh mục.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

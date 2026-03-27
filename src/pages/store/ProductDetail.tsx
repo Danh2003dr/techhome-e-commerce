@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { useApiProduct } from '@/hooks/useProductApi';
 import { getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
 import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
-import { hasPurchasedProduct } from '@/services/purchasesStore';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
@@ -54,7 +53,7 @@ const ProductDetail: React.FC = () => {
 
   const storedReviews = useMemo(() => (id ? getStoredReviewsForProduct(id) : []), [id, reviewRefresh]);
   const canReview = useMemo(
-    () => Boolean(isAuthenticated && id && user && hasPurchasedProduct(String(user.id), id)),
+    () => Boolean(isAuthenticated && id && user),
     [isAuthenticated, id, user]
   );
 
@@ -426,87 +425,101 @@ const ProductDetail: React.FC = () => {
               </section>
             );
           }
-          return null;
+          return (
+            <section className="mb-20" key="empty-specs">
+              <h2 className="text-2xl font-bold mb-8">Thông số kỹ thuật</h2>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                Chưa có dữ liệu thông số kỹ thuật cho sản phẩm này.
+              </div>
+            </section>
+          );
         })()}
 
-        {(storedReviews.length > 0 || canReview) && (
-          <section className="mb-20 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8">
-            <h2 className="text-2xl font-bold mb-6">Đánh giá từ khách hàng</h2>
-            {canReview && (
-              <form
-                className="mb-10 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-3"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!id || !user || !reviewText.trim()) return;
-                  addStoredReview({
-                    productId: id,
-                    userId: String(user.id),
-                    authorName: user.name,
-                    rating: reviewRating,
-                    text: reviewText,
-                    photos: [],
-                  });
-                  setReviewText('');
-                  setReviewRefresh((n) => n + 1);
-                }}
-              >
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Viết đánh giá (đã mua hàng)</p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setReviewRating(i)}
-                      className="text-amber-400"
-                      aria-label={`${i} sao`}
-                    >
-                      <span className="material-icons">{i <= reviewRating ? 'star' : 'star_border'}</span>
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[88px]"
-                  placeholder="Chia sẻ trải nghiệm của bạn..."
-                  value={reviewText}
-                  onChange={(e) => setReviewText(e.target.value)}
-                />
-                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold">
-                  Gửi đánh giá
-                </button>
-              </form>
-            )}
-            {storedReviews.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {storedReviews.map((r) => (
-                  <div key={r.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
-                          {r.initials}
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm">{r.author}</p>
-                          <p className="text-[11px] text-slate-500">
-                            {r.verified ? 'Đã mua hàng' : ''} • {r.date}
-                          </p>
-                        </div>
-                      </div>
-                      {renderStars(r.rating, 'text-xs')}
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{r.text}</p>
-                    {r.photos && r.photos.length > 0 && (
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        {r.photos.map((ph, i) => (
-                          <img key={i} src={ph} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+        <section className="mb-20 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8">
+          <h2 className="text-2xl font-bold mb-6">Đánh giá từ khách hàng</h2>
+          {canReview ? (
+            <form
+              className="mb-10 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!id || !user || !reviewText.trim()) return;
+                addStoredReview({
+                  productId: id,
+                  userId: String(user.id),
+                  authorName: user.name,
+                  rating: reviewRating,
+                  text: reviewText,
+                  photos: [],
+                });
+                setReviewText('');
+                setReviewRefresh((n) => n + 1);
+              }}
+            >
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Viết đánh giá</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setReviewRating(i)}
+                    className="text-amber-400"
+                    aria-label={`${i} sao`}
+                  >
+                    <span className="material-icons">{i <= reviewRating ? 'star' : 'star_border'}</span>
+                  </button>
                 ))}
               </div>
-            )}
-          </section>
-        )}
+              <textarea
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[88px]"
+                placeholder="Chia sẻ trải nghiệm của bạn..."
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+              />
+              <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold">
+                Gửi đánh giá
+              </button>
+            </form>
+          ) : (
+            <div className="mb-10 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
+              Vui lòng đăng nhập để viết bình luận.
+            </div>
+          )}
+
+          {storedReviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {storedReviews.map((r) => (
+                <div key={r.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
+                        {r.initials}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{r.author}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {r.verified ? 'Đã mua hàng' : ''} • {r.date}
+                        </p>
+                      </div>
+                    </div>
+                    {renderStars(r.rating, 'text-xs')}
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{r.text}</p>
+                  {r.photos && r.photos.length > 0 && (
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {r.photos.map((ph, i) => (
+                        <img key={i} src={ph} alt="" className="w-16 h-16 rounded-lg object-cover" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+              Chưa có bình luận nào cho sản phẩm này.
+            </div>
+          )}
+        </section>
 
         {extras && (
           <section className="mb-20">
