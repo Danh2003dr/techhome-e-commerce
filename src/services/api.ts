@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * API client for backend (http://localhost:8080/api).
  * - Base URL: VITE_API_URL or http://localhost:8080/api
