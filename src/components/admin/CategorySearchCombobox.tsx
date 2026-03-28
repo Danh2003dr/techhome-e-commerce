@@ -46,7 +46,7 @@ export default function CategorySearchCombobox({
   placeholder = 'Gõ để tìm theo tên…',
   allowRoot = false,
   onSelectRoot,
-  rootLabel = '— Danh mục gốc (không có cha) —',
+  rootLabel = '— Danh mục gốc —',
   className = '',
   dropdownZClass = 'z-[75]',
 }: CategorySearchComboboxProps) {
