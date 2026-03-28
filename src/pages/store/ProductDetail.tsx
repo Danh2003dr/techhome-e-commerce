@@ -276,6 +276,19 @@ const ProductDetail: React.FC = () => {
               </div>
             </div>
           </section>
+        {product.description?.trim() ? (
+          <section
+            className="mb-20 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 bg-white dark:bg-slate-900/50"
+            aria-labelledby="product-description-heading"
+          >
+            <h2 id="product-description-heading" className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
+              Mô tả sản phẩm
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+              {product.description.trim()}
+            </p>
+          </section>
+        ) : null}
         {(() => {
           const specSectionLabels: Record<string, string> = {
             manHinh: 'Màn hình',
