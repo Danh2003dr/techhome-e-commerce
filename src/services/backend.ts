@@ -90,6 +90,8 @@ export interface AdminProductUpsertPayload {
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];
   specifications?: string | null;
+  sku?: string | null;
+  tag?: string | null;
 }
 
 /** GET /api/health */

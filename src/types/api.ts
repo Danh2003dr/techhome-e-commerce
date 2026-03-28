@@ -38,6 +38,10 @@ export interface ProductDto {
   specifications: string | null;
   colors?: ProductColorDto[];
   storageOptions?: string[];
+  /** Mã SKU — backend có trường, optional */
+  sku?: string | null;
+  /** Nhãn hiển thị — backend có trường, optional */
+  tag?: string | null;
 }
 
 export interface AuthRequest {

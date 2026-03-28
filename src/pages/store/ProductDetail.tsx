@@ -11,27 +11,6 @@ import Breadcrumbs from '@/components/store/Breadcrumbs';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
-const DEFAULT_IPHONE_COLORS = [
-  { name: 'Đen', hex: '#1d1d1f' },
-  { name: 'Xanh dương', hex: '#407ec9' },
-  { name: 'Xanh lá', hex: '#34c759' },
-  { name: 'Hồng', hex: '#f8b4c4' },
-  { name: 'Vàng', hex: '#f5e6d3' },
-];
-const DEFAULT_IPHONE_STORAGE = ['128GB', '256GB', '512GB'];
-const DEFAULT_SAMSUNG_COLORS = [
-  { name: 'Đen Onyx', hex: '#1a1a1a' },
-  { name: 'Tím Violet', hex: '#8b5cf6' },
-  { name: 'Vàng Amber', hex: '#f59e0b' },
-  { name: 'Xanh Marble', hex: '#0ea5e9' },
-];
-const DEFAULT_SAMSUNG_STORAGE = ['256GB', '512GB'];
-const DEFAULT_IPAD_COLORS = [
-  { name: 'Xám Space Gray', hex: '#6e6e73' },
-  { name: 'Bạc Silver', hex: '#e8e8ed' },
-];
-const DEFAULT_IPAD_STORAGE = ['256GB', '512GB', '1TB'];
-
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
@@ -57,6 +36,10 @@ const ProductDetail: React.FC = () => {
     [isAuthenticated, id, user]
   );
 
+  /**
+   * Màu / dung lượng: ưu tiên đúng dữ liệu catalog từ API (`colors`, `storageOptions`).
+   * Chỉ dùng `variants` khi có (mock/admin local) — không suy ra từ tên sản phẩm.
+   */
   const colors = useMemo(() => {
     if (!product) return [];
     const fromVar = product.variants?.map((v) => v.color).filter(Boolean) as string[] | undefined;
@@ -65,24 +48,16 @@ const ProductDetail: React.FC = () => {
       return uniq.map((name) => ({ name, hex: '#6b7280' }));
     }
     if (product.colors?.length) return product.colors;
-    const name = product.name || '';
-    if (name.startsWith('iPhone')) return DEFAULT_IPHONE_COLORS;
-    if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_COLORS;
-    if (name.includes('iPad')) return DEFAULT_IPAD_COLORS;
     return [];
-  }, [product?.colors, product?.name, product?.variants]);
+  }, [product?.colors, product?.variants]);
 
   const storageOptions = useMemo(() => {
     if (!product) return [];
     const fromVar = product.variants?.map((v) => v.storage).filter(Boolean) as string[] | undefined;
     if (fromVar?.length) return [...new Set(fromVar)];
     if (product.storageOptions?.length) return product.storageOptions;
-    const name = product.name || '';
-    if (name.startsWith('iPhone')) return DEFAULT_IPHONE_STORAGE;
-    if (name.includes('Samsung Galaxy S24')) return DEFAULT_SAMSUNG_STORAGE;
-    if (name.includes('iPad')) return DEFAULT_IPAD_STORAGE;
     return [];
-  }, [product?.storageOptions, product?.name, product?.variants]);
+  }, [product?.storageOptions, product?.variants]);
 
   const matchedVariant = useMemo(() => {
     if (!product?.variants?.length) return undefined;
@@ -102,18 +77,16 @@ const ProductDetail: React.FC = () => {
     if (product.variants?.length) {
       const v0 = product.variants[0];
       if (v0.color) setSelectedColor(v0.color);
+      else setSelectedColor('');
       if (v0.storage) setSelectedSize(v0.storage);
+      else setSelectedSize('');
       return;
     }
     if (product.colors?.length) setSelectedColor(product.colors[0].name);
-    else if (product.name?.startsWith('iPhone')) setSelectedColor(DEFAULT_IPHONE_COLORS[0].name);
-    else if (product.name?.includes('Samsung Galaxy S24')) setSelectedColor(DEFAULT_SAMSUNG_COLORS[0].name);
-    else if (product.name?.includes('iPad')) setSelectedColor(DEFAULT_IPAD_COLORS[0].name);
-    if (product.storageOptions?.length) setSelectedSize(product.storageOptions[1] ?? product.storageOptions[0]);
-    else if (product.name?.startsWith('iPhone')) setSelectedSize(DEFAULT_IPHONE_STORAGE[1] ?? DEFAULT_IPHONE_STORAGE[0]);
-    else if (product.name?.includes('Samsung Galaxy S24')) setSelectedSize(DEFAULT_SAMSUNG_STORAGE[0]);
-    else if (product.name?.includes('iPad')) setSelectedSize(DEFAULT_IPAD_STORAGE[1] ?? DEFAULT_IPAD_STORAGE[0]);
-  }, [product?.id, product?.name, product?.colors, product?.storageOptions, product?.variants]);
+    else setSelectedColor('');
+    if (product.storageOptions?.length) setSelectedSize(product.storageOptions[0]);
+    else setSelectedSize('');
+  }, [product?.id, product?.colors, product?.storageOptions, product?.variants]);
 
   if (apiLoading) {
     return (
@@ -231,8 +204,16 @@ const ProductDetail: React.FC = () => {
                 <div className="mb-6">
                   <label className="block text-sm font-semibold mb-3">Màu sắc: <span className="text-slate-500 font-normal">{selectedColor || colors[0]?.name}</span></label>
                   <div className="flex gap-3">
-                    {colors.map((color) => (
-                      <button key={color.name} type="button" onClick={() => setSelectedColor(color.name)} className={`w-8 h-8 rounded-full flex-shrink-0 transition-all ${selectedColor === color.name ? 'ring-2 ring-offset-2 ring-primary ring-offset-white dark:ring-offset-background-dark' : 'ring-1 ring-slate-200 dark:ring-slate-700'}`} style={{ backgroundColor: color.hex }} />
+                    {colors.map((color, idx) => (
+                      <button
+                        key={`${color.name}-${idx}`}
+                        type="button"
+                        onClick={() => setSelectedColor(color.name)}
+                        className={`w-8 h-8 rounded-full flex-shrink-0 transition-all ${selectedColor === color.name ? 'ring-2 ring-offset-2 ring-primary ring-offset-white dark:ring-offset-background-dark' : 'ring-1 ring-slate-200 dark:ring-slate-700'}`}
+                        style={{ backgroundColor: color.hex }}
+                        title={color.name}
+                        aria-label={color.name}
+                      />
                     ))}
                   </div>
                 </div>
