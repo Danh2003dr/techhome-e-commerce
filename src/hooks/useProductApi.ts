@@ -128,7 +128,8 @@ export function useApiProducts(params: UseApiProductsParams = {}): {
   return { data, loading, error, refetch: fetchData };
 }
 
-export function useApiProduct(id: string | undefined): {
+/** Slug in URL, or all-numeric string for legacy `/product/:id` bookmarks. */
+export function useApiProduct(slugOrId: string | undefined): {
   data: Product | null;
   loading: boolean;
   error: string | null;
@@ -139,9 +140,15 @@ export function useApiProduct(id: string | undefined): {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!isApiConfigured() || !id) return;
+    if (!isApiConfigured() || !slugOrId) return;
+    const raw = String(slugOrId).trim();
     await runApiLoad(
-      async () => mapProductDtoToProduct(await backend.getProduct(id)),
+      async () => {
+        const dto = /^\d+$/.test(raw)
+          ? await backend.getProduct(raw)
+          : await backend.getProductBySlug(raw);
+        return mapProductDtoToProduct(dto);
+      },
       {
         setLoading,
         setError,
@@ -150,7 +157,7 @@ export function useApiProduct(id: string | undefined): {
         errorLabel: 'Failed to load product',
       }
     );
-  }, [id]);
+  }, [slugOrId]);
 
   useEffect(() => {
     fetchData();

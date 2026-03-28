@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import ProductCard from '@/features/products/components/ProductCard';
 import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
@@ -7,10 +7,18 @@ import { findCategoryIdByUrlSlug } from '@/services/categoryNavigation';
 
 const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = searchParams.get('q') || searchParams.get('query') || '';
   const categorySlug = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
   const { data: apiCategories } = useApiCategories();
+
+  /** Legacy `?category=` bookmarks → `/category/:slug` when not combined with text search */
+  useEffect(() => {
+    if (categorySlug && !query.trim()) {
+      navigate(`/category/${encodeURIComponent(categorySlug)}`, { replace: true });
+    }
+  }, [categorySlug, query, navigate]);
 
   const apiCategoryId = useMemo(() => {
     if (!categorySlug) return undefined;

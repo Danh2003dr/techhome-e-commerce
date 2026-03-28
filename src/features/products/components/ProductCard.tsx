@@ -14,7 +14,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addItem } = useCart();
   const [imgError, setImgError] = useState(false);
   const productId = (product as any).productDetailId || product.id;
-  const productPath = `/product/${productId}`;
+  const pathSegment = (product.slug && String(product.slug).trim() !== '' ? product.slug : productId) as string;
+  const productPath = `/product/${encodeURIComponent(pathSegment)}`;
   const imgSrc = imgError || !product.image ? PLACEHOLDER_IMAGE : product.image;
   const discountPct =
     product.oldPrice && product.price < product.oldPrice

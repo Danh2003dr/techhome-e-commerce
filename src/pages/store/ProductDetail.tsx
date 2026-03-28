@@ -12,11 +12,11 @@ import Breadcrumbs from '@/components/store/Breadcrumbs';
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
 const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const { data: apiProduct, loading: apiLoading } = useApiProduct(id);
+  const { slug } = useParams<{ slug: string }>();
+  const { data: apiProduct, loading: apiLoading } = useApiProduct(slug);
   const { user, isAuthenticated } = useAuth();
   const product = apiProduct;
-  const extras = getFallbackProductDetailExtras(id);
+  const extras = getFallbackProductDetailExtras(product?.id ?? slug);
 
   const { addItem } = useCart();
   const [selectedColor, setSelectedColor] = useState('');
@@ -31,10 +31,14 @@ const ProductDetail: React.FC = () => {
 
   const stockDisplay = useMemo(() => (product ? getProductStockDisplay(product) : null), [product]);
 
-  const storedReviews = useMemo(() => (id ? getStoredReviewsForProduct(id) : []), [id, reviewRefresh]);
+  const reviewProductKey = product?.id ?? slug ?? '';
+  const storedReviews = useMemo(
+    () => (reviewProductKey ? getStoredReviewsForProduct(reviewProductKey) : []),
+    [reviewProductKey, reviewRefresh]
+  );
   const canReview = useMemo(
-    () => Boolean(isAuthenticated && id && user),
-    [isAuthenticated, id, user]
+    () => Boolean(isAuthenticated && reviewProductKey && user),
+    [isAuthenticated, reviewProductKey, user]
   );
 
   /**
@@ -129,13 +133,13 @@ const ProductDetail: React.FC = () => {
     );
   };
 
-  // Determine category path for breadcrumbs
+  // Determine category path for breadcrumbs (slug-based category URLs)
   const getCategoryPath = () => {
     const categoryLower = product.category.toLowerCase();
-    if (categoryLower.includes('smartphone') || categoryLower.includes('mobile')) return '/search?category=mobile';
-    if (categoryLower.includes('tablet')) return '/search?category=tablets';
-    if (categoryLower.includes('accessories')) return '/category/accessories';
-    if (categoryLower.includes('audio') || categoryLower.includes('headphone')) return '/category/audio';
+    if (categoryLower.includes('smartphone') || categoryLower.includes('mobile')) return '/category/dien-thoai';
+    if (categoryLower.includes('tablet')) return '/category/tablets';
+    if (categoryLower.includes('accessories')) return '/category/phu-kien';
+    if (categoryLower.includes('audio') || categoryLower.includes('headphone')) return '/category/am-thanh';
     return '/search';
   };
 
@@ -470,9 +474,9 @@ const ProductDetail: React.FC = () => {
               className="mb-10 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!id || !user || !reviewText.trim()) return;
+                if (!reviewProductKey || !user || !reviewText.trim()) return;
                 addStoredReview({
-                  productId: id,
+                  productId: reviewProductKey,
                   userId: String(user.id),
                   authorName: user.name,
                   rating: reviewRating,

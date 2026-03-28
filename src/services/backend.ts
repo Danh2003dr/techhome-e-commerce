@@ -162,9 +162,15 @@ export async function deleteAdminProduct(id: number | string): Promise<{ message
   return apiDelete<{ message: string }>(`/products/${id}`, { auth: true });
 }
 
-/** GET /api/products/{id} */
+/** GET /api/products/{id} — admin / numeric-id lookups */
 export async function getProduct(id: number | string): Promise<ProductDto> {
   return apiGet<ProductDto>(`/products/${id}`, { auth: false });
+}
+
+/** GET /api/products/slug/:slug — storefront product detail by slug */
+export async function getProductBySlug(slug: string): Promise<ProductDto> {
+  const s = encodeURIComponent(String(slug).trim());
+  return apiGet<ProductDto>(`/products/slug/${s}`, { auth: false });
 }
 
 /** GET /api/products/featured */

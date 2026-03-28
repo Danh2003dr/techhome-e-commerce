@@ -109,7 +109,7 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       description:
         'Trải nghiệm công nghệ smartphone mới nhất. Nâng cấp flagship với ưu đãi thu cũ đổi mới từ TechHome.',
       ctaText: 'Mua ngay',
-      ctaHref: '/search?category=mobile',
+      ctaHref: '/category/dien-thoai',
       heroImageUrl: HERO_MOBILE,
     },
 
@@ -174,7 +174,7 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       description:
         'Discover high-performance peripherals and essential gear designed to boost your productivity and elevate your aesthetic.',
       ctaText: 'Shop the Collection',
-      ctaHref: '/search?category=accessories',
+      ctaHref: '/category/phu-kien',
       heroImageUrl: HERO_ACCESSORIES,
     },
 
@@ -243,7 +243,7 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       description:
         'Khám phá tai nghe và loa chuyên nghiệp chất lượng cao, thiết kế cho trải nghiệm nghe tuyệt vời.',
       ctaText: 'Mua âm thanh',
-      ctaHref: '/search?category=audio',
+      ctaHref: '/category/am-thanh',
       heroImageUrl: HERO_AUDIO,
     },
 

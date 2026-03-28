@@ -64,7 +64,7 @@ const AccessoriesCategoryPage: React.FC = () => {
             </p>
             <div>
               <Link
-                to="/search?category=accessories"
+                to="/category/phu-kien"
                 className="inline-block bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20"
               >
                 Shop the Collection

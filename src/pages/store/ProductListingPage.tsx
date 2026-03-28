@@ -123,7 +123,8 @@ const ProductListingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {listingProducts.map((product) => {
               const productId = product.productDetailId || product.id;
-              const productPath = `/product/${productId}`;
+              const pathSegment = product.slug?.trim() || productId;
+              const productPath = `/product/${encodeURIComponent(pathSegment)}`;
               return (
                 <Link
                   key={product.id}

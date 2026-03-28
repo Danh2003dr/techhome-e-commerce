@@ -62,7 +62,7 @@ const AudioCategoryPage: React.FC = () => {
             </p>
             <div>
               <Link
-                to="/search?category=audio"
+                to="/category/am-thanh"
                 className="inline-block bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20"
               >
                 Mua âm thanh
