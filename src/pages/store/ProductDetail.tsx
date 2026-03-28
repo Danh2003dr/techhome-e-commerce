@@ -364,6 +364,24 @@ const ProductDetail: React.FC = () => {
                     const title = specSectionLabels[key] || key;
                     const isObj = block && typeof block === 'object' && !Array.isArray(block);
                     const rows = isObj ? Object.entries(block as Record<string, unknown>) : [];
+                    /** Admin lưu JSON phẳng { "Màn hình": "6.1\"", "Pin": "4000mAh" } — giá trị là primitive, không phải object lồng. */
+                    const isFlatPrimitive =
+                      !isObj &&
+                      !Array.isArray(block) &&
+                      (typeof block === 'string' || typeof block === 'number' || typeof block === 'boolean');
+                    if (isFlatPrimitive) {
+                      return (
+                        <div
+                          key={key}
+                          className={`flex flex-col sm:flex-row sm:gap-4 px-6 py-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900`}
+                        >
+                          <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300 min-w-[160px] sm:min-w-[200px]">
+                            {title}
+                          </dt>
+                          <dd className="text-sm text-slate-600 dark:text-slate-400 mt-1 sm:mt-0 flex-1">{renderSpecValue(block)}</dd>
+                        </div>
+                      );
+                    }
                     return (
                       <div key={key} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
                         <h3 className="bg-slate-50 dark:bg-slate-800/50 px-6 py-3 font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800">
