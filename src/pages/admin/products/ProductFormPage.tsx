@@ -224,8 +224,8 @@ const ProductFormPage: React.FC = () => {
         .map((r) => ({ name: r.name.trim(), hex: r.hex.trim() || '#6b7280' }))
         .filter((c) => c.name.length > 0);
 
-      const storagePayload = Array.from(
-        new Set(form.storageRows.map((r) => r.value.trim()).filter(Boolean))
+      const storagePayload: string[] = Array.from(
+        new Set<string>(form.storageRows.map((r) => r.value.trim()).filter((s) => s.length > 0))
       );
 
       const specsObject = form.specs.reduce<Record<string, string>>((acc, s) => {

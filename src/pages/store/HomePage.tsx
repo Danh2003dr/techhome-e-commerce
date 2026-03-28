@@ -234,12 +234,13 @@ const HomePage: React.FC = () => {
                 }
               })
               .map((product) => (
-                <TrendingCard
-                  key={product.id}
-                  product={product}
-                  imageError={failedImageIds.has(product.id)}
-                  onImageError={() => markImageError(product.id)}
-                />
+                <React.Fragment key={product.id}>
+                  <TrendingCard
+                    product={product}
+                    imageError={failedImageIds.has(product.id)}
+                    onImageError={() => markImageError(product.id)}
+                  />
+                </React.Fragment>
               ))}
           </div>
         </section>
@@ -260,12 +261,13 @@ const HomePage: React.FC = () => {
               .filter((product) => product.oldPrice && product.oldPrice > product.price)
               .slice(0, 4)
               .map((product) => (
-                <TrendingCard
-                  key={product.id}
-                  product={product}
-                  imageError={failedImageIds.has(product.id)}
-                  onImageError={() => markImageError(product.id)}
-                />
+                <React.Fragment key={product.id}>
+                  <TrendingCard
+                    product={product}
+                    imageError={failedImageIds.has(product.id)}
+                    onImageError={() => markImageError(product.id)}
+                  />
+                </React.Fragment>
               ))}
           </div>
         </section>

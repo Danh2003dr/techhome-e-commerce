@@ -113,9 +113,9 @@ export default function ProductImageUpload({ images, onChange, assetScope = 'pro
             disabled={uploading}
             className="sr-only"
             onChange={(e) => {
-              const files = Array.from(e.target.files ?? []);
+              const files = Array.from(e.currentTarget.files ?? []) as File[];
               void handleFiles(files);
-              e.target.value = '';
+              e.currentTarget.value = '';
             }}
           />
         </label>

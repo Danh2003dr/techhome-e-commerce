@@ -20,7 +20,7 @@ const CheckoutSummary: React.FC = () => {
   const applyVoucher = () => {
     setVoucherMsg(null);
     const res = tryApplyVoucherCode(voucherInput || checkoutData.couponCode, subtotal);
-    if (!res.ok) {
+    if (res.ok === false) {
       setVoucherMsg(res.message);
       updateCheckoutData({ appliedVoucher: null });
       return;
