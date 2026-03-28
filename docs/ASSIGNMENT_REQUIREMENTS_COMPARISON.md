@@ -27,7 +27,7 @@ Muc tieu: lam tai lieu de doi chieu va xem lai sau nay.
 |---|---|---|---|
 | Inventory model + flows | Tao inventory khi tao product; get all/by id co join product; add/remove/reservation/sold | Chua co schema/route inventory rieng | **Chua dat** |
 | Auth login + /me | Chup anh test login va /me | Co `POST /auth/login`, `GET /auth/me` | **Dat ve code API** (anh bang chung thi tuy quy trinh nop bai) |
-| Change password | Route can dang nhap, old/new password, validate new password | Co `POST /auth/change-password` + legacy `/auth/changepassword`; co strong-password validator | **Dat** |
+| Change password | Route can dang nhap, old/new password, validate new password | Co `POST /auth/change-password`; co strong-password validator | **Dat** |
 | JWT RS256 | Chuyen JWT sang RS256 | Da dung RS256 voi private/public key | **Dat** |
 | User + Role model CRUD + soft delete | User/Role day du fields, CRUD, xoa mem | Users co CRUD nhung xoa cung; Roles API dang placeholder/501 | **Dat mot phan / Chua dat** |
 | /enable va /disable user | POST email + username de bat/tat status | Chua co endpoint tuong ung | **Chua dat** |

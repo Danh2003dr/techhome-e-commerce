@@ -6,6 +6,7 @@
 import {
   apiGet,
   apiPost,
+  apiPostText,
   apiPut,
   apiPatch,
   apiDelete,
@@ -182,6 +183,17 @@ export async function login(body: AuthRequest): Promise<AuthResponse> {
   storeToken(res.token);
   setStoredUser(res.user);
   return res;
+}
+
+/** POST /api/auth/forgotpassword — body `{ email }`; backend trả plain text. */
+export async function forgotPassword(email: string): Promise<string> {
+  return apiPostText('/auth/forgotpassword', { email }, { auth: false });
+}
+
+/** POST /api/auth/resetpassword/:token — body `{ newPassword }`; không cần đăng nhập. */
+export async function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  const t = encodeURIComponent(token);
+  return apiPost<{ message: string }>(`/auth/resetpassword/${t}`, { newPassword }, { auth: false });
 }
 
 /** POST /api/auth/register */

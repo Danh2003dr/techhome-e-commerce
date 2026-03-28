@@ -124,6 +124,18 @@ export async function apiPost<T>(path: string, body: unknown, options: ApiPostOp
   return res.json();
 }
 
+/** POST trả body dạng text/plain hoặc text thuần (không phải JSON). */
+export async function apiPostText(path: string, body: unknown, options: ApiPostOptions = {}): Promise<string> {
+  const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw await parseErrorResponse(res);
+  return (await res.text()).trim();
+}
+
 export async function apiPut<T>(path: string, body: unknown, options: ApiPostOptions = {}): Promise<T> {
   const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);
   const res = await fetch(`${API_BASE}${path}`, {
