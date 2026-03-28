@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
-import { getProducts } from '@/services/backend';
-import { isApiConfigured } from '@/services/api';
+import { deleteAdminProduct, getProducts } from '@/services/backend';
+import { ApiError, isApiConfigured } from '@/services/api';
 import type { ProductDto } from '@/types/api';
 
 const PAGE_SIZE = 10;
@@ -81,7 +81,13 @@ const StarRow: React.FC<{ rating: number }> = ({ rating }) => {
   );
 };
 
-const ProductCard: React.FC<{ product: AdminProductCardModel }> = ({ product }) => {
+const ProductCard: React.FC<{
+  product: AdminProductCardModel;
+  onSoftDelete: (id: string) => void;
+  deletingId: string | null;
+}> = ({ product, onSoftDelete, deletingId }) => {
+  const deleteBusy = deletingId !== null;
+  const thisDeleting = deletingId === product.id;
   const navigate = useNavigate();
   const [slide, setSlide] = useState(0);
   const imgs = product.images.length ? product.images : ['https://picsum.photos/400/400'];
@@ -148,13 +154,27 @@ const ProductCard: React.FC<{ product: AdminProductCardModel }> = ({ product }) 
           <span className="text-sm text-black/40 font-semibold">({product.reviewCount})</span>
         </div>
 
-        <Link
-          to={`/admin/products/${product.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="mt-auto w-full text-center py-2 rounded-xl bg-[#E2EAF8]/70 text-[#202224] text-sm font-semibold hover:bg-[#E2EAF8] transition-colors relative z-[1]"
-        >
-          Edit Product
-        </Link>
+        <div className="mt-auto flex flex-col gap-2 relative z-[1]">
+          <Link
+            to={`/admin/products/${product.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full text-center py-2 rounded-xl bg-[#E2EAF8]/70 text-[#202224] text-sm font-semibold hover:bg-[#E2EAF8] transition-colors"
+          >
+            Edit Product
+          </Link>
+          <button
+            type="button"
+            disabled={deleteBusy}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSoftDelete(product.id);
+            }}
+            className="w-full text-center py-2 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+          >
+            {thisDeleting ? 'Đang xóa…' : 'Xóa khỏi cửa hàng'}
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -235,8 +255,10 @@ const ProductListPage: React.FC = () => {
   const [apiProducts, setApiProducts] = useState<AdminProductCardModel[]>([]);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProducts = React.useCallback(() => {
     if (!isApiConfigured()) return;
     setApiLoading(true);
     setApiError(null);
@@ -250,6 +272,30 @@ const ProductListPage: React.FC = () => {
       })
       .finally(() => setApiLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  const handleSoftDelete = async (id: string) => {
+    if (!isApiConfigured()) return;
+    const ok = window.confirm(
+      'Sản phẩm sẽ bị ẩn khỏi cửa hàng (xóa mềm trên backend). Khách không còn thấy sản phẩm; dữ liệu vẫn lưu trong hệ thống. Tiếp tục?',
+    );
+    if (!ok) return;
+    setDeleteError(null);
+    setDeletingId(id);
+    try {
+      await deleteAdminProduct(id);
+      loadProducts();
+    } catch (e) {
+      setDeleteError(
+        e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Không xóa được sản phẩm.',
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(searchInput.trim().toLowerCase()), 300);
@@ -297,6 +343,11 @@ const ProductListPage: React.FC = () => {
           {isApiConfigured() && apiError && !apiLoading && (
             <p className="text-xs text-red-600 mt-1">{apiError}</p>
           )}
+          {isApiConfigured() && deleteError && (
+            <p className="text-xs text-red-600 mt-1" role="alert">
+              {deleteError}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center sm:justify-end">
@@ -324,7 +375,12 @@ const ProductListPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {pageItems.map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            onSoftDelete={handleSoftDelete}
+            deletingId={deletingId}
+          />
         ))}
       </div>
 

@@ -137,6 +137,7 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
   const image = gallery[0] ?? dto.image ?? '';
   const sku = dto.sku != null && String(dto.sku).trim() !== '' ? String(dto.sku).trim() : undefined;
   const tag = dto.tag != null && String(dto.tag).trim() !== '' ? String(dto.tag).trim() : undefined;
+  const stockNum = dto.stock != null ? Math.max(0, Number(dto.stock)) : 0;
 
   return {
     id: String(dto.id),
@@ -150,7 +151,8 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
     image,
     images: gallery.length ? gallery : undefined,
     description: dto.description ?? undefined,
-    inStock: dto.stock > 0,
+    stock: stockNum,
+    inStock: stockNum > 0,
     specifications: dto.specifications ?? undefined,
     colors: normalizeColorsFromDto(dto),
     storageOptions: normalizeStorageOptionsFromDto(dto),

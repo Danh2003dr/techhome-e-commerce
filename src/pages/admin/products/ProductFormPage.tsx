@@ -8,6 +8,7 @@ import type { CatalogColorRow, CatalogStorageRow } from '@/pages/admin/products/
 import {
   createAdminCategory,
   createAdminProduct,
+  deleteAdminProduct,
   getCategories,
   getProduct,
   updateAdminProduct,
@@ -157,6 +158,7 @@ const ProductFormPage: React.FC = () => {
   const [catModal, setCatModal] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [softDeleting, setSoftDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -254,6 +256,28 @@ const ProductFormPage: React.FC = () => {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSoftDelete = async () => {
+    if (!productId) return;
+    const ok = window.confirm(
+      'Sản phẩm sẽ bị ẩn khỏi cửa hàng (xóa mềm trên backend). Khách không còn thấy sản phẩm; dữ liệu vẫn lưu trong hệ thống. Tiếp tục?',
+    );
+    if (!ok) return;
+    setSoftDeleting(true);
+    setFormError(null);
+    try {
+      await deleteAdminProduct(productId);
+      navigate('/admin/products');
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setFormError(e.message);
+      } else {
+        setFormError(e instanceof Error ? e.message : 'Xóa sản phẩm thất bại.');
+      }
+    } finally {
+      setSoftDeleting(false);
     }
   };
 
@@ -483,6 +507,24 @@ const ProductFormPage: React.FC = () => {
         </FormSection>
 
         <ProductSpecsManager specs={form.specs} onChange={(specs) => setForm((f) => ({ ...f, specs }))} />
+
+        {isEdit && productId ? (
+          <FormSection
+            icon="warning"
+            title="Xóa khỏi cửa hàng"
+            description="Sản phẩm không còn hiển thị cho khách; bản ghi vẫn lưu trên server (xóa mềm)."
+          >
+            <button
+              type="button"
+              disabled={saving || softDeleting}
+              onClick={handleSoftDelete}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 px-5 py-2.5 text-sm font-bold hover:bg-red-100 dark:hover:bg-red-950/50 disabled:opacity-50 transition-colors"
+            >
+              <span className="material-icons text-[20px]">{softDeleting ? 'hourglass_empty' : 'delete_outline'}</span>
+              {softDeleting ? 'Đang xóa…' : 'Xóa mềm — ẩn khỏi cửa hàng'}
+            </button>
+          </FormSection>
+        ) : null}
       </div>
 
       {formError && (
@@ -500,7 +542,7 @@ const ProductFormPage: React.FC = () => {
           </Link>
           <button
             type="button"
-            disabled={saving}
+            disabled={saving || softDeleting}
             onClick={handleSave}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-white px-6 py-3 text-sm font-bold shadow-lg shadow-primary/25 hover:brightness-105 disabled:opacity-60 w-full sm:w-auto min-w-[160px] transition-all"
           >

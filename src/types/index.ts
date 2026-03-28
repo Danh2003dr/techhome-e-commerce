@@ -16,6 +16,8 @@ export interface Product {
   isBestSeller?: boolean;
   description?: string;
   sku?: string;
+  /** Số từ API catalog; có thể thiếu với dữ liệu mock cũ — khi đó dùng `inStock`. */
+  stock?: number;
   inStock?: boolean;
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];

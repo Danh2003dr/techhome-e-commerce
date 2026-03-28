@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatVND, discountPercentFromPrices } from '@/utils';
+import { getProductStockDisplay } from '@/utils/stockDisplay';
 import Breadcrumbs from '@/components/store/Breadcrumbs';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -29,6 +30,8 @@ const ProductDetail: React.FC = () => {
   const [reviewRefresh, setReviewRefresh] = useState(0);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
+
+  const stockDisplay = useMemo(() => (product ? getProductStockDisplay(product) : null), [product]);
 
   const storedReviews = useMemo(() => (id ? getStoredReviewsForProduct(id) : []), [id, reviewRefresh]);
   const canReview = useMemo(
@@ -198,7 +201,9 @@ const ProductDetail: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <p className={`text-sm font-medium mt-1 ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>{product.inStock !== false ? 'In Stock - Ready to ship' : 'Out of Stock'}</p>
+                {stockDisplay ? (
+                  <p className={`text-sm font-medium mt-1 ${stockDisplay.textClass}`}>{stockDisplay.label}</p>
+                ) : null}
               </div>
               {colors.length > 0 && (
                 <div className="mb-6">
@@ -231,7 +236,7 @@ const ProductDetail: React.FC = () => {
               <div className="flex gap-4 mb-8">
                 <button
                   type="button"
-                  disabled={product.inStock === false}
+                  disabled={!stockDisplay?.canPurchase}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
