@@ -15,7 +15,6 @@ import OrderHistoryPage from '@/pages/account/OrderHistoryPage';
 import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
 import WarrantyPage from '@/pages/account/WarrantyPage';
 import SavedAddressesPage from '@/pages/account/SavedAddressesPage';
-import WishlistPage from '@/pages/account/WishlistPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
@@ -59,7 +58,6 @@ const AppRoutes: React.FC = () => (
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
     <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
-    <Route path="/wishlist" element={<WishlistPage />} />
     <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />

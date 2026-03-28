@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { useCart } from '@/context/CartContext';
 import { DEFAULT_PROFILE_IMAGE } from '@/constants/user';
-import { useWishlist } from '@/context/WishlistContext';
 import { useApiCategories } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
 import { resolveStorefrontPathForCategorySlug } from '@/services/categoryNavigation';
@@ -38,7 +37,6 @@ const Header: React.FC = () => {
   const categoriesRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const { totalCount: cartCount } = useCart();
-  const { totalCount: wishlistCount } = useWishlist();
   const { data: apiCategories } = useApiCategories();
 
   const displayAvatar = avatarUrl ?? user?.avatarUrl ?? DEFAULT_PROFILE_IMAGE;
@@ -185,9 +183,6 @@ const Header: React.FC = () => {
                       <Link to="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                         Đơn hàng
                       </Link>
-                      <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
-                        Yêu thích
-                      </Link>
                       {String(user?.role ?? '').trim().toUpperCase() === 'ADMIN' && (
                         <Link
                           to="/admin"
@@ -213,15 +208,6 @@ const Header: React.FC = () => {
             <Link to="/orders" className="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
               <span className="material-icons">history</span>
               <span className="text-[10px] font-bold uppercase">Đơn hàng</span>
-            </Link>
-            <Link to="/wishlist" className="relative flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-              <span className="material-icons">favorite_border</span>
-              <span className="text-[10px] font-bold uppercase">Yêu thích</span>
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold min-w-[1rem] h-4 px-1 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
-                  {wishlistCount > 99 ? '99+' : wishlistCount}
-                </span>
-              )}
             </Link>
             <Link to="/cart" className="relative flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
               <span className="material-icons">shopping_cart</span>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { formatVND, discountPercentFromPrices } from '@/utils';
 import type { Product } from '@/types';
 
@@ -13,12 +12,10 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const [imgError, setImgError] = useState(false);
   const productId = (product as any).productDetailId || product.id;
   const productPath = `/product/${productId}`;
   const imgSrc = imgError || !product.image ? PLACEHOLDER_IMAGE : product.image;
-  const inWishlist = isInWishlist(productId);
   const discountPct =
     product.oldPrice && product.price < product.oldPrice
       ? discountPercentFromPrices(product.oldPrice, product.price)
@@ -48,20 +45,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   })();
 
   const badgeTopClass = hasDiscountBadge ? 'top-12' : 'top-3';
-
-  const handleWishlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleItem({
-      productId,
-      name: product.name,
-      image: product.image || '',
-      price: product.price,
-      oldPrice: product.oldPrice,
-      rating: product.rating,
-      reviews: product.reviews ?? 0,
-    });
-  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -101,15 +84,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {rawBadgeText}
           </span>
         )}
-        <button
-          type="button"
-          className={`absolute top-3 right-3 p-2 bg-white/80 backdrop-blur rounded-full transition-colors z-10 ${inWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
-          onClick={handleWishlistToggle}
-          onMouseDown={(e) => e.stopPropagation()}
-          aria-label={inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-        >
-          <span className="material-icons text-lg">{inWishlist ? 'favorite' : 'favorite_border'}</span>
-        </button>
       </div>
       <div className="space-y-2 flex-grow">
         <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{product.category}</p>

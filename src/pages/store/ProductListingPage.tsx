@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useApiProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
 import Breadcrumbs from '@/components/store/Breadcrumbs';
 
@@ -15,7 +14,6 @@ const ProductListingPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('Popularity');
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const { data: apiProducts } = useApiProducts({ page: 0, size: 100 });
   const markImageError = (id: string) => setFailedImageIds((prev) => new Set(prev).add(id));
   const listingProducts = useMemo(
@@ -140,27 +138,6 @@ const ProductListingPage: React.FC = () => {
                       onError={() => markImageError(product.id)}
                     />
                     {product.dealOfTheDay && <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold uppercase px-2 py-1 rounded z-10">Deal of the Day</div>}
-                    <button
-                      type="button"
-                      className={`absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center transition-colors z-20 ${isInWishlist(productId) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleItem({
-                          productId,
-                          name: product.name,
-                          image: product.image || '',
-                          price: product.price,
-                          oldPrice: product.oldPrice,
-                          rating: product.rating,
-                          reviews: product.reviews ?? 0,
-                        });
-                      }}
-                      aria-label={isInWishlist(productId) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-                    >
-                      <span className="material-icons text-lg">{isInWishlist(productId) ? 'favorite' : 'favorite_border'}</span>
-                    </button>
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="flex items-center gap-1 mb-2">

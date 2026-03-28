@@ -4,7 +4,6 @@ import { useApiProduct } from '@/hooks/useProductApi';
 import { getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
 import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatVND, discountPercentFromPrices } from '@/utils';
 import { getProductStockDisplay } from '@/utils/stockDisplay';
@@ -20,7 +19,6 @@ const ProductDetail: React.FC = () => {
   const extras = getFallbackProductDetailExtras(id);
 
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -254,25 +252,6 @@ const ProductDetail: React.FC = () => {
                 >
                   <span className="material-icons">{justAddedToCart ? 'check_circle' : 'shopping_bag'}</span>
                   {justAddedToCart ? ' Đã thêm vào giỏ' : ' Thêm vào giỏ'}
-                </button>
-                <button
-                  type="button"
-                  className={`px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${product && isInWishlist(product.id) ? 'text-red-500' : ''}`}
-                  onClick={() =>
-                    product &&
-                    toggleItem({
-                      productId: product.id,
-                      name: product.name,
-                      image: product.image || '',
-                      price: product.price,
-                      oldPrice: product.oldPrice,
-                      rating: product.rating,
-                      reviews: product.reviews ?? 0,
-                    })
-                  }
-                  aria-label={product && isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-                >
-                  <span className="material-icons">{product && isInWishlist(product.id) ? 'favorite' : 'favorite_border'}</span>
                 </button>
               </div>
               <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
@@ -604,25 +583,6 @@ const ProductDetail: React.FC = () => {
                 <Link key={item.id} to={`/product/${item.id}`} className="group">
                   <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 mb-4 overflow-hidden relative">
                     <img alt={item.name} src={item.image} className="w-full h-48 object-contain transition-transform group-hover:scale-105" />
-                    <button
-                      type="button"
-                      className={`absolute top-4 right-4 bg-white/80 dark:bg-black/40 backdrop-blur p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${isInWishlist(item.id) ? 'opacity-100 text-red-500' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleItem({
-                          productId: item.id,
-                          name: item.name,
-                          image: item.image || '',
-                          price: item.price,
-                          rating: 0,
-                          reviews: 0,
-                        });
-                      }}
-                      aria-label={isInWishlist(item.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-                    >
-                      <span className="material-icons text-sm">{isInWishlist(item.id) ? 'favorite' : 'favorite_border'}</span>
-                    </button>
                   </div>
                   <h4 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{item.name}</h4>
                   <p className="text-slate-500 text-xs mb-2">{item.subtitle}</p>

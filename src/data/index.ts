@@ -1,4 +1,4 @@
-import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress, WishlistItem } from '@/types';
+import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress } from '@/types';
 
 export const products: Product[] = [
   {
@@ -288,43 +288,6 @@ export const savedAddresses: SavedAddress[] = [
   },
 ];
 
-export const wishlistItems: WishlistItem[] = [
-  {
-    id: 'wl-1',
-    name: 'Quantum Pro Wireless Noise Cancelling Headphones',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWmWNdDJqZRjdodCST0GrwFeeRzgWh0CYvkEwMxc2rue6dQoYt2Q-6n2dO0tYHPbn4bM81z_Gc4WFDKezNKrP0Dbg_IVgPJYnK8Sacnysi9krFKI3U2CF42PFcdPY8wJ9KIoitOzhP24Ak11ytWHIXUAZeT7C-Tz3jNMPf7cs8wKjWJsN4lnhT_foQIKoPH230sBWqRQi1zwGmlm47yOUoo_BivG8kdZOEAwnx1uhNYkjL9cN93PIQ3rX27we5kuZhgmRxCkQd-L4',
-    price: 299,
-    rating: 5,
-    reviews: 128,
-  },
-  {
-    id: 'wl-2',
-    name: 'UltraWide 34" Curved Gaming Monitor',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDbZw9rR3s2wOSuyoFIgFn5mm1EgKknwSIU7AsO6hpxD6KdXVOnm_-gOjztWLF6Acn-msxuBTEi2YIBw5lrjnfz0T213xiL5Jj_9yVnupRzdvptjAAGk176xRuRaW4e0ljjZmVLNYcSofdOioJI3bxGCoRiNM8DmlrkBNGsSTrtwAV3-CTXRKQc91MmV8OCuLWWUeD2NAx9YYELuJsL5hkfS-oPknVtjr15gToBLzneK369rrdMG6dW7Qj8bSyorzAxkMt0wZPMq7Y',
-    price: 499,
-    oldPrice: 649,
-    rating: 4,
-    reviews: 85,
-    onSale: true,
-  },
-  {
-    id: 'wl-3',
-    name: 'Mechanical RGB Backlit Keyboard',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASwPrUDR-jaL-M9ae8mJIxjQLUixMGpVwbZHUdyatQSu-S65VjN5s6cYAPzIaD7rHfXGhLyLfbVzsssj8IycBeWjH9EGpkM6GSRz-RmPg0LjoX0ek8VBX-2qxt69jMq7H4RDV3kev79lXjSB3ERDMGcoDNzuxO3FTUmxCPFwvCYPF2ka9iO_A9-06Uxt7N4GERHICxgJKexR6D_qx4Iip0oyH23Tr0x0iuF-OhKg7qbFEL5t3o8pw8PET7oWn_o5cEGb-utmAIEwg',
-    price: 129.99,
-    rating: 5,
-    reviews: 242,
-  },
-  {
-    id: 'wl-4',
-    name: 'Smart Home Hub & Voice Assistant',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAGjMQSZxLkmTzSb8xTS1-gtrqo5_cGSuIJWA9Kmm8E-GB5nHX1aOh71UolfbuhJac5khLIlIJ0awtWnulinCjwIXIXBmwCrOr6xL5s4aGkNbzHT21lVTaoUSKgx9XG7ZHcS3aEVAy9E7_qH8pYcZeg6sM83RsbjiOX9oGDJIm3IX1D7aROdvLIccSsBnovjWNwS4SFULWTZ9Eq7M9tBp1VWlK16zoFqCRIjYSA822WAbvL51_vL1GKxxA7xIK8eYbvY3qiXeMh8Wo',
-    price: 89,
-    rating: 3.5,
-    reviews: 52,
-  },
-];
-
 export const orders: OrderItem[] = [
   {
     id: 'TH-99420',
@@ -452,7 +415,6 @@ export const navItems: NavItem[] = [
   { label: 'Lịch sử đơn hàng', icon: 'shopping_bag', path: '/orders' },
   { label: 'Bảo hành & Lắp đặt', icon: 'build', path: '/warranty' },
   { label: 'Sổ địa chỉ', icon: 'location_on', path: '/account/addresses' },
-  { label: 'Yêu thích', icon: 'favorite', path: '/wishlist' },
 ];
 
 export const banners: Banner[] = [
@@ -768,7 +730,6 @@ export const accessoriesCategoryProducts: AccessoriesProduct[] = [
     badgeVariant: 'red',
     tags: ['For iPhone 15 Pro', 'MagSafe'],
     productDetailId: 'smart-watch',
-    isInWishlist: true,
   },
   {
     id: 'acc-anker-737',
@@ -831,7 +792,6 @@ export const audioCategoryProducts: AccessoriesProduct[] = [
     reviews: 315,
     tags: ['Wireless', 'Waterproof'],
     productDetailId: 'smart-speaker',
-    isInWishlist: true,
   },
   {
     id: 'audio-beam-soundbar',

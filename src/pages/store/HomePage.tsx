@@ -5,7 +5,6 @@ import { getAdminBanners } from '@/services/adminMockStore';
 import { useApiFeaturedProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { formatVND } from '@/utils';
 import type { TrendingProduct as TrendingProductType } from '@/types';
 import { StarRating } from '@/components/common/StarRating';
@@ -20,11 +19,9 @@ function bannerToPath(link: string) {
 
 function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
   const productId = product.productDetailId ?? product.id;
   const imgSrc = imageError || !product.image ? PLACEHOLDER_IMAGE : product.image;
-  const inWishlist = isInWishlist(productId);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,20 +29,6 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
     try {
       addItem({ productId, name: product.name, price: product.price, image: product.image || '' });
     } catch (_) {}
-  };
-
-  const handleWishlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleItem({
-      productId,
-      name: product.name,
-      image: product.image || '',
-      price: product.price,
-      oldPrice: product.oldPrice,
-      rating: product.rating,
-      reviews: product.reviews ?? 0,
-    });
   };
 
   return (
@@ -74,15 +57,6 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
             BÁN CHẠY
           </span>
         )}
-        <button
-          type="button"
-          className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-red-500 transition-colors z-20"
-          onClick={handleWishlistToggle}
-          onMouseDown={(e) => e.stopPropagation()}
-          aria-label={inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-        >
-          <span className={`material-icons text-xl ${inWishlist ? 'text-red-500' : ''}`}>{inWishlist ? 'favorite' : 'favorite_border'}</span>
-        </button>
       </div>
       <div className="flex-grow">
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category}</span>

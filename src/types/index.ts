@@ -162,18 +162,6 @@ export interface SavedAddress {
   isDefault?: boolean;
 }
 
-export interface WishlistItem {
-  id: string;
-  productId?: string;
-  name: string;
-  image: string;
-  price: number;
-  oldPrice?: number;
-  rating: number;
-  reviews: number;
-  onSale?: boolean;
-}
-
 export interface NavItem {
   label: string;
   icon: string;
@@ -273,7 +261,6 @@ export interface AccessoriesProduct {
   badgeVariant?: 'primary' | 'red';
   tags: string[];
   productDetailId?: string;
-  isInWishlist?: boolean;
 }
 
 export interface SmartHomeTag {
