@@ -90,6 +90,8 @@ export interface AdminProductUpsertPayload {
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];
   specifications?: string | null;
+  sku?: string | null;
+  tag?: string | null;
 }
 
 /** GET /api/health */
@@ -97,9 +99,26 @@ export async function health(): Promise<{ status: string }> {
   return apiGet<{ status: string }>('/health', { auth: false });
 }
 
-/** GET /api/categories */
-export async function getCategories(): Promise<CategoryDto[]> {
-  return apiGet<CategoryDto[]>('/categories', { auth: false });
+/** GET /api/categories — hỗ trợ lọc theo tên (substring, server), parentId, includeDeleted. */
+export interface CategoriesParams {
+  name?: string;
+  includeDeleted?: boolean;
+  /** Lọc theo danh mục cha; `null` = danh mục gốc. */
+  parentId?: number | null;
+}
+
+export async function getCategories(params?: CategoriesParams): Promise<CategoryDto[]> {
+  const sp = new URLSearchParams();
+  if (params?.name != null && String(params.name).trim() !== '') {
+    sp.set('name', String(params.name).trim());
+  }
+  if (params?.includeDeleted) sp.set('includeDeleted', 'true');
+  if (params?.parentId !== undefined) {
+    if (params.parentId === null) sp.set('parentId', 'null');
+    else sp.set('parentId', String(params.parentId));
+  }
+  const query = sp.toString();
+  return apiGet<CategoryDto[]>(query ? `/categories?${query}` : '/categories', { auth: false });
 }
 
 /** POST /api/categories (ADMIN) */

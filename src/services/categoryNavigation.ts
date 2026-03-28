@@ -27,7 +27,7 @@ export function findCategoryIdByUrlSlug(categories: Category[], urlSlug: string)
     const n = Number(direct.id);
     return Number.isFinite(n) ? n : undefined;
   }
-  const allGroups = Object.values(slugGroups) as string[][];
+  const allGroups = Object.values(slugGroups) as unknown as string[][];
   const group = allGroups.find((g) => g.includes(u));
   if (!group) return undefined;
   const cat = categories.find((c) => group.includes(c.slug));

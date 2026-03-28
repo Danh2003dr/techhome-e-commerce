@@ -39,6 +39,7 @@ export function mapAdminProductToProduct(p: AdminProduct): Product {
     images,
     description: p.description,
     sku: firstSku,
+    stock: totalStock,
     inStock: totalStock > 0,
     specifications: specsToJsonString(p.specs),
     isBestSeller: p.featured,

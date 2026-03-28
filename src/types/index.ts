@@ -16,6 +16,8 @@ export interface Product {
   isBestSeller?: boolean;
   description?: string;
   sku?: string;
+  /** Số từ API catalog; có thể thiếu với dữ liệu mock cũ — khi đó dùng `inStock`. */
+  stock?: number;
   inStock?: boolean;
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];
@@ -130,19 +132,6 @@ export interface OrderDetailsData {
   };
 }
 
-export interface WarrantyItem {
-  id: string;
-  productName: string;
-  serial: string;
-  status: 'active' | 'expired';
-  purchaseDate: string;
-  expiryDate: string;
-  planType: string;
-  icon: string;
-  expiryVariant?: 'default' | 'amber' | 'red';
-  planHighlight?: boolean;
-}
-
 export interface SavedAddress {
   id: string;
   label: string;
@@ -158,18 +147,6 @@ export interface SavedAddress {
   zipCode?: string;
   country?: string;
   isDefault?: boolean;
-}
-
-export interface WishlistItem {
-  id: string;
-  productId?: string;
-  name: string;
-  image: string;
-  price: number;
-  oldPrice?: number;
-  rating: number;
-  reviews: number;
-  onSale?: boolean;
 }
 
 export interface NavItem {
@@ -271,7 +248,6 @@ export interface AccessoriesProduct {
   badgeVariant?: 'primary' | 'red';
   tags: string[];
   productDetailId?: string;
-  isInWishlist?: boolean;
 }
 
 export interface SmartHomeTag {

@@ -290,7 +290,7 @@ function seedIfMissing() {
       colors: ['Red', 'Green'],
       description: 'Placeholder product description for Admin UI.',
       images: ['https://picsum.photos/seed/admin-prod-2/240/240'],
-      specs: [{ id: uid('spec'), key: 'Warranty', value: '12 months' }],
+      specs: [{ id: uid('spec'), key: 'Trong hộp', value: 'Cable, quick guide' }],
       variants: [{ id: uid('var'), sku: 'MS-HS-01', stock: 13 }],
     }),
   ];

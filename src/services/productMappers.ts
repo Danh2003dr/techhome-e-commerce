@@ -25,6 +25,34 @@ function galleryFromDto(dto: ProductDto): string[] {
   return [];
 }
 
+/** Chuẩn hóa màu từ API — backend: `{ name, hex }`; hex không hợp lệ → xám mặc định. */
+function normalizeColorsFromDto(dto: ProductDto): Product['colors'] | undefined {
+  if (!dto.colors?.length) return undefined;
+  const fallbackHex = '#6b7280';
+  const out: { name: string; hex: string }[] = [];
+  for (const c of dto.colors) {
+    const name = String(c.name ?? '').trim();
+    if (!name) continue;
+    const raw = String(c.hex ?? '').trim();
+    const hex = /^#[0-9A-Fa-f]{6}$/.test(raw) ? raw : fallbackHex;
+    out.push({ name, hex });
+  }
+  return out.length ? out : undefined;
+}
+
+function normalizeStorageOptionsFromDto(dto: ProductDto): string[] | undefined {
+  if (!dto.storageOptions?.length) return undefined;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of dto.storageOptions) {
+    const v = String(s ?? '').trim();
+    if (!v || seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out.length ? out : undefined;
+}
+
 const slugToIcon: Record<string, string> = {
   mobile: 'smartphone',
   smartphones: 'smartphone',
@@ -107,6 +135,10 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
   const { listPrice, sale, price, onSale } = computeProductPricing(dto);
   const gallery = galleryFromDto(dto);
   const image = gallery[0] ?? dto.image ?? '';
+  const sku = dto.sku != null && String(dto.sku).trim() !== '' ? String(dto.sku).trim() : undefined;
+  const tag = dto.tag != null && String(dto.tag).trim() !== '' ? String(dto.tag).trim() : undefined;
+  const stockNum = dto.stock != null ? Math.max(0, Number(dto.stock)) : 0;
+
   return {
     id: String(dto.id),
     name: dto.name,
@@ -119,9 +151,12 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
     image,
     images: gallery.length ? gallery : undefined,
     description: dto.description ?? undefined,
-    inStock: dto.stock > 0,
+    stock: stockNum,
+    inStock: stockNum > 0,
     specifications: dto.specifications ?? undefined,
-    colors: dto.colors?.length ? dto.colors : undefined,
-    storageOptions: dto.storageOptions?.length ? dto.storageOptions : undefined,
+    colors: normalizeColorsFromDto(dto),
+    storageOptions: normalizeStorageOptionsFromDto(dto),
+    sku,
+    tag,
   };
 }

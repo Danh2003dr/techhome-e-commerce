@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mobileCategoryProducts } from '@/data';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
 import { isApiConfigured } from '@/services/api';
@@ -45,7 +44,6 @@ function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' |
 
 const MobileCategoryPage: React.FC = () => {
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const { data: apiCategories } = useApiCategories();
   const mobileCategory = findCategoryInGroup(apiCategories, slugGroups.mobile);
   const mobileCategoryId = mobileCategory ? Number(mobileCategory.id) : undefined;
@@ -240,27 +238,6 @@ const MobileCategoryPage: React.FC = () => {
                     {product.badge && (
                       <Badge label={product.badge} variant={getBadgeVariant(product.badge)} />
                     )}
-                    <button
-                      type="button"
-                      className={`absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-700/80 rounded-full transition-colors z-20 ${isInWishlist(productId) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleItem({
-                          productId,
-                          name: product.name,
-                          image: product.image || '',
-                          price: product.price,
-                          oldPrice: product.oldPrice,
-                          rating: product.rating,
-                          reviews: product.reviews ?? 0,
-                        });
-                      }}
-                      aria-label={isInWishlist(productId) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-                    >
-                      <span className="material-icons text-lg">{isInWishlist(productId) ? 'favorite' : 'favorite_border'}</span>
-                    </button>
                     <img
                       className="h-48 group-hover:scale-105 transition-transform duration-300 object-contain"
                       src={failedImageIds.has(product.id) || !product.image ? PLACEHOLDER_IMAGE : product.image}

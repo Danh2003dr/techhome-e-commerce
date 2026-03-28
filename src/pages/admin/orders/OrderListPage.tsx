@@ -6,7 +6,17 @@ import { datesAvailableForNav, filterOrders, isSameDay } from './orderListUtils'
 
 const PAGE_SIZE = 9;
 
-const OrderListPage: React.FC = () => {
+export type OrderListInitialVariant = {
+  openModal: 'date' | 'type' | 'status' | null;
+  dateFilter: string | null;
+  selectedTypes: string[];
+  selectedStatuses: string[];
+  draftDate?: string;
+  draftTypes?: string[];
+  draftStatuses?: string[];
+};
+
+const OrderListPage: React.FC<{ initialVariant?: OrderListInitialVariant }> = () => {
   const [openPanel, setOpenPanel] = useState<FilterPanel>(null);
   const [appliedDates, setAppliedDates] = useState<Date[]>([]);
   const [appliedTypes, setAppliedTypes] = useState<Set<OrderTypeOption>>(new Set());

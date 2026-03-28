@@ -4,7 +4,6 @@ import { AuthProvider } from '@/context/AuthContext';
 import { AvatarProvider } from '@/context/AvatarContext';
 import { CartProvider } from '@/context/CartContext';
 import { CheckoutProvider } from '@/context/CheckoutContext';
-import { WishlistProvider } from '@/context/WishlistContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 const App: React.FC = () => (
@@ -12,11 +11,9 @@ const App: React.FC = () => (
     <AvatarProvider>
       <AuthProvider>
         <CartProvider>
-          <WishlistProvider>
-            <CheckoutProvider>
-              <AppRoutes />
-            </CheckoutProvider>
-          </WishlistProvider>
+          <CheckoutProvider>
+            <AppRoutes />
+          </CheckoutProvider>
         </CartProvider>
       </AuthProvider>
     </AvatarProvider>

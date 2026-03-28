@@ -360,13 +360,14 @@ export default function CategoryPageTemplate({
         {/* Sidebar Filters */}
         <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
           {template.filters.map((section, idx) => (
-            <FilterSectionView
-              key={section.id}
-              section={section}
-              filterValues={filterValues}
-              setFilterValue={setFilterValue}
-              index={idx}
-            />
+            <React.Fragment key={section.id}>
+              <FilterSectionView
+                section={section}
+                filterValues={filterValues}
+                setFilterValue={setFilterValue}
+                index={idx}
+              />
+            </React.Fragment>
           ))}
         </aside>
 
