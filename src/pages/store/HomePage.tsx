@@ -19,7 +19,8 @@ function bannerToPath(link: string) {
 
 function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
   const { addItem } = useCart();
-  const to = product.productDetailId ? `/product/${product.productDetailId}` : `/product/${product.id}`;
+  const pathSegment = product.slug?.trim() || product.productDetailId || product.id;
+  const to = `/product/${encodeURIComponent(pathSegment)}`;
   const productId = product.productDetailId ?? product.id;
   const imgSrc = imageError || !product.image ? PLACEHOLDER_IMAGE : product.image;
 

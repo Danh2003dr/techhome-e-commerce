@@ -16,6 +16,7 @@ import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
 import SavedAddressesPage from '@/pages/account/SavedAddressesPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
@@ -38,7 +39,7 @@ const AppRoutes: React.FC = () => (
     <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchResults />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
     <Route path="/deals" element={<ProductListingPage />} />
@@ -53,6 +54,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/403" element={<ForbiddenPage />} />
     <Route path="/signup" element={<SignUpPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />

@@ -93,7 +93,7 @@ const MobileCategoryPage: React.FC = () => {
                 Trải nghiệm công nghệ smartphone mới nhất. Nâng cấp flagship với ưu đãi thu cũ đổi mới từ TechHome.
               </p>
               <Link
-                to="/search?category=mobile"
+                to="/category/dien-thoai"
                 className="inline-block bg-white text-primary font-bold px-8 py-3 rounded-lg hover:bg-slate-50 transition-colors shadow-lg shadow-blue-900/20"
               >
                 Mua ngay
@@ -227,7 +227,8 @@ const MobileCategoryPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {storefrontProducts.map((product) => {
                 const productId = product.productDetailId || product.id;
-                const productPath = `/product/${productId}`;
+                const pathSegment = product.slug?.trim() || productId;
+                const productPath = `/product/${encodeURIComponent(pathSegment)}`;
                 return (
                   <Link
                     key={product.id}

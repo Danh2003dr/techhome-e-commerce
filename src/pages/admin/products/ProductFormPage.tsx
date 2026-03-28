@@ -22,6 +22,9 @@ import { newEntityId, type AdminProductSpec } from '@/services/adminMockStore';
 const inputCls =
   'mt-1.5 w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm outline-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-shadow';
 
+/** Nhãn hiển thị khi `parentId === null` (gắn dưới gốc) — khớp `CategorySearchCombobox` `rootLabel`. */
+const NEW_CATEGORY_ROOT_PARENT_LABEL = '— Danh mục gốc —';
+
 /** Khối form có tiêu đề — dùng chung để nhất quán thị giác */
 function FormSection({
   icon,
@@ -76,7 +79,25 @@ type CatalogProductFormState = {
   storageRows: CatalogStorageRow[];
 };
 
-function defaultFormState(id: string): CatalogProductFormState {
+/** Gợi ý tên thông số khi tạo sản phẩm mới — người dùng có thể sửa/xóa từng dòng. */
+const DEFAULT_SPEC_SUGGESTION_KEYS = [
+  'Màn hình',
+  'CPU',
+  'RAM',
+  'Bộ nhớ trong',
+  'Pin',
+  'Camera',
+] as const;
+
+function createDefaultSpecSuggestions(): AdminProductSpec[] {
+  return DEFAULT_SPEC_SUGGESTION_KEYS.map((key) => ({
+    id: newEntityId('spec'),
+    key,
+    value: '',
+  }));
+}
+
+function defaultFormState(id: string, opts?: { withSpecSuggestions?: boolean }): CatalogProductFormState {
   return {
     id,
     name: '',
@@ -89,7 +110,7 @@ function defaultFormState(id: string): CatalogProductFormState {
     featured: false,
     description: '',
     images: [],
-    specs: [],
+    specs: opts?.withSpecSuggestions ? createDefaultSpecSuggestions() : [],
     salePrice: null,
     colorRows: [],
     storageRows: [],
@@ -156,7 +177,9 @@ const ProductFormPage: React.FC = () => {
 
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [form, setForm] = useState<CatalogProductFormState>(() =>
-    productId ? defaultFormState(productId) : defaultFormState(newEntityId('p'))
+    productId
+      ? defaultFormState(productId)
+      : defaultFormState(newEntityId('p'), { withSpecSuggestions: true })
   );
   /** Chỉ dùng cho lỗi GET sản phẩm/danh mục lúc vào trang — không trộn với lỗi lưu */
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -225,7 +248,7 @@ const ProductFormPage: React.FC = () => {
         .filter((c) => c.name.length > 0);
 
       const storagePayload: string[] = Array.from(
-        new Set<string>(form.storageRows.map((r) => r.value.trim()).filter((s) => s.length > 0))
+        new Set(form.storageRows.map((r) => r.value.trim()).filter(Boolean))
       );
 
       const specsObject = form.specs.reduce<Record<string, string>>((acc, s) => {
@@ -322,7 +345,7 @@ const ProductFormPage: React.FC = () => {
   };
 
   const newCatParentLabel = useMemo(() => {
-    if (newCatParentId == null) return '';
+    if (newCatParentId == null) return NEW_CATEGORY_ROOT_PARENT_LABEL;
     const c = categories.find((x) => String(x.id) === String(newCatParentId));
     return c?.name ?? '';
   }, [newCatParentId, categories]);
@@ -595,18 +618,19 @@ const ProductFormPage: React.FC = () => {
           >
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Thêm danh mục</h3>
             <p className="text-xs text-slate-500 mt-1 mb-4">
-              Tên mới sẽ xuất hiện trong danh sách và được chọn cho sản phẩm hiện tại. Chọn danh mục cha bên dưới nếu bạn cần{' '}
+              Tên mới sẽ xuất hiện trong danh sách và được chọn cho sản phẩm hiện tại. Chọn danh mục gốc bên dưới nếu bạn cần{' '}
               <span className="font-semibold text-slate-600 dark:text-slate-300">danh mục con</span>.
             </p>
             <label className="block">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Danh mục cha</span>
-              <p className="text-[11px] text-slate-500 mt-0.5 mb-1">Tìm danh mục làm cha — tránh cuộn list dài.</p>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Danh mục gốc</span>
+              <p className="text-[11px] text-slate-500 mt-0.5 mb-1">Tìm danh mục gốc — tránh cuộn list dài.</p>
               <CategorySearchCombobox
                 valueId={newCatParentId}
                 valueLabel={newCatParentLabel}
                 initialPool={categories}
-                placeholder="Tìm danh mục cha…"
+                placeholder="Tìm danh mục gốc…"
                 allowRoot
+                rootLabel={NEW_CATEGORY_ROOT_PARENT_LABEL}
                 onSelectRoot={() => setNewCatParentId(null)}
                 onSelect={(cat) => setNewCatParentId(Number(cat.id))}
                 dropdownZClass="z-[80]"

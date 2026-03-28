@@ -9,6 +9,8 @@ const PAGE_SIZE = 10;
 
 type AdminProductCardModel = {
   id: string;
+  /** Storefront URL segment; falls back to numeric id */
+  slug?: string;
   name: string;
   priceUsd: number;
   /** 0–5 */
@@ -25,6 +27,7 @@ function mapProductDtoToAdminCardModel(dto: ProductDto): AdminProductCardModel {
       : ['https://picsum.photos/400/400'];
   return {
     id: String(dto.id),
+    slug: dto.slug,
     name: dto.name,
     priceUsd: Number(dto.salePrice ?? dto.price ?? 0),
     rating: 4,
@@ -102,7 +105,8 @@ const ProductCard: React.FC<{
     setSlide((s) => (s - 1 + imgs.length) % imgs.length);
   };
 
-  const goDetail = () => navigate(`/product/${product.id}`);
+  const goDetail = () =>
+    navigate(`/product/${encodeURIComponent(product.slug?.trim() || product.id)}`);
 
   return (
     <article

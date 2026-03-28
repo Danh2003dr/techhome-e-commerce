@@ -395,7 +395,7 @@ export const banners: Banner[] = [
     title: 'Stay Cool, Stay Smart',
     subtitle: 'Summer Sale',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdtTa2GrJ-3ZpC9KUsMcU1Q9jIWd-nIEdt8lAUB2KAyGHG7nrNpvqPfQzNZpGOeEYDfLZKw_HIczAQMTMF3oBRF4UPihmKi0ppTpef11ASDtnD8FH9mOOVUwQeVjOif5JfgRCao0FzcVIAdUGyKdTYdKA3AVj6xDbl53kXBxM30h2tzMuMAbSCiVkcNXL-qUGX5zi9LHcEq4flgjEcP6R-p24qXLPv-7inYbN5fb7nP3tojXUyVwVhzKfoCdY70MANTmLOVJj6MD0',
-    link: '/#/search?category=cooling',
+    link: '/category/cooling',
     linkText: 'View Offers',
     theme: 'emerald',
   },

@@ -104,6 +104,7 @@ export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
     id: String(dto.id),
     name: dto.name,
     category: dto.categoryName,
+    slug: dto.slug,
     image: img,
     price,
     oldPrice,
@@ -128,6 +129,7 @@ export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
     rating: 4,
     reviews: 0,
     productDetailId: String(dto.id),
+    slug: dto.slug,
   };
 }
 
@@ -158,5 +160,6 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
     storageOptions: normalizeStorageOptionsFromDto(dto),
     sku,
     tag,
+    slug: dto.slug,
   };
 }

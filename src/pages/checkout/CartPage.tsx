@@ -43,7 +43,10 @@ const CartPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Link to={`/product/${item.productId}`} className="font-bold text-gray-900 text-lg hover:text-indigo-600">
+                    <Link
+                      to={`/product/${encodeURIComponent(String(item.productId))}`}
+                      className="font-bold text-gray-900 text-lg hover:text-indigo-600"
+                    >
                       {item.name}
                     </Link>
                     {item.variant && <p className="text-sm text-gray-400">{item.variant}</p>}

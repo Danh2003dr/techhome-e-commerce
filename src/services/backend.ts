@@ -6,6 +6,7 @@
 import {
   apiGet,
   apiPost,
+  apiPostText,
   apiPut,
   apiPatch,
   apiDelete,
@@ -161,9 +162,15 @@ export async function deleteAdminProduct(id: number | string): Promise<{ message
   return apiDelete<{ message: string }>(`/products/${id}`, { auth: true });
 }
 
-/** GET /api/products/{id} */
+/** GET /api/products/{id} — admin / numeric-id lookups */
 export async function getProduct(id: number | string): Promise<ProductDto> {
   return apiGet<ProductDto>(`/products/${id}`, { auth: false });
+}
+
+/** GET /api/products/slug/:slug — storefront product detail by slug */
+export async function getProductBySlug(slug: string): Promise<ProductDto> {
+  const s = encodeURIComponent(String(slug).trim());
+  return apiGet<ProductDto>(`/products/slug/${s}`, { auth: false });
 }
 
 /** GET /api/products/featured */
@@ -182,6 +189,17 @@ export async function login(body: AuthRequest): Promise<AuthResponse> {
   storeToken(res.token);
   setStoredUser(res.user);
   return res;
+}
+
+/** POST /api/auth/forgotpassword — body `{ email }`; backend trả plain text. */
+export async function forgotPassword(email: string): Promise<string> {
+  return apiPostText('/auth/forgotpassword', { email }, { auth: false });
+}
+
+/** POST /api/auth/resetpassword/:token — body `{ newPassword }`; không cần đăng nhập. */
+export async function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  const t = encodeURIComponent(token);
+  return apiPost<{ message: string }>(`/auth/resetpassword/${t}`, { newPassword }, { auth: false });
 }
 
 /** POST /api/auth/register */

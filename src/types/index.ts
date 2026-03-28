@@ -32,6 +32,8 @@ export interface Product {
     stock: number;
     price?: number;
   }>;
+  /** URL segment for `/product/:slug` (from API catalog). */
+  slug?: string;
 }
 
 export type OrderStatus = 'Processing' | 'Delivered' | 'Shipping' | 'Shipped' | 'Cancelled';
@@ -199,6 +201,8 @@ export interface TrendingProduct {
   reviews: number;
   isBestSeller?: boolean;
   productDetailId?: string;
+  /** Canonical slug for product detail URL when present. */
+  slug?: string;
 }
 
 export interface FooterLink {
@@ -219,6 +223,7 @@ export interface ListingProduct {
   productDetailId?: string;
   badge?: string;
   specs?: string;
+  slug?: string;
 }
 
 export interface CoolingProduct {
