@@ -13,7 +13,6 @@ import CheckoutPage from '@/pages/checkout/CheckoutPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import OrderHistoryPage from '@/pages/account/OrderHistoryPage';
 import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
-import WarrantyPage from '@/pages/account/WarrantyPage';
 import SavedAddressesPage from '@/pages/account/SavedAddressesPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
@@ -56,7 +55,6 @@ const AppRoutes: React.FC = () => (
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
-    <Route path="/warranty" element={<WarrantyPage />} />
     <Route path="/account/addresses" element={<SavedAddressesPage />} />
     <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

@@ -256,7 +256,6 @@ const ProductDetail: React.FC = () => {
               </div>
               <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
                 <div className="flex items-start gap-3"><span className="material-icons text-primary">local_shipping</span><div><p className="text-sm font-semibold">Free Express Shipping</p><p className="text-xs text-slate-500">Order within 4 hrs to get it tomorrow</p></div></div>
-                <div className="flex items-start gap-3"><span className="material-icons text-primary">verified_user</span><div><p className="text-sm font-semibold">2-Year Official Warranty</p><p className="text-xs text-slate-500">Extend your coverage with TechCare+</p></div></div>
               </div>
             </div>
           </section>
@@ -352,46 +351,79 @@ const ProductDetail: React.FC = () => {
             }
           }
           if (apiSpecs && Object.keys(apiSpecs).length > 0) {
+            /** Gom các key liên tiếp có giá trị primitive vào một card; giữ thứ tự key trong JSON. */
+            type SpecSegment =
+              | { type: 'flat'; items: [string, unknown][] }
+              | { type: 'nested'; key: string; block: unknown };
+            const specSegments: SpecSegment[] = [];
+            for (const [key, block] of Object.entries(apiSpecs)) {
+              if (key === 'tenSanPham' || block == null) continue;
+              const isObj = block && typeof block === 'object' && !Array.isArray(block);
+              const isFlatPrimitive =
+                !isObj &&
+                !Array.isArray(block) &&
+                (typeof block === 'string' || typeof block === 'number' || typeof block === 'boolean');
+              if (isFlatPrimitive) {
+                const last = specSegments[specSegments.length - 1];
+                if (last?.type === 'flat') {
+                  last.items.push([key, block]);
+                } else {
+                  specSegments.push({ type: 'flat', items: [[key, block]] });
+                }
+              } else {
+                specSegments.push({ type: 'nested', key, block });
+              }
+            }
+            const specRowGridClass =
+              'grid grid-cols-1 sm:grid-cols-[minmax(140px,220px)_1fr] gap-x-4 gap-y-1 px-4 py-3 sm:px-6 sm:items-start';
             return (
               <section className="mb-20" key="api-specs">
-                <h2 className="text-2xl font-bold mb-8">Thông số kỹ thuật</h2>
-                <div className="space-y-8">
-                  {Object.entries(apiSpecs).map(([key, block]) => {
-                    if (key === 'tenSanPham' || block == null) return null;
-                    const title = specSectionLabels[key] || key;
-                    const isObj = block && typeof block === 'object' && !Array.isArray(block);
-                    const rows = isObj ? Object.entries(block as Record<string, unknown>) : [];
-                    /** Admin lưu JSON phẳng { "Màn hình": "6.1\"", "Pin": "4000mAh" } — giá trị là primitive, không phải object lồng. */
-                    const isFlatPrimitive =
-                      !isObj &&
-                      !Array.isArray(block) &&
-                      (typeof block === 'string' || typeof block === 'number' || typeof block === 'boolean');
-                    if (isFlatPrimitive) {
+                <h2 className="text-2xl font-bold mb-4 md:mb-6">Thông số kỹ thuật</h2>
+                <div className="space-y-4 md:space-y-5">
+                  {specSegments.map((seg, segIdx) => {
+                    if (seg.type === 'flat') {
                       return (
                         <div
-                          key={key}
-                          className={`flex flex-col sm:flex-row sm:gap-4 px-6 py-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900`}
+                          key={`flat-${segIdx}-${seg.items.map(([k]) => k).join('|')}`}
+                          className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900"
                         >
-                          <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300 min-w-[160px] sm:min-w-[200px]">
-                            {title}
-                          </dt>
-                          <dd className="text-sm text-slate-600 dark:text-slate-400 mt-1 sm:mt-0 flex-1">{renderSpecValue(block)}</dd>
+                          <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                            {seg.items.map(([key, block], idx) => (
+                              <div
+                                key={key}
+                                className={`${specRowGridClass} ${
+                                  idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'
+                                }`}
+                              >
+                                <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300">
+                                  {specSectionLabels[key] || key}
+                                </dt>
+                                <dd className="text-sm text-slate-600 dark:text-slate-400 min-w-0">{renderSpecValue(block)}</dd>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       );
                     }
+                    const { key, block } = seg;
+                    const title = specSectionLabels[key] || key;
+                    const isObj = block && typeof block === 'object' && !Array.isArray(block);
+                    const rows = isObj ? Object.entries(block as Record<string, unknown>) : [];
                     return (
                       <div key={key} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
-                        <h3 className="bg-slate-50 dark:bg-slate-800/50 px-6 py-3 font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800">
+                        <h3 className="bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 sm:px-6 font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 text-sm sm:text-base">
                           {title}
                         </h3>
                         <div className="divide-y divide-slate-200 dark:divide-slate-800">
                           {rows.map(([rowKey, value], idx) => (
                             <div
                               key={rowKey}
-                              className={`flex flex-col sm:flex-row sm:gap-4 px-6 py-4 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}`}
+                              className={`${specRowGridClass} ${
+                                idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'
+                              }`}
                             >
-                              <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300 min-w-[140px]">{specRowLabels[rowKey] || rowKey}</dt>
-                              <dd className="text-sm text-slate-600 dark:text-slate-400 mt-1 sm:mt-0">{renderSpecValue(value)}</dd>
+                              <dt className="font-semibold text-sm text-slate-700 dark:text-slate-300">{specRowLabels[rowKey] || rowKey}</dt>
+                              <dd className="text-sm text-slate-600 dark:text-slate-400 min-w-0">{renderSpecValue(value)}</dd>
                             </div>
                           ))}
                         </div>

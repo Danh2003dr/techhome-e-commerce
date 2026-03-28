@@ -132,19 +132,6 @@ export interface OrderDetailsData {
   };
 }
 
-export interface WarrantyItem {
-  id: string;
-  productName: string;
-  serial: string;
-  status: 'active' | 'expired';
-  purchaseDate: string;
-  expiryDate: string;
-  planType: string;
-  icon: string;
-  expiryVariant?: 'default' | 'amber' | 'red';
-  planHighlight?: boolean;
-}
-
 export interface SavedAddress {
   id: string;
   label: string;

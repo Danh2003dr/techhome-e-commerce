@@ -235,20 +235,7 @@ const OrderConfirmationPage: React.FC = () => {
         {/* What's Next? */}
         <div className="mt-16 text-center">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Tiếp theo?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 text-left hover:border-primary transition-colors group cursor-pointer">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary transition-colors">
-                <span className="material-icons text-primary group-hover:text-white">verified_user</span>
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-lg mb-2">Đăng ký bảo hành</h4>
-              <p className="text-slate-500 dark:text-slate-400 mb-4">
-                Gia hạn bảo hành 2 năm với ưu đãi 20% khi đăng ký trong 48 giờ.
-              </p>
-              <a href="#" className="text-primary font-semibold flex items-center gap-1 hover:underline">
-                Đăng ký bảo hành
-                <span className="material-icons text-sm">arrow_forward</span>
-              </a>
-            </div>
+          <div className="grid grid-cols-1 gap-6 max-w-xl mx-auto">
             <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 text-left hover:border-primary transition-colors group cursor-pointer">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary transition-colors">
                 <span className="material-icons text-primary group-hover:text-white">mail</span>

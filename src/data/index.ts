@@ -1,4 +1,4 @@
-import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, WarrantyItem, SavedAddress } from '@/types';
+import type { Product, OrderItem, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, OrderConfirmationData, OrderHistoryCardItem, OrderDetailsData, SavedAddress } from '@/types';
 
 export const products: Product[] = [
   {
@@ -218,42 +218,6 @@ export function getOrderDetails(orderId: string): OrderDetailsData | undefined {
   return orderDetailsMap[orderId];
 }
 
-export const warrantyItems: WarrantyItem[] = [
-  {
-    id: 'w-mac',
-    productName: 'MacBook Pro 14" - M3 Pro',
-    serial: 'TH-X92-881L-002',
-    status: 'active',
-    purchaseDate: 'November 12, 2023',
-    expiryDate: 'November 12, 2025',
-    planType: 'Premium Protection Plan',
-    icon: 'laptop_mac',
-    planHighlight: true,
-  },
-  {
-    id: 'w-sony',
-    productName: 'Sony WH-1000XM5',
-    serial: 'SNY-WF-19283-K',
-    status: 'active',
-    purchaseDate: 'January 05, 2024',
-    expiryDate: 'January 05, 2025',
-    planType: 'Standard 1-Year Warranty',
-    icon: 'headphones',
-    expiryVariant: 'amber',
-  },
-  {
-    id: 'w-iphone',
-    productName: 'iPhone 13 Mini',
-    serial: 'APL-IP13-772G-X',
-    status: 'expired',
-    purchaseDate: 'September 20, 2021',
-    expiryDate: 'September 20, 2022',
-    planType: 'Standard 1-Year Warranty',
-    icon: 'smartphone',
-    expiryVariant: 'red',
-  },
-];
-
 export const savedAddresses: SavedAddress[] = [
   {
     id: 'addr-home',
@@ -413,7 +377,6 @@ export const cartItems: CartItem[] = [
 export const navItems: NavItem[] = [
   { label: 'Hồ sơ cá nhân', icon: 'person', path: '/profile' },
   { label: 'Lịch sử đơn hàng', icon: 'shopping_bag', path: '/orders' },
-  { label: 'Bảo hành & Lắp đặt', icon: 'build', path: '/warranty' },
   { label: 'Sổ địa chỉ', icon: 'location_on', path: '/account/addresses' },
 ];
 

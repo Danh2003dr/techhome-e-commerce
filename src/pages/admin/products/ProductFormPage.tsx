@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
+import CategorySearchCombobox from '@/components/admin/CategorySearchCombobox';
 import ProductImageUpload from '@/pages/admin/products/ProductImageUpload';
 import ProductSpecsManager from '@/pages/admin/products/ProductSpecsManager';
 import ProductCatalogOptions from '@/pages/admin/products/ProductCatalogOptions';
@@ -58,6 +59,9 @@ function FormSection({
 type CatalogProductFormState = {
   id: string;
   name: string;
+  /** Khớp `category_id` backend — nguồn đáng tin khi lưu. */
+  categoryId: number | string | null;
+  /** Tên hiển thị (đồng bộ với DTO). */
   category: string;
   price: number;
   stock: number;
@@ -76,7 +80,8 @@ function defaultFormState(id: string): CatalogProductFormState {
   return {
     id,
     name: '',
-    category: 'Mobile',
+    categoryId: null,
+    category: '',
     price: 0,
     stock: 0,
     sku: '',
@@ -127,6 +132,7 @@ function mapProductDtoToForm(dto: ProductDto): CatalogProductFormState {
   return {
     id: String(dto.id),
     name: dto.name,
+    categoryId: dto.categoryId ?? null,
     category: dto.categoryName || '',
     price: Number(dto.price ?? 0),
     stock: Number(dto.stock ?? 0),
@@ -157,6 +163,8 @@ const ProductFormPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [catModal, setCatModal] = useState(false);
   const [newCatName, setNewCatName] = useState('');
+  /** `null` = danh mục gốc; số = id danh mục cha (khớp `parent_id` backend). */
+  const [newCatParentId, setNewCatParentId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [softDeleting, setSoftDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -170,7 +178,8 @@ const ProductFormPage: React.FC = () => {
         if (!productId) {
           setForm((prev) => ({
             ...prev,
-            category: cats[0]?.name ?? prev.category,
+            categoryId: cats[0]?.id ?? null,
+            category: cats[0]?.name ?? '',
           }));
           return null;
         }
@@ -184,12 +193,9 @@ const ProductFormPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [productId]);
 
-  const categoryNames = useMemo(() => {
-    const names = categories.map((c) => c.name).filter(Boolean);
-    const set = new Set(names);
-    if (form.category && !set.has(form.category)) names.unshift(form.category);
-    return names;
-  }, [categories, form.category]);
+  const mergeCategoryIntoPool = (cat: CategoryDto) => {
+    setCategories((prev) => (prev.some((c) => String(c.id) === String(cat.id)) ? prev : [...prev, cat]));
+  };
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -204,9 +210,13 @@ const ProductFormPage: React.FC = () => {
     setSaving(true);
     setFormError(null);
     try {
-      const selectedCategory = categories.find((c) => c.name === form.category);
+      if (form.categoryId == null) {
+        setFormError('Vui lòng chọn danh mục (ô tìm kiếm).');
+        return;
+      }
+      const selectedCategory = categories.find((c) => String(c.id) === String(form.categoryId));
       if (!selectedCategory) {
-        setFormError('Danh mục không hợp lệ. Vui lòng chọn danh mục từ backend.');
+        setFormError('Danh mục không hợp lệ. Chọn lại trong ô tìm kiếm.');
         return;
       }
 
@@ -281,21 +291,41 @@ const ProductFormPage: React.FC = () => {
     }
   };
 
+  const openCategoryModal = () => {
+    setNewCatName('');
+    setNewCatParentId(null);
+    setCatModal(true);
+  };
+
+  const closeCategoryModal = () => {
+    setCatModal(false);
+  };
+
   const addCategoryQuick = (e: React.FormEvent) => {
     e.preventDefault();
     const name = newCatName.trim();
     if (!name) return;
-    createAdminCategory({ name })
+    createAdminCategory({
+      name,
+      parentId: newCatParentId,
+    })
       .then((cat) => {
-        setCategories((prev) => [...prev, cat]);
-        setForm((f) => ({ ...f, category: cat.name }));
+        mergeCategoryIntoPool(cat);
+        setForm((f) => ({ ...f, categoryId: cat.id, category: cat.name }));
         setNewCatName('');
+        setNewCatParentId(null);
         setCatModal(false);
       })
       .catch((e) => {
         setFormError(e instanceof Error ? e.message : 'Thêm danh mục thất bại.');
       });
   };
+
+  const newCatParentLabel = useMemo(() => {
+    if (newCatParentId == null) return '';
+    const c = categories.find((x) => String(x.id) === String(newCatParentId));
+    return c?.name ?? '';
+  }, [newCatParentId, categories]);
 
   if (loading) {
     return (
@@ -374,21 +404,25 @@ const ProductFormPage: React.FC = () => {
 
             <div className="block md:col-span-2">
               <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Danh mục *</span>
+              <p className="text-[11px] text-slate-500 mt-0.5 mb-1">
+                Gõ để tìm trên server; mở ô để xem gợi ý nhanh từ danh sách đã tải.
+              </p>
               <div className="mt-1.5 flex flex-col sm:flex-row gap-2">
-                <select
-                  className={`${inputCls} flex-1 mt-0`}
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                >
-                  {categoryNames.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex-1 min-w-0">
+                  <CategorySearchCombobox
+                    valueId={form.categoryId}
+                    valueLabel={form.category}
+                    initialPool={categories}
+                    placeholder="Tìm và chọn danh mục…"
+                    onSelect={(cat) => {
+                      mergeCategoryIntoPool(cat);
+                      setForm((f) => ({ ...f, categoryId: cat.id, category: cat.name }));
+                    }}
+                  />
+                </div>
                 <button
                   type="button"
-                  onClick={() => setCatModal(true)}
+                  onClick={openCategoryModal}
                   className="shrink-0 inline-flex items-center justify-center gap-1 rounded-xl border border-dashed border-primary/50 text-primary px-4 py-2.5 text-xs font-bold hover:bg-primary/5"
                 >
                   <span className="material-icons text-[18px]">add</span>
@@ -554,24 +588,44 @@ const ProductFormPage: React.FC = () => {
 
       {catModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" aria-hidden onClick={() => setCatModal(false)} />
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" aria-hidden onClick={closeCategoryModal} />
           <form
             onSubmit={addCategoryQuick}
             className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700"
           >
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Thêm danh mục</h3>
-            <p className="text-xs text-slate-500 mt-1 mb-4">Tên mới sẽ xuất hiện trong danh sách và được chọn cho sản phẩm hiện tại.</p>
-            <input
-              autoFocus
-              className={inputCls + ' mt-0'}
-              value={newCatName}
-              onChange={(e) => setNewCatName(e.target.value)}
-              placeholder="Ví dụ: Phụ kiện"
-            />
+            <p className="text-xs text-slate-500 mt-1 mb-4">
+              Tên mới sẽ xuất hiện trong danh sách và được chọn cho sản phẩm hiện tại. Chọn danh mục cha bên dưới nếu bạn cần{' '}
+              <span className="font-semibold text-slate-600 dark:text-slate-300">danh mục con</span>.
+            </p>
+            <label className="block">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Danh mục cha</span>
+              <p className="text-[11px] text-slate-500 mt-0.5 mb-1">Tìm danh mục làm cha — tránh cuộn list dài.</p>
+              <CategorySearchCombobox
+                valueId={newCatParentId}
+                valueLabel={newCatParentLabel}
+                initialPool={categories}
+                placeholder="Tìm danh mục cha…"
+                allowRoot
+                onSelectRoot={() => setNewCatParentId(null)}
+                onSelect={(cat) => setNewCatParentId(Number(cat.id))}
+                dropdownZClass="z-[80]"
+              />
+            </label>
+            <label className="block mt-3">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Tên danh mục mới *</span>
+              <input
+                autoFocus
+                className={inputCls + ' mt-0'}
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Ví dụ: Phụ kiện"
+              />
+            </label>
             <div className="flex justify-end gap-2 mt-5">
               <button
                 type="button"
-                onClick={() => setCatModal(false)}
+                onClick={closeCategoryModal}
                 className="px-4 py-2 text-sm font-semibold text-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 Đóng
