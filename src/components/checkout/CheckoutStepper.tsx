@@ -6,8 +6,7 @@ interface CheckoutStepperProps {
 
 const steps = [
   { number: 1, label: 'Địa chỉ', icon: 'location_on' },
-  { number: 2, label: 'Vận chuyển', icon: 'local_shipping' },
-  { number: 3, label: 'Thanh toán', icon: 'payment' },
+  { number: 2, label: 'Thanh toán', icon: 'payment' },
 ];
 
 const CheckoutStepper: React.FC<CheckoutStepperProps> = ({ currentStep }) => {
@@ -65,4 +64,3 @@ const CheckoutStepper: React.FC<CheckoutStepperProps> = ({ currentStep }) => {
 };
 
 export default CheckoutStepper;
-

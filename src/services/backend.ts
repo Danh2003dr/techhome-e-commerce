@@ -21,6 +21,8 @@ import type {
   RegisterRequest,
   AuthResponse,
   CreateOrderRequest,
+  CheckoutQuoteRequest,
+  CheckoutQuoteResponse,
   OrderDto,
   ProfileDto,
   AvatarPresignResponse,
@@ -29,6 +31,8 @@ import type {
   AdminRoleDto,
   InventoryDto,
   InventoryIdempotencyDto,
+  CouponAdminDto,
+  CouponAdminListResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -216,6 +220,11 @@ export async function register(body: RegisterRequest): Promise<AuthResponse> {
 /** POST /api/orders – requires Authorization */
 export async function createOrder(body: CreateOrderRequest): Promise<OrderDto> {
   return apiPost<OrderDto>('/orders', body, { auth: true });
+}
+
+/** POST /api/checkout/quote — tạm tính, thuế, giá sau giảm (Bearer nếu có để áp mã) */
+export async function postCheckoutQuote(body: CheckoutQuoteRequest): Promise<CheckoutQuoteResponse> {
+  return apiPost<CheckoutQuoteResponse>('/checkout/quote', body);
 }
 
 /** GET /api/orders – requires Authorization */
@@ -532,4 +541,70 @@ export async function getInventoryIdempotency(
     `/inventories/idempotency/${encodeURIComponent(action)}/${encodeURIComponent(key)}`,
     { auth: true }
   );
+}
+
+// --- Admin coupons (vouchers) — MongoDB Coupon + CouponRedemption ---
+
+export async function getAdminCoupons(params?: {
+  page?: number;
+  size?: number;
+  active?: boolean;
+  q?: string;
+}): Promise<CouponAdminListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.page != null) sp.set('page', String(params.page));
+  if (params?.size != null) sp.set('size', String(params.size));
+  if (params?.active === true) sp.set('active', 'true');
+  if (params?.active === false) sp.set('active', 'false');
+  if (params?.q != null && String(params.q).trim() !== '') sp.set('q', String(params.q).trim());
+  const query = sp.toString();
+  return apiGet<CouponAdminListResponse>(query ? `/coupons?${query}` : '/coupons', { auth: true });
+}
+
+export async function getAdminCoupon(id: number | string): Promise<CouponAdminDto> {
+  return apiGet<CouponAdminDto>(`/coupons/${id}`, { auth: true });
+}
+
+export async function createAdminCoupon(payload: {
+  code: string;
+  discountType: 'percent' | 'fixed';
+  value: number;
+  maxUses?: number;
+  expiresAt?: string;
+  validFrom?: string | null;
+  validTo?: string | null;
+  minOrderAmount?: number;
+  maxDiscountAmount?: number | null;
+  perUserLimit?: number | null;
+  active?: boolean;
+  excludedProductIds?: number[];
+  applicableCategoryIds?: number[];
+}): Promise<CouponAdminDto> {
+  return apiPost<CouponAdminDto>('/coupons', payload, { auth: true });
+}
+
+export async function updateAdminCoupon(
+  id: number | string,
+  payload: Partial<{
+    code: string;
+    discountType: 'percent' | 'fixed';
+    value: number;
+    maxUses: number | null;
+    expiresAt: string | null;
+    validFrom: string | null;
+    validTo: string | null;
+    minOrderAmount: number;
+    maxDiscountAmount: number | null;
+    perUserLimit: number | null;
+    active: boolean;
+    excludedProductIds: number[];
+    applicableCategoryIds: number[];
+  }>
+): Promise<CouponAdminDto> {
+  return apiPatch<CouponAdminDto>(`/coupons/${id}`, payload, { auth: true });
+}
+
+/** DELETE /api/coupons/:id — server đặt active=false (soft delete). */
+export async function deactivateAdminCoupon(id: number | string): Promise<CouponAdminDto> {
+  return apiDelete<CouponAdminDto>(`/coupons/${id}`, { auth: true });
 }

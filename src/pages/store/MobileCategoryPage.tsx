@@ -23,9 +23,6 @@ const TOTAL_PRODUCTS = 60;
 const PER_PAGE = 12;
 const TOTAL_PAGES = 10;
 
-const HeroImage =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDHLyESEYHifHLCZfb_t_OVSm83EIh7cZEL4UoYDHCs36uf4SxLL1DMuyCkEMFXuT0dmQ0mvgIe8NNkRdb1MtDDK591tZdUINYAaoyFIWFyAj36R0eFWMn9HZoBphKn7nwbKb3Nq2G1fTtbyOVhb9gRvM_HMfRXfgABdAXDQm8faMkmbEMPJkXrzA9W4B6yW9btt6CViheK4akmAURCpdfmJx58KMvV2w_d7KgmzxOg622k7l-6MRWn5g9dY1d9zbyiQwbEqm1dJq4';
-
 function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' | 'slate' | 'green' }) {
   const bg =
     variant === 'primary'
@@ -79,35 +76,6 @@ const MobileCategoryPage: React.FC = () => {
           <span className="material-icons text-xs">chevron_right</span>
           <span className="text-primary font-medium">Mobile</span>
         </nav>
-
-        {/* Hero Banner */}
-        <section className="relative rounded-xl overflow-hidden mb-12 bg-primary">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-700 opacity-90" />
-          <div className="relative flex flex-col md:flex-row items-center justify-between px-8 py-12 md:px-16 md:py-16">
-            <div className="max-w-lg mb-8 md:mb-0 text-white z-10 text-center md:text-left">
-              <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-                Phiên bản giới hạn
-              </span>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">Tương lai trong tay bạn</h1>
-              <p className="text-lg text-blue-100 mb-8 font-light">
-                Trải nghiệm công nghệ smartphone mới nhất. Nâng cấp flagship với ưu đãi thu cũ đổi mới từ TechHome.
-              </p>
-              <Link
-                to="/category/dien-thoai"
-                className="inline-block bg-white text-primary font-bold px-8 py-3 rounded-lg hover:bg-slate-50 transition-colors shadow-lg shadow-blue-900/20"
-              >
-                Mua ngay
-              </Link>
-            </div>
-            <div className="relative w-full md:w-1/2 flex justify-center md:justify-end">
-              <img
-                className="w-72 md:w-96 drop-shadow-2xl"
-                src={HeroImage}
-                alt="Two sleek modern flagship smartphones side by side"
-              />
-            </div>
-          </div>
-        </section>
 
         {/* Sub-Category Ribbon */}
         <section className="flex flex-wrap items-center justify-center gap-4 mb-12">

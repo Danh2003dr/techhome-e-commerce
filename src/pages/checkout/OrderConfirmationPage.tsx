@@ -22,7 +22,12 @@ function mapDtoToView(dto: OrderDto): {
   placedAt: string;
   lineItems: LineRow[];
   total: number;
+  shippingAddress: string | null;
 } {
+  const ship =
+    dto.shippingAddress != null && String(dto.shippingAddress).trim() !== ''
+      ? String(dto.shippingAddress).trim()
+      : null;
   return {
     orderId: String(dto.id),
     statusLabel: orderStatusLabelVi(dto.status),
@@ -35,6 +40,7 @@ function mapDtoToView(dto: OrderDto): {
       lineTotal: Number(item.priceAtOrder) * Number(item.quantity),
     })),
     total: Number(dto.totalPrice),
+    shippingAddress: ship,
   };
 }
 
@@ -166,9 +172,16 @@ const OrderConfirmationPage: React.FC = () => {
             {view.placedAt}
           </p>
           <p className="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
-            Backend hiện không lưu địa chỉ / thanh toán chi tiết trên đơn — vui lòng giữ email xác nhận (nếu có) hoặc xem chi tiết đơn bên dưới.
+            Địa chỉ giao hàng đã lưu trên đơn. Chi tiết sản phẩm và tổng tiền xem bên dưới hoặc trang chi tiết đơn.
           </p>
         </div>
+
+        {view.shippingAddress && (
+          <div className="max-w-2xl mx-auto mb-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-5 text-left">
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-2">Địa chỉ giao hàng</h2>
+            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{view.shippingAddress}</p>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Link

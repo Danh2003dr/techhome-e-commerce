@@ -33,7 +33,7 @@ function resolveCategoryBySlug(apiCategories: Category[], normalizedSlug: string
   return findCategoryInGroup(apiCategories, slugGroups[groupKey]);
 }
 
-/** Leo lên gốc nhánh (parent_id rỗng) để chọn template hero/sort */
+/** Leo lên gốc nhánh (parent_id rỗng) để chọn template (sort, chips fallback) */
 function rootCategoryForTemplate(apiCategories: Category[], leaf: Category | undefined): Category | undefined {
   let n: Category | undefined = leaf;
   const seen = new Set<string>();

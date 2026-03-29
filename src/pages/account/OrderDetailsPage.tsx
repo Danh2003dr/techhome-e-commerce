@@ -25,6 +25,10 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
   }));
   const subtotal = lineItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const pending = String(dto.status || '').toUpperCase() === 'PENDING';
+  const shipSnap =
+    dto.shippingAddress != null && String(dto.shippingAddress).trim() !== ''
+      ? String(dto.shippingAddress).trim()
+      : null;
   return {
     orderId: String(dto.id),
     placedDate,
@@ -44,13 +48,21 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
     shipping: 0,
     tax: 0,
     total: Number(dto.totalPrice),
-    shippingAddress: {
-      name: 'Chưa lưu trên hệ thống',
-      street: 'API đơn hàng hiện không trả về địa chỉ giao hàng.',
-      cityStateZip: 'Vui lòng kiểm tra email xác nhận hoặc liên hệ hỗ trợ.',
-      country: '',
-      phone: '',
-    },
+    shippingAddress: shipSnap
+      ? {
+          name: 'Địa chỉ giao hàng (khi đặt)',
+          street: shipSnap,
+          cityStateZip: '',
+          country: '',
+          phone: '',
+        }
+      : {
+          name: '—',
+          street: 'Đơn này tạo trước khi lưu địa chỉ trên server, hoặc chưa có dữ liệu.',
+          cityStateZip: '',
+          country: '',
+          phone: '',
+        },
     payment: { brand: 'Đã ghi nhận', last4: '—', expires: 'Khi đặt hàng' },
   };
 }
@@ -280,7 +292,7 @@ const OrderDetailsPage: React.FC = () => {
                   <span className="material-icons text-slate-400 flex-shrink-0">location_on</span>
                   <div className="text-sm text-slate-500">
                     <p className="font-bold text-slate-900 dark:text-white">{order.shippingAddress.name}</p>
-                    <p className="mt-1">{order.shippingAddress.street}</p>
+                    <p className="mt-1 whitespace-pre-wrap">{order.shippingAddress.street}</p>
                     <p>{order.shippingAddress.cityStateZip}</p>
                     <p>{order.shippingAddress.country}</p>
                     <p className="mt-2 font-medium text-slate-700 dark:text-slate-300">{order.shippingAddress.phone}</p>

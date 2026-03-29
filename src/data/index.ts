@@ -197,7 +197,6 @@ export const cartItems: CartItem[] = [
 export const navItems: NavItem[] = [
   { label: 'Hồ sơ cá nhân', icon: 'person', path: '/profile' },
   { label: 'Lịch sử đơn hàng', icon: 'shopping_bag', path: '/orders' },
-  { label: 'Sổ địa chỉ', icon: 'location_on', path: '/account/addresses' },
 ];
 
 export const banners: Banner[] = [

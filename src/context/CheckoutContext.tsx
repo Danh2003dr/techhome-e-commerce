@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { SavedAddress, CartItem } from '@/types';
+import type { CartItem } from '@/types';
 
+/** Giữ cho `ShippingMethodCard` / `CheckoutStep2` (không còn trong luồng chính). */
 export interface ShippingMethod {
   id: string;
   name: string;
@@ -25,21 +26,19 @@ export interface AppliedVoucherInfo {
 }
 
 export interface CheckoutData {
-  // Step 1: Shipping Address
-  selectedAddress: SavedAddress | null;
-  newAddress: Partial<SavedAddress> | null;
-  
-  // Step 2: Shipping Method
-  shippingMethod: ShippingMethod | null;
-  
-  // Step 3: Payment
+  /** Địa chỉ giao hàng đầy đủ (một chuỗi) — đồng bộ snapshot khi đặt hàng. */
+  shippingAddress: string;
+
+  /** @deprecated Không còn bước chọn; giữ cho file cũ CheckoutStep2. */
+  shippingMethod?: ShippingMethod | null;
+
   paymentMethod: PaymentMethod | null;
+  /** Mã giảm giá gửi lên backend (POST /checkout/quote, POST /orders). */
   couponCode: string;
-  /** Set when a voucher code is validated against the local voucher store. */
+  /** @deprecated Dùng couponCode + báo giá server; giữ tương thích cũ. */
   appliedVoucher: AppliedVoucherInfo | null;
   agreeToTerms: boolean;
-  
-  // Cart items
+
   items: CartItem[];
 }
 
@@ -54,8 +53,7 @@ interface CheckoutContextType {
 }
 
 const defaultCheckoutData: CheckoutData = {
-  selectedAddress: null,
-  newAddress: null,
+  shippingAddress: '',
   shippingMethod: null,
   paymentMethod: null,
   couponCode: '',
@@ -68,6 +66,7 @@ const CheckoutContext = createContext<CheckoutContextType | undefined>(undefined
 
 export const CheckoutProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [checkoutData, setCheckoutData] = useState<CheckoutData>(defaultCheckoutData);
+  /** 1 = địa chỉ, 2 = thanh toán (không còn bước chọn vận chuyển). */
   const [currentStep, setCurrentStep] = useState(1);
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
@@ -75,7 +74,7 @@ export const CheckoutProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const nextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -115,4 +114,3 @@ export const useCheckout = () => {
   }
   return context;
 };
-
