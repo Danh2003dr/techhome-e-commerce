@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
 import { useAuth } from '@/context/AuthContext';
-import { createOrder } from '@/services/backend';
+import { createOrder, setCart } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { ApiError } from '@/services/api';
 import { incrementVoucherUse } from '@/services/adminMockStore';
@@ -17,7 +17,7 @@ interface CheckoutStep3Props {
 
 const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   const navigate = useNavigate();
-  const { checkoutData, updateCheckoutData } = useCheckout();
+  const { checkoutData, updateCheckoutData, resetCheckout } = useCheckout();
   const { isAuthenticated, user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('credit_card');
   const [cardData, setCardData] = useState({
@@ -82,41 +82,27 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
     const tax = afterDiscount * 0.08;
     const totalPrice = afterDiscount + shipping + tax;
 
-    if (useBackend) {
-      const productIdsValid = items.every((i) => !Number.isNaN(Number(i.productId)));
-      if (!productIdsValid) {
-        setOrderError('Cart contains items that cannot be ordered via API. Please sign in and add products from the catalog.');
-        return;
-      }
-      setPlacing(true);
-      try {
-        const order = await createOrder({
-          totalPrice,
-          items: items.map((i) => ({
-            productId: Number(i.productId),
-            quantity: i.quantity,
-            price: i.price,
-          })),
-        });
-        if (checkoutData.appliedVoucher?.code) {
-          incrementVoucherUse(checkoutData.appliedVoucher.code);
-        }
-        if (user?.id != null) {
-          recordPurchasedProducts(
-            String(user.id),
-            items.map((i) => String(i.productId))
-          );
-        }
-        navigate('/order-confirmation', { state: { orderId: order.id, fromApi: true } });
-      } catch (err) {
-        setOrderError(err instanceof ApiError ? err.message : 'Failed to create order.');
-        if (err instanceof ApiError && err.status === 401) {
-          setOrderError('Please sign in to place an order.');
-        }
-      } finally {
-        setPlacing(false);
-      }
-    } else {
+    if (!useBackend) {
+      setOrderError('Vui lòng đăng nhập và cấu hình API (VITE_API_URL) để đặt hàng. Chỉ lưu đơn qua backend.');
+      return;
+    }
+
+    const productIdsValid = items.every((i) => !Number.isNaN(Number(i.productId)));
+    if (!productIdsValid) {
+      setOrderError('Giỏ có sản phẩm không đặt được qua API (mã sản phẩm không hợp lệ). Hãy thêm hàng từ danh mục.');
+      return;
+    }
+
+    setPlacing(true);
+    try {
+      const order = await createOrder({
+        totalPrice,
+        items: items.map((i) => ({
+          productId: Number(i.productId),
+          quantity: i.quantity,
+          price: i.price,
+        })),
+      });
       if (checkoutData.appliedVoucher?.code) {
         incrementVoucherUse(checkoutData.appliedVoucher.code);
       }
@@ -126,12 +112,20 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
           items.map((i) => String(i.productId))
         );
       }
-      navigate('/order-confirmation', {
-        state: {
-          fromApi: false,
-          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-        },
-      });
+      try {
+        await setCart([]);
+      } catch {
+        /* giỏ server có thể lỗi mạng — đơn vẫn đã tạo */
+      }
+      resetCheckout();
+      navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
+    } catch (err) {
+      setOrderError(err instanceof ApiError ? err.message : 'Không tạo được đơn hàng.');
+      if (err instanceof ApiError && err.status === 401) {
+        setOrderError('Phiên đăng nhập hết hạn — vui lòng đăng nhập lại.');
+      }
+    } finally {
+      setPlacing(false);
     }
   };
 

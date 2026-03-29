@@ -48,7 +48,7 @@ const AppRoutes: React.FC = () => (
 
     {/* Routes không có MainLayout (auth pages, account pages có AccountHeader riêng) */}
     <Route path="/profile" element={<ProfilePage />} />
-    <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+    <Route path="/order-confirmation" element={<Navigate to="/orders" replace />} />
     <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/403" element={<ForbiddenPage />} />

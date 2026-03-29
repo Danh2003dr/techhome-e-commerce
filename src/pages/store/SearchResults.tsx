@@ -30,16 +30,13 @@ const SearchResults: React.FC = () => {
     q: query || undefined,
     page: 0,
     size: 100,
+    sort: sort === 'newest' ? 'id_desc' : undefined,
   });
 
   const results = useMemo(() => {
     if (!isApiConfigured()) return [];
-    let list = [...apiProducts];
-    if (sort === 'newest') {
-      list = list.sort((a, b) => Number(b.id) - Number(a.id));
-    }
-    return list;
-  }, [apiProducts, sort]);
+    return [...apiProducts];
+  }, [apiProducts]);
 
   const popularProducts = useMemo(() => {
     if (!isApiConfigured()) return [];

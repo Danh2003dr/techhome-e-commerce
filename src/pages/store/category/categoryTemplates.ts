@@ -16,48 +16,6 @@ export type CategorySubCategory = {
   value?: string;
 };
 
-type CheckboxOption = {
-  label: string;
-  defaultChecked?: boolean;
-  rightText?: string;
-};
-
-export type CategoryFilterSection =
-  | {
-      id: string;
-      type: 'checkbox';
-      title: string;
-      options: CheckboxOption[];
-    }
-  | {
-      id: string;
-      type: 'swatches';
-      title: string;
-      swatches: { bgClass: string; ringClass?: string }[];
-    }
-  | {
-      id: string;
-      type: 'range';
-      title: string;
-      minLabel: string;
-      maxLabel: string;
-    }
-  | {
-      id: string;
-      type: 'toggle';
-      title: string;
-      mode: 'single';
-      options: string[];
-      initialValue?: string | null;
-    }
-  | {
-      id: string;
-      type: 'radio';
-      title: string;
-      options: string[];
-      initialValue?: string | null;
-    };
-
 export type CategorySortOption = {
   value: string;
   label: string;
@@ -71,8 +29,8 @@ export type CategoryTemplateConfig = {
   breadcrumbIntermediateLabel: string;
 
   hero: CategoryHeroConfig;
+  /** Fallback when API has no child categories — not shown as chips until wired to real data */
   subCategories: CategorySubCategory[];
-  filters: CategoryFilterSection[];
 
   defaultSortBy: string;
   sortOptions: CategorySortOption[];
@@ -87,7 +45,6 @@ const HERO_MOBILE =
 const HERO_AUDIO =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCi1GpWnEhQSlHntiNLVve9xzux9Uvoto9E-Mw4dCOwR502O-eYrKgv20d47lGjmX0Fsn0gFdDcd8tqCBTRkNIvqZcW0uBuumshu6Rg5c2zf6cXEVNcANj1ZzFLq_3xDURsHq7NJt-RLN0YAVi8ft535Ct-Kxt9FUAqYuX0d6gGiHx5P2gTpggxpKUA_QW1Ep06u5P6O8WYHbCW_nr_tdn5OqfcF5k1h7yqKkW_iQ-q_iNXmagg9U4j3ivnwHdYBpTl_EZlRFPV5oY';
 
-// Keep a shared set of sort labels for UI consistency across all categories.
 const DEFAULT_SORT_OPTIONS: CategorySortOption[] = [
   { value: 'Newest Arrivals', label: 'Newest Arrivals' },
   { value: 'Price: Low to High', label: 'Price: Low to High' },
@@ -121,42 +78,6 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       { label: 'All Products', icon: 'apps' },
     ],
 
-    filters: [
-      {
-        id: 'mobile-brand',
-        type: 'checkbox',
-        title: 'Brand',
-        options: [
-          { label: 'Apple', rightText: '24' },
-          { label: 'Samsung', rightText: '18' },
-          { label: 'Xiaomi', rightText: '12' },
-          { label: 'Google', rightText: '6' },
-        ],
-      },
-      {
-        id: 'mobile-price',
-        type: 'range',
-        title: 'Price Range',
-        minLabel: '0 ₫',
-        maxLabel: '50.000.000+ ₫',
-      },
-      {
-        id: 'mobile-ram',
-        type: 'toggle',
-        mode: 'single',
-        title: 'RAM',
-        options: ['4 GB', '8 GB', '12 GB', '16 GB'],
-        initialValue: '12 GB',
-      },
-      {
-        id: 'mobile-storage',
-        type: 'radio',
-        title: 'Storage',
-        options: ['128 GB', '256 GB', '512 GB'],
-        initialValue: null,
-      },
-    ],
-
     defaultSortBy: 'Most Popular',
     sortOptions: DEFAULT_SORT_OPTIONS,
   },
@@ -185,45 +106,6 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       { label: 'Phone Cases', icon: 'smartphone' },
       { label: 'Power Banks', icon: 'battery_charging_full' },
       { label: 'Audio Gear', icon: 'headphones' },
-    ],
-
-    filters: [
-      {
-        id: 'acc-compatibility',
-        type: 'checkbox',
-        title: 'Compatibility',
-        options: [
-          { label: 'MacBook Pro (M1/M2/M3)' },
-          { label: 'iPhone 15 Series', defaultChecked: true },
-          { label: 'iPad Pro 12.9"' },
-          { label: 'Universal USB-C' },
-        ],
-      },
-      {
-        id: 'acc-brand',
-        type: 'checkbox',
-        title: 'Brand',
-        options: [{ label: 'Satechi' }, { label: 'Logitech' }, { label: 'Anker' }, { label: 'Apple' }],
-      },
-      {
-        id: 'acc-color',
-        type: 'swatches',
-        title: 'Color',
-        swatches: [
-          { bgClass: 'bg-slate-900', ringClass: 'border-2 border-primary ring-2 ring-transparent ring-offset-2' },
-          { bgClass: 'bg-slate-300', ringClass: 'border-2 border-transparent' },
-          { bgClass: 'bg-blue-500', ringClass: 'border-2 border-transparent' },
-          { bgClass: 'bg-white border border-slate-200', ringClass: '' },
-          { bgClass: 'bg-rose-400', ringClass: 'border-2 border-transparent' },
-        ],
-      },
-      {
-        id: 'acc-price',
-        type: 'range',
-        title: 'Price Range',
-        minLabel: '$0',
-        maxLabel: '$500+',
-      },
     ],
 
     defaultSortBy: 'Newest Arrivals',
@@ -255,48 +137,7 @@ export const categoryTemplates: Record<CategoryTemplateKey, CategoryTemplateConf
       { label: 'Soundbars', icon: 'graphic_eq' },
     ],
 
-    filters: [
-      {
-        id: 'audio-type',
-        type: 'checkbox',
-        title: 'Audio Type',
-        options: [
-          { label: 'Over-Ear' },
-          { label: 'In-Ear' },
-          { label: 'On-Ear' },
-          { label: 'Bookshelf Speakers' },
-        ],
-      },
-      {
-        id: 'audio-brand',
-        type: 'checkbox',
-        title: 'Brand',
-        options: [{ label: 'Bose' }, { label: 'Sony' }, { label: 'JBL' }, { label: 'Apple' }],
-      },
-      {
-        id: 'audio-battery',
-        type: 'checkbox',
-        title: 'Battery Life',
-        options: [
-          { label: 'Up to 10 hours' },
-          { label: '10 - 20 hours' },
-          { label: '20+ hours' },
-        ],
-      },
-      {
-        id: 'audio-connection',
-        type: 'checkbox',
-        title: 'Connection Type',
-        options: [
-          { label: 'Wireless (Bluetooth)' },
-          { label: 'Wired (3.5mm)' },
-          { label: 'Optical / HDMI' },
-        ],
-      },
-    ],
-
     defaultSortBy: 'Most Popular',
     sortOptions: DEFAULT_SORT_OPTIONS,
   },
 };
-

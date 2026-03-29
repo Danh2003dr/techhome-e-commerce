@@ -1,48 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getOrder } from '@/services/backend';
-import { isApiConfigured } from '@/services/api';
+import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
 import type { OrderDto } from '@/types/api';
 import type { OrderDetailsData } from '@/types';
+import { orderStatusLabelVi } from '@/utils/orderDisplay';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
-const PLACEHOLDER_IMG = 'https://picsum.photos/100/100?random=product';
-
-function statusToLabel(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: 'Đang xử lý',
-    Processing: 'Đang xử lý',
-    Shipped: 'Đã giao',
-    Shipping: 'Đang giao',
-    Delivered: 'Đã giao',
-    Cancelled: 'Đã hủy',
-  };
-  return map[status] || status;
-}
-
 function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
   const placedDate = formatDate(dto.createdAt);
+  const statusLabel = orderStatusLabelVi(dto.status);
   const lineItems = dto.items.map((item) => ({
     name: item.productName,
-    image: item.productImage || PLACEHOLDER_IMG,
-    specs: '',
+    image: item.productImage && String(item.productImage).trim() ? String(item.productImage) : '',
+    specs: `SL: ${item.quantity}`,
     quantity: item.quantity,
     price: Number(item.priceAtOrder),
   }));
   const subtotal = lineItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const pending = String(dto.status || '').toUpperCase() === 'PENDING';
   return {
     orderId: String(dto.id),
     placedDate,
-    statusLabel: statusToLabel(dto.status),
+    statusLabel,
     stepperSteps: [
       { label: 'Đã đặt hàng', sublabel: placedDate, completed: true, active: false, icon: 'check' },
-      { label: 'Trạng thái', sublabel: statusToLabel(dto.status), completed: dto.status !== 'PENDING', active: true, icon: 'local_shipping' },
+      {
+        label: 'Xử lý & giao hàng',
+        sublabel: statusLabel,
+        completed: !pending,
+        active: true,
+        icon: 'local_shipping',
+      },
     ],
     lineItems,
     subtotal,
@@ -50,13 +45,13 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
     tax: 0,
     total: Number(dto.totalPrice),
     shippingAddress: {
-      name: '—',
-      street: '—',
-      cityStateZip: '—',
-      country: '—',
-      phone: '—',
+      name: 'Chưa lưu trên hệ thống',
+      street: 'API đơn hàng hiện không trả về địa chỉ giao hàng.',
+      cityStateZip: 'Vui lòng kiểm tra email xác nhận hoặc liên hệ hỗ trợ.',
+      country: '',
+      phone: '',
     },
-    payment: { brand: '—', last4: '—', expires: '—' },
+    payment: { brand: 'Đã ghi nhận', last4: '—', expires: 'Khi đặt hàng' },
   };
 }
 
@@ -66,26 +61,32 @@ const OrderDetailsPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [order, setOrder] = useState<OrderDetailsData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const apiOn = isApiConfigured();
 
   useEffect(() => {
     if (!orderId) {
       setOrder(null);
+      setError(null);
       return;
     }
-    if (isApiConfigured() && isAuthenticated) {
-      setLoading(true);
-      getOrder(orderId)
-        .then((dto) => {
-          setOrder(mapOrderDtoToDetails(dto));
-        })
-        .catch(() => {
-          setOrder(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
+    if (!apiOn || !isAuthenticated) {
       setOrder(null);
+      setError(null);
+      return;
     }
-  }, [orderId, isAuthenticated]);
+    setLoading(true);
+    setError(null);
+    getOrder(orderId)
+      .then((dto) => {
+        setOrder(mapOrderDtoToDetails(dto));
+      })
+      .catch((e: unknown) => {
+        setOrder(null);
+        setError(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Không tải được đơn hàng.');
+      })
+      .finally(() => setLoading(false));
+  }, [orderId, isAuthenticated, apiOn]);
 
   if (loading) {
     return (
@@ -98,13 +99,31 @@ const OrderDetailsPage: React.FC = () => {
     );
   }
 
-  if (!order) {
+  if (!loading && !order) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark font-display">
-        <div className="text-center">
-          <p className="text-slate-500 mb-4">Không tìm thấy đơn hàng.</p>
-          <Link to="/orders" className="text-primary font-semibold hover:underline">Quay lại lịch sử đơn hàng</Link>
+      <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-display">
+        <AccountHeader />
+        <div className="flex-grow flex items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <p className="text-slate-500 mb-2">
+              {!apiOn
+                ? 'Cấu hình VITE_API_URL để xem đơn hàng.'
+                : !isAuthenticated
+                  ? 'Vui lòng đăng nhập.'
+                  : error ?? 'Không tìm thấy đơn hàng.'}
+            </p>
+            {!isAuthenticated && apiOn ? (
+              <Link to="/login" className="text-primary font-semibold hover:underline">
+                Đăng nhập
+              </Link>
+            ) : (
+              <Link to="/orders" className="text-primary font-semibold hover:underline">
+                Quay lại lịch sử đơn hàng
+              </Link>
+            )}
+          </div>
         </div>
+        <AccountFooter />
       </div>
     );
   }
@@ -188,7 +207,11 @@ const OrderDetailsPage: React.FC = () => {
                   {order.lineItems.map((item, idx) => (
                     <div key={`${item.name}-${idx}`} className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
                       <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 flex items-center justify-center flex-shrink-0">
-                        <img alt={item.name} src={item.image} className="max-w-full max-h-full object-contain" />
+                        {item.image ? (
+                          <img alt="" src={item.image} className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <span className="material-icons text-slate-400 text-4xl">inventory_2</span>
+                        )}
                       </div>
                       <div className="flex-grow min-w-0">
                         <h4 className="font-bold text-slate-900 dark:text-white text-lg">{item.name}</h4>
@@ -272,8 +295,8 @@ const OrderDetailsPage: React.FC = () => {
                     <span className="material-icons text-slate-600 dark:text-slate-400 text-xl">credit_card</span>
                   </div>
                   <div className="text-sm">
-                    <p className="font-bold text-slate-900 dark:text-white">{order.payment.brand} {order.payment.last4 !== '—' ? `kết thúc bằng ${order.payment.last4}` : ''}</p>
-                    <p className="text-slate-400">{order.payment.expires !== '—' ? `Hết hạn ${order.payment.expires}` : ''}</p>
+                    <p className="font-bold text-slate-900 dark:text-white">{order.payment.brand}</p>
+                    <p className="text-slate-400 text-sm">{order.payment.expires}</p>
                   </div>
                 </div>
               </div>

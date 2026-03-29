@@ -1,51 +1,21 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-
-type InvoiceParty = {
-  name: string;
-  address: string;
-};
-
-type InvoiceItem = {
-  id: number;
-  description: string;
-  quantity: number;
-  baseCost: number;
-};
-
-type InvoiceData = {
-  from: InvoiceParty;
-  to: InvoiceParty;
-  invoiceDate: string;
-  dueDate: string;
-  items: InvoiceItem[];
-};
-
-const MOCK_INVOICE: InvoiceData = {
-  from: {
-    name: 'Virginia Walker',
-    address: '9694 Krajcik Locks Suite 635',
-  },
-  to: {
-    name: 'Austin Miller',
-    address: 'Brookview',
-  },
-  invoiceDate: '12 Nov 2019',
-  dueDate: '25 Dec 2019',
-  items: [
-    { id: 1, description: 'Children Toy', quantity: 2, baseCost: 20 },
-    { id: 2, description: 'Makeup', quantity: 2, baseCost: 50 },
-    { id: 3, description: 'Asus Laptop', quantity: 5, baseCost: 100 },
-    { id: 4, description: 'Iphone X', quantity: 4, baseCost: 1000 },
-  ],
-};
-
-const formatCurrency = (value: number) => `$${value}`;
+import { getOrder } from '@/services/backend';
+import { isApiConfigured, ApiError } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import type { OrderDto } from '@/types/api';
+import { formatVND } from '@/utils';
+import { formatDate } from '@/utils/formatDate';
+import { orderStatusLabelVi } from '@/utils/orderDisplay';
 
 const InvoicePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
   const autoprint = searchParams.get('autoprint') === '1';
+  const { isAuthenticated } = useAuth();
+  const [dto, setDto] = useState<OrderDto | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!autoprint) return;
@@ -55,43 +25,48 @@ const InvoicePage: React.FC = () => {
     return () => window.clearTimeout(t);
   }, [autoprint]);
 
-  const rows = useMemo(
-    () =>
-      MOCK_INVOICE.items.map((item) => ({
-        ...item,
-        totalCost: item.quantity * item.baseCost,
-      })),
-    [],
-  );
+  useEffect(() => {
+    if (!orderId || !isApiConfigured() || !isAuthenticated) {
+      setDto(null);
+      setError(null);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getOrder(orderId)
+      .then(setDto)
+      .catch((e: unknown) => {
+        setDto(null);
+        setError(e instanceof ApiError ? e.message : 'Không tải được đơn.');
+      })
+      .finally(() => setLoading(false));
+  }, [orderId, isAuthenticated]);
 
-  const totalAmount = useMemo(() => rows.reduce((sum, item) => sum + item.totalCost, 0), [rows]);
+  const rows = useMemo(() => {
+    if (!dto) return [];
+    return dto.items.map((item, idx) => ({
+      key: `${item.productId}-${idx}`,
+      description: item.productName,
+      quantity: item.quantity,
+      unit: Number(item.priceAtOrder),
+      total: Number(item.priceAtOrder) * Number(item.quantity),
+    }));
+  }, [dto]);
+
+  const totalAmount = dto ? Number(dto.totalPrice) : 0;
 
   const handlePrint = () => {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
-  };
-
-  const sendInvoice = () => {
-    // TODO: Replace with API call when backend endpoint is available.
-    console.log('Sending invoice...', {
-      from: MOCK_INVOICE.from,
-      to: MOCK_INVOICE.to,
-      invoiceDate: MOCK_INVOICE.invoiceDate,
-      dueDate: MOCK_INVOICE.dueDate,
-      items: rows,
-      totalAmount,
-    });
+    window.print();
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-[32px] leading-[44px] font-semibold tracking-tight text-[#202224]">Invoice</h1>
+          <h1 className="text-[32px] leading-[44px] font-semibold tracking-tight text-[#202224]">Hóa đơn</h1>
           {orderId && (
             <p className="text-sm font-semibold text-slate-500 mt-1">
-              Order ID: <span className="text-slate-800">{orderId}</span>
+              Mã đơn: <span className="text-slate-800">{orderId}</span>
             </p>
           )}
         </div>
@@ -100,91 +75,95 @@ const InvoicePage: React.FC = () => {
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <span className="material-icons text-[18px]">arrow_back</span>
-          Back to Orders
+          Quay lại
         </Link>
       </div>
 
-      <section className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 md:p-7 lg:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-          <div className="space-y-1.5">
-            <p className="text-sm font-semibold text-slate-500">Invoice From :</p>
-            <p className="text-base font-semibold text-slate-900">{MOCK_INVOICE.from.name}</p>
-            <p className="text-sm font-medium text-slate-500">{MOCK_INVOICE.from.address}</p>
-          </div>
+      {!orderId && (
+        <p className="text-sm text-slate-500">Thêm <code className="text-xs">?orderId=</code> để tải đơn (theo tài khoản đang đăng nhập).</p>
+      )}
 
-          <div className="space-y-1.5">
-            <p className="text-sm font-semibold text-slate-500">Invoice To :</p>
-            <p className="text-base font-semibold text-slate-900">{MOCK_INVOICE.to.name}</p>
-            <p className="text-sm font-medium text-slate-500">{MOCK_INVOICE.to.address}</p>
-          </div>
+      {orderId && !isApiConfigured() && (
+        <p className="text-sm text-amber-700">Cấu hình VITE_API_URL.</p>
+      )}
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold text-slate-500">Invoice Date :</span>
-              <span className="font-semibold text-slate-900">{MOCK_INVOICE.invoiceDate}</span>
+      {orderId && isApiConfigured() && !isAuthenticated && (
+        <p className="text-sm text-slate-600">
+          <Link to="/login" className="text-primary font-semibold hover:underline">
+            Đăng nhập
+          </Link>{' '}
+          — chỉ xem được đơn của chính user.
+        </p>
+      )}
+
+      {loading && <p className="text-sm text-slate-500">Đang tải…</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {dto && (
+        <section className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 md:p-7 lg:p-8 print:shadow-none print:border-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
+            <div>
+              <p className="text-sm font-semibold text-slate-500">TechHome</p>
+              <p className="text-sm text-slate-600 mt-1">Hóa đơn bán hàng (theo dữ liệu đơn API)</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold text-slate-500">Due Date :</span>
-              <span className="font-semibold text-slate-900">{MOCK_INVOICE.dueDate}</span>
+            <div className="space-y-1 text-sm">
+              <p>
+                <span className="font-semibold text-slate-500">Ngày đặt: </span>
+                <span className="text-slate-900">{formatDate(dto.createdAt)}</span>
+              </p>
+              <p>
+                <span className="font-semibold text-slate-500">Trạng thái: </span>
+                <span className="text-slate-900">{orderStatusLabelVi(dto.status)}</span>
+              </p>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-[680px] border-separate border-spacing-0">
-            <thead>
-              <tr className="bg-slate-100/90">
-                <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-l-xl">Serial No.</th>
-                <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Description</th>
-                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Quantity</th>
-                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Base Cost</th>
-                <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-r-xl">Total Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-5 py-4 text-sm text-slate-700 border-b border-slate-100">{item.id}</td>
-                  <td className="px-5 py-4 text-sm font-medium text-slate-800 border-b border-slate-100">{item.description}</td>
-                  <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{item.quantity}</td>
-                  <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{formatCurrency(item.baseCost)}</td>
-                  <td className="px-5 py-4 text-sm text-right text-slate-800 font-semibold border-b border-slate-100">
-                    {formatCurrency(item.totalCost)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-slate-100/90">
+                  <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-l-xl">#</th>
+                  <th className="text-left text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Mặt hàng</th>
+                  <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">SL</th>
+                  <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3">Đơn giá</th>
+                  <th className="text-right text-xs md:text-sm font-semibold text-slate-600 px-5 py-3 rounded-r-xl">Thành tiền</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-5 flex justify-end">
-          <div className="flex items-center gap-4 text-lg">
-            <span className="text-slate-700">Total</span>
-            <span className="font-bold text-slate-900">=</span>
-            <span className="font-extrabold text-slate-900">{formatCurrency(totalAmount)}</span>
+              </thead>
+              <tbody>
+                {rows.map((item, i) => (
+                  <tr key={item.key}>
+                    <td className="px-5 py-4 text-sm text-slate-700 border-b border-slate-100">{i + 1}</td>
+                    <td className="px-5 py-4 text-sm font-medium text-slate-800 border-b border-slate-100">{item.description}</td>
+                    <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{item.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-right text-slate-700 border-b border-slate-100">{formatVND(item.unit)}</td>
+                    <td className="px-5 py-4 text-sm text-right text-slate-800 font-semibold border-b border-slate-100">
+                      {formatVND(item.total)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
 
-        <div className="mt-8 flex justify-end items-center gap-3">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="w-11 h-11 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors inline-flex items-center justify-center"
-            aria-label="Print invoice"
-          >
-            <span className="material-icons text-[20px]">print</span>
-          </button>
+          <div className="mt-5 flex justify-end">
+            <div className="flex items-center gap-4 text-lg">
+              <span className="text-slate-700">Tổng</span>
+              <span className="font-extrabold text-slate-900">{formatVND(totalAmount)}</span>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={sendInvoice}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#4880FF] text-white font-semibold text-sm px-5 h-11 hover:bg-[#3E73E8] transition-colors"
-          >
-            Send
-            <span className="material-icons text-[18px]">send</span>
-          </button>
-        </div>
-      </section>
+          <div className="mt-8 flex justify-end print:hidden">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="w-11 h-11 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors inline-flex items-center justify-center"
+              aria-label="In"
+            >
+              <span className="material-icons text-[20px]">print</span>
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

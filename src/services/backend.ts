@@ -76,6 +76,8 @@ export interface ProductsParams {
   q?: string;
   page?: number;
   size?: number;
+  /** Catalog list sort — see backend `Product.findCatalog` / GET /products */
+  sort?: string;
 }
 
 export interface AdminProductUpsertPayload {
@@ -132,13 +134,14 @@ export async function createAdminCategory(payload: {
   return apiPost<CategoryDto>('/categories', payload, { auth: true });
 }
 
-/** GET /api/products?category=&q=&page=&size= */
+/** GET /api/products?category=&q=&page=&size=&sort= */
 export async function getProducts(params: ProductsParams = {}): Promise<ProductDto[]> {
   const sp = new URLSearchParams();
   if (params.category != null) sp.set('category', String(params.category));
   if (params.q != null && params.q !== '') sp.set('q', params.q);
   if (params.page != null) sp.set('page', String(params.page));
   if (params.size != null) sp.set('size', String(params.size));
+  if (params.sort != null && String(params.sort).trim() !== '') sp.set('sort', String(params.sort).trim());
   const query = sp.toString();
   const path = query ? `/products?${query}` : '/products';
   return apiGet<ProductDto[]>(path, { auth: false });
