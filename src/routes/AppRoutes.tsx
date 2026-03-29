@@ -56,7 +56,6 @@ const AppRoutes: React.FC = () => (
     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
-    <Route path="/account/addresses" element={<Navigate to="/profile" replace />} />
     <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />

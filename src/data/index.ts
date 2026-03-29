@@ -1,4 +1,4 @@
-import type { Product, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct, SavedAddress } from '@/types';
+import type { Product, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct } from '@/types';
 
 export const products: Product[] = [
   {
@@ -128,40 +128,6 @@ export const products: Product[] = [
     rating: 4.4,
     reviews: 445,
     image: 'https://picsum.photos/400/400?random=webcam',
-  },
-];
-
-export const savedAddresses: SavedAddress[] = [
-  {
-    id: 'addr-home',
-    label: 'Home',
-    tagIcon: 'home',
-    tagPrimary: true,
-    name: 'Alex Johnson',
-    phone: '+1 (555) 000-1234',
-    addressLines: ['123 Silicon Valley Drive', 'Suite 400', 'Palo Alto, CA 94301', 'United States'],
-    street: '123 Silicon Valley Drive',
-    apartment: 'Suite 400',
-    city: 'Palo Alto',
-    state: 'CA',
-    zipCode: '94301',
-    country: 'United States',
-    isDefault: true,
-  },
-  {
-    id: 'addr-office',
-    label: 'Office',
-    tagIcon: 'work',
-    name: 'Alex Johnson',
-    phone: '+1 (555) 987-6543',
-    addressLines: ['500 Innovation Way', 'Tech Center Tower', 'San Francisco, CA 94105', 'United States'],
-    street: '500 Innovation Way',
-    apartment: 'Tech Center Tower',
-    city: 'San Francisco',
-    state: 'CA',
-    zipCode: '94105',
-    country: 'United States',
-    isDefault: false,
   },
 ];
 

@@ -162,24 +162,40 @@ const ProductDetail: React.FC = () => {
           ]}
           className="mb-8"
         />
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
-            <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4">
-              <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto hide-scrollbar">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 mb-16 lg:items-start">
+            <div className="flex flex-col-reverse sm:flex-row gap-4 sm:gap-5 lg:sticky lg:top-24 lg:self-start">
+              <div className="flex sm:flex-col gap-2.5 sm:gap-3 overflow-x-auto sm:overflow-y-auto sm:max-h-[min(560px,75vh)] hide-scrollbar sm:shrink-0 sm:w-[4.75rem]">
                 {images.slice(0, 5).map((img, num) => (
-                  <button key={num} type="button" onClick={() => setSelectedImageIndex(num)} className={`w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer transition-colors ${selectedImageIndex === num ? 'border-2 border-primary' : 'border border-slate-200 dark:border-slate-800 hover:border-primary/50'}`}>
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(num)}
+                    className={`w-16 h-16 sm:w-[4.25rem] sm:h-[4.25rem] flex-shrink-0 rounded-xl overflow-hidden cursor-pointer transition-colors ${selectedImageIndex === num ? 'ring-2 ring-primary ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark' : 'border border-slate-200 dark:border-slate-700 hover:border-primary/50'}`}
+                  >
                     <img alt={`Thumbnail ${num + 1}`} src={thumbSrc(num)} className="w-full h-full object-cover" onError={() => setFailedThumbIndices((prev) => new Set(prev).add(num))} />
                   </button>
                 ))}
               </div>
-              <div className="flex-grow bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center relative group">
-                <img alt={product.name} src={mainImageSrc} className="w-full h-auto object-contain p-8" onError={() => setFailedThumbIndices((prev) => new Set(prev).add(selectedImageIndex))} />
-                <button type="button" className="absolute bottom-4 right-4 bg-white/80 dark:bg-black/40 backdrop-blur p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-icons">zoom_in</span></button>
+              <div className="min-w-0 flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center relative group w-full max-w-[560px] mx-auto h-[min(85vw,420px)] sm:h-[min(72vw,480px)] lg:h-[min(520px,65vh)] min-h-[260px]">
+                <img
+                  alt={product.name}
+                  src={mainImageSrc}
+                  className="max-w-full max-h-full w-auto h-auto object-contain p-4 sm:p-6 md:p-8"
+                  onError={() => setFailedThumbIndices((prev) => new Set(prev).add(selectedImageIndex))}
+                />
+                <button
+                  type="button"
+                  className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Phóng to ảnh"
+                >
+                  <span className="material-icons text-slate-700 dark:text-slate-200 text-xl">zoom_in</span>
+                </button>
               </div>
             </div>
-            <div className="lg:col-span-5 flex flex-col">
+            <div className="flex flex-col min-w-0">
               <div className="mb-4">
                 {product.tag && <span className="text-xs font-bold text-primary uppercase tracking-widest">{product.tag}</span>}
-                <h1 className="text-4xl font-bold mt-2 leading-tight">{product.name}</h1>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mt-2 leading-tight">{product.name}</h1>
                 <div className="flex items-center gap-4 mt-4">
                   {renderStars(product.rating)}
                   <span className="text-sm font-medium text-slate-500 underline cursor-pointer">{product.reviews} reviews</span>
@@ -257,9 +273,6 @@ const ProductDetail: React.FC = () => {
                   <span className="material-icons">{justAddedToCart ? 'check_circle' : 'shopping_bag'}</span>
                   {justAddedToCart ? ' Đã thêm vào giỏ' : ' Thêm vào giỏ'}
                 </button>
-              </div>
-              <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
-                <div className="flex items-start gap-3"><span className="material-icons text-primary">local_shipping</span><div><p className="text-sm font-semibold">Free Express Shipping</p><p className="text-xs text-slate-500">Order within 4 hrs to get it tomorrow</p></div></div>
               </div>
             </div>
           </section>
