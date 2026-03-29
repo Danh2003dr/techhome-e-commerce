@@ -94,6 +94,9 @@ export interface UseApiProductsParams {
   q?: string;
   page?: number;
   size?: number;
+  sort?: string;
+  /** When false, skip fetch and keep empty list (e.g. PLP waiting for category id). */
+  enabled?: boolean;
 }
 
 export function useApiProducts(params: UseApiProductsParams = {}): {
@@ -105,12 +108,18 @@ export function useApiProducts(params: UseApiProductsParams = {}): {
   const [data, setData] = useState<ListingProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { category, q, page = 0, size = 100 } = params;
+  const { category, q, page = 0, size = 100, sort, enabled = true } = params;
 
   const fetchData = useCallback(async () => {
     if (!isApiConfigured()) return;
+    if (!enabled) {
+      setData([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     await runApiLoad(
-      async () => (await backend.getProducts({ category, q, page, size })).map(mapProductDtoToListing),
+      async () => (await backend.getProducts({ category, q, page, size, sort })).map(mapProductDtoToListing),
       {
         setLoading,
         setError,
@@ -119,7 +128,7 @@ export function useApiProducts(params: UseApiProductsParams = {}): {
         errorLabel: 'Failed to load products',
       }
     );
-  }, [category, q, page, size]);
+  }, [category, q, page, size, sort, enabled]);
 
   useEffect(() => {
     fetchData();

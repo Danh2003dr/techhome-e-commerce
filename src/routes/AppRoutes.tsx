@@ -13,7 +13,6 @@ import CheckoutPage from '@/pages/checkout/CheckoutPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import OrderHistoryPage from '@/pages/account/OrderHistoryPage';
 import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
-import SavedAddressesPage from '@/pages/account/SavedAddressesPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
@@ -48,7 +47,7 @@ const AppRoutes: React.FC = () => (
 
     {/* Routes không có MainLayout (auth pages, account pages có AccountHeader riêng) */}
     <Route path="/profile" element={<ProfilePage />} />
-    <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+    <Route path="/order-confirmation" element={<Navigate to="/orders" replace />} />
     <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/403" element={<ForbiddenPage />} />
@@ -57,7 +56,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
-    <Route path="/account/addresses" element={<SavedAddressesPage />} />
+    <Route path="/account/addresses" element={<Navigate to="/profile" replace />} />
     <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />

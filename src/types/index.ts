@@ -36,7 +36,13 @@ export interface Product {
   slug?: string;
 }
 
-export type OrderStatus = 'Processing' | 'Delivered' | 'Shipping' | 'Shipped' | 'Cancelled';
+export type OrderStatus =
+  | 'PENDING'
+  | 'Processing'
+  | 'Delivered'
+  | 'Shipping'
+  | 'Shipped'
+  | 'Cancelled';
 
 export interface OrderItem {
   id: string;

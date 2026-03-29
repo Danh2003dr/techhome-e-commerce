@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { isApiConfigured, ApiError, getStoredUser, setStoredUser } from '@/services/api';
@@ -419,35 +419,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </section>
 
-          {/* 2. Sổ địa chỉ */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sổ địa chỉ</h2>
-              <Link
-                to="/account/addresses"
-                className="flex items-center gap-2 text-primary text-sm font-bold hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors"
-              >
-                <span className="material-icons text-lg">add</span>
-                + Thêm địa chỉ
-              </Link>
-            </div>
-            <div className="p-12 flex flex-col items-center justify-center text-center">
-              <div className="w-32 h-32 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
-                <span className="material-icons text-6xl text-slate-400 dark:text-slate-500">location_off</span>
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">Bạn chưa có địa chỉ nào được tạo</p>
-              <p className="text-sm text-slate-500 mt-1 mb-6">Thêm địa chỉ để giao hàng nhanh hơn</p>
-              <Link
-                to="/account/addresses"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors"
-              >
-                <span className="material-icons">add</span>
-                Thêm địa chỉ
-              </Link>
-            </div>
-          </section>
-
-          {/* 3. Mật khẩu */}
+          {/* 2. Mật khẩu */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Mật khẩu</h2>
@@ -470,7 +442,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </section>
 
-          {/* 4. Tài khoản liên kết */}
+          {/* 3. Tài khoản liên kết */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Tài khoản liên kết</h2>

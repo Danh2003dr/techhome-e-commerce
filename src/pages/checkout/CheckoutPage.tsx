@@ -4,7 +4,6 @@ import { useCheckout } from '@/context/CheckoutContext';
 import { useCart } from '@/context/CartContext';
 import CheckoutStepper from '@/components/checkout/CheckoutStepper';
 import CheckoutStep1 from '@/components/checkout/CheckoutStep1';
-import CheckoutStep2 from '@/components/checkout/CheckoutStep2';
 import CheckoutStep3 from '@/components/checkout/CheckoutStep3';
 
 const CheckoutPage: React.FC = () => {
@@ -36,11 +35,9 @@ const CheckoutPage: React.FC = () => {
       <CheckoutStepper currentStep={currentStep} />
 
       {currentStep === 1 && <CheckoutStep1 onNext={handleNext} onBack={handleBack} />}
-      {currentStep === 2 && <CheckoutStep2 onNext={handleNext} onBack={handleBack} />}
-      {currentStep === 3 && <CheckoutStep3 onBack={handleBack} />}
+      {currentStep === 2 && <CheckoutStep3 onBack={handleBack} />}
     </div>
   );
 };
 
 export default CheckoutPage;
-

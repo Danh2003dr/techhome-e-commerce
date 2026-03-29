@@ -106,6 +106,27 @@ export interface CreateOrderItemRequest {
 export interface CreateOrderRequest {
   totalPrice: number;
   items: CreateOrderItemRequest[];
+  /** Địa chỉ giao hàng đầy đủ — bắt buộc, lưu snapshot trên đơn. */
+  shippingAddress: string;
+  couponCode?: string;
+}
+
+/** POST /api/checkout/quote — tạm tính + thuế + giảm giá từ server */
+export interface CheckoutQuoteRequest {
+  items: { productId: number; quantity: number }[];
+  couponCode?: string;
+}
+
+export interface CheckoutQuoteResponse {
+  subtotal: number;
+  totalTax: number;
+  discountTotal: number;
+  /** Tiền hàng sau giảm (chưa ship) — khớp backend goodsTotal */
+  goodsTotal: number;
+  shippingFee: number;
+  /** Tổng thanh toán = goodsTotal + shippingFee */
+  grandTotal: number;
+  coupon: { id: number; code: string } | null;
 }
 
 export interface OrderItemDto {
@@ -122,6 +143,10 @@ export interface OrderDto {
   totalPrice: number;
   status: string;
   createdAt: string;
+  /** Snapshot địa chỉ khi đặt; đơn cũ có thể thiếu. */
+  shippingAddress?: string | null;
+  /** Phí ship do server tính; đơn cũ có thể thiếu. */
+  shippingFee?: number | null;
   items: OrderItemDto[];
 }
 
@@ -166,4 +191,34 @@ export interface InventoryIdempotencyDto {
   quantity: number;
   status: 'PENDING' | 'COMPLETED' | string;
   response?: unknown;
+}
+
+/** GET/POST/PATCH/DELETE /api/coupons — quản trị mã giảm giá (ADMIN) */
+export type CouponDiscountTypeUi = 'percent' | 'fixed';
+
+export interface CouponAdminDto {
+  id: number;
+  code: string;
+  discountType: CouponDiscountTypeUi;
+  type: 'PERCENT' | 'FIXED';
+  value: number;
+  minOrderAmount: number;
+  maxDiscountAmount: number | null;
+  validFrom: string | null;
+  validTo: string | null;
+  expiresAt: string | null;
+  usageLimit: number | null;
+  maxUses: number | null;
+  perUserLimit: number | null;
+  active: boolean;
+  usedCount: number;
+  excludedProductIds: number[];
+  applicableCategoryIds: number[];
+}
+
+export interface CouponAdminListResponse {
+  items: CouponAdminDto[];
+  total: number;
+  page: number;
+  size: number;
 }
