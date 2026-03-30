@@ -124,6 +124,19 @@ export async function apiPost<T>(path: string, body: unknown, options: ApiPostOp
   return res.json();
 }
 
+/** Multipart POST — do not set Content-Type (browser sets boundary). */
+export async function apiPostMultipart<T>(path: string, formData: FormData, options: ApiPostOptions = {}): Promise<T> {
+  const headers = mergeAuthHeaders({}, options);
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  if (!res.ok) throw await parseErrorResponse(res);
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
 /** POST trả body dạng text/plain hoặc text thuần (không phải JSON). */
 export async function apiPostText(path: string, body: unknown, options: ApiPostOptions = {}): Promise<string> {
   const headers = mergeAuthHeaders({ 'Content-Type': 'application/json' }, options);

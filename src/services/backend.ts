@@ -6,6 +6,7 @@
 import {
   apiGet,
   apiPost,
+  apiPostMultipart,
   apiPostText,
   apiPut,
   apiPatch,
@@ -97,7 +98,8 @@ export interface AdminProductUpsertPayload {
   colors?: { name: string; hex: string }[];
   storageOptions?: string[];
   specifications?: string | null;
-  sku?: string | null;
+  /** Bắt buộc khi tạo mới — khớp validator SKU backend */
+  sku: string;
   tag?: string | null;
 }
 
@@ -167,6 +169,18 @@ export async function updateAdminProduct(
 /** DELETE /api/products/:id (ADMIN) */
 export async function deleteAdminProduct(id: number | string): Promise<{ message: string }> {
   return apiDelete<{ message: string }>(`/products/${id}`, { auth: true });
+}
+
+export interface AdminProductImportResult {
+  imported: number;
+  errors: { row: number; message: string }[];
+}
+
+/** POST /api/products/import — multipart .xlsx, field `file` */
+export async function importAdminProductsExcel(file: File): Promise<AdminProductImportResult> {
+  const fd = new FormData();
+  fd.append('file', file);
+  return apiPostMultipart<AdminProductImportResult>('/products/import', fd, { auth: true });
 }
 
 /** GET /api/products/{id} — admin / numeric-id lookups */

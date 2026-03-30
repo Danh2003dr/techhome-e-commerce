@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
-import { deleteAdminProduct, getProducts } from '@/services/backend';
+import { deleteAdminProduct, getProducts, importAdminProductsExcel } from '@/services/backend';
 import { ApiError, isApiConfigured } from '@/services/api';
 import type { ProductDto } from '@/types/api';
 
@@ -261,6 +261,8 @@ const ProductListPage: React.FC = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importSummary, setImportSummary] = useState<string | null>(null);
 
   const loadProducts = React.useCallback(() => {
     if (!isApiConfigured()) return;
@@ -280,6 +282,35 @@ const ProductListPage: React.FC = () => {
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !isApiConfigured()) return;
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      setImportSummary('Chỉ chấp nhận file .xlsx');
+      return;
+    }
+    setImportBusy(true);
+    setImportSummary(null);
+    try {
+      const r = await importAdminProductsExcel(file);
+      const errLines =
+        r.errors?.length > 0
+          ? r.errors.map((x) => `Dòng ${x.row}: ${x.message}`).join('\n')
+          : '';
+      setImportSummary(
+        `Đã import ${r.imported} dòng.${errLines ? `\n${errLines}` : ''}`,
+      );
+      loadProducts();
+    } catch (err) {
+      setImportSummary(
+        err instanceof ApiError ? err.message : 'Import thất bại.',
+      );
+    } finally {
+      setImportBusy(false);
+    }
+  };
 
   const handleSoftDelete = async (id: string) => {
     if (!isApiConfigured()) return;
@@ -352,9 +383,25 @@ const ProductListPage: React.FC = () => {
               {deleteError}
             </p>
           )}
+          {isApiConfigured() && importSummary && (
+            <pre className="text-xs text-slate-600 mt-2 whitespace-pre-wrap max-w-xl">{importSummary}</pre>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center sm:justify-end">
+          <label className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shrink-0">
+            <span className="material-icons text-[18px]">
+              {importBusy ? 'hourglass_empty' : 'upload_file'}
+            </span>
+            {importBusy ? 'Đang import…' : 'Import Excel'}
+            <input
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              className="hidden"
+              disabled={importBusy || !isApiConfigured()}
+              onChange={handleImportFile}
+            />
+          </label>
           <div className="relative w-full sm:w-72">
             <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">
               search
