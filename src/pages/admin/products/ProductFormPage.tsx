@@ -225,6 +225,10 @@ const ProductFormPage: React.FC = () => {
       alert('Vui lòng nhập tên sản phẩm.');
       return;
     }
+    if (!form.sku.trim()) {
+      setFormError('Vui lòng nhập mã SKU (bắt buộc, duy nhất).');
+      return;
+    }
     const missingImg = form.images.length === 0;
     if (missingImg) {
       const ok = window.confirm('Chưa có ảnh. Lưu vẫn tiếp tục?');
@@ -268,7 +272,7 @@ const ProductFormPage: React.FC = () => {
         salePrice: form.salePrice ?? null,
         stock: Math.max(0, Number(form.stock) || 0),
         featured: form.featured,
-        sku: form.sku.trim() || null,
+        sku: form.sku.trim(),
         tag: form.tag.trim() || null,
         colors: colorsPayload,
         storageOptions: storagePayload,
@@ -283,7 +287,9 @@ const ProductFormPage: React.FC = () => {
       navigate('/admin/products');
     } catch (e) {
       if (e instanceof ApiError) {
-        setFormError(e.message);
+        setFormError(
+          e.status === 409 ? e.message || 'Mã SKU đã tồn tại.' : e.message,
+        );
       } else {
         setFormError(e instanceof Error ? e.message : 'Lưu sản phẩm thất bại.');
       }
@@ -522,12 +528,14 @@ const ProductFormPage: React.FC = () => {
               />
             </label>
             <label className="block">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Mã SKU</span>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Mã SKU *</span>
               <input
                 className={inputCls}
                 value={form.sku}
                 onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
-                placeholder="Tùy chọn"
+                placeholder="Ví dụ: TH-IP15P-256-NT"
+                required
+                aria-invalid={!form.sku.trim()}
               />
             </label>
             <label className="block sm:col-span-2 lg:col-span-4">
@@ -599,7 +607,7 @@ const ProductFormPage: React.FC = () => {
           </Link>
           <button
             type="button"
-            disabled={saving || softDeleting}
+            disabled={saving || softDeleting || !form.sku.trim()}
             onClick={handleSave}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-white px-6 py-3 text-sm font-bold shadow-lg shadow-primary/25 hover:brightness-105 disabled:opacity-60 w-full sm:w-auto min-w-[160px] transition-all"
           >

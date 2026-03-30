@@ -140,23 +140,6 @@ export interface OrderDetailsData {
   };
 }
 
-export interface SavedAddress {
-  id: string;
-  label: string;
-  tagIcon: string;
-  tagPrimary?: boolean;
-  name: string;
-  phone: string;
-  addressLines: string[];
-  street?: string;
-  apartment?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  country?: string;
-  isDefault?: boolean;
-}
-
 export interface NavItem {
   label: string;
   icon: string;

@@ -51,13 +51,6 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
           >
             Shop
           </Link>
-          <button
-            type="button"
-            className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Notifications"
-          >
-            <span className="material-icons text-slate-600 dark:text-slate-300">notifications_none</span>
-          </button>
 
           <div className="relative" ref={profileRef}>
             <button
