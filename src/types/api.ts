@@ -150,6 +150,13 @@ export interface OrderDto {
   items: OrderItemDto[];
 }
 
+export interface AdminOrderListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: OrderDto[];
+}
+
 export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;

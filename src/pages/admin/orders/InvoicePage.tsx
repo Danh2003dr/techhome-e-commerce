@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getOrder } from '@/services/backend';
+import { getAdminOrder } from '@/services/backend';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import type { OrderDto } from '@/types/api';
@@ -33,7 +33,7 @@ const InvoicePage: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    getOrder(orderId)
+    getAdminOrder(orderId)
       .then(setDto)
       .catch((e: unknown) => {
         setDto(null);
@@ -80,7 +80,7 @@ const InvoicePage: React.FC = () => {
       </div>
 
       {!orderId && (
-        <p className="text-sm text-slate-500">Thêm <code className="text-xs">?orderId=</code> để tải đơn (theo tài khoản đang đăng nhập).</p>
+        <p className="text-sm text-slate-500">Thêm <code className="text-xs">?orderId=</code> để tải đơn (admin).</p>
       )}
 
       {orderId && !isApiConfigured() && (
@@ -92,7 +92,7 @@ const InvoicePage: React.FC = () => {
           <Link to="/login" className="text-primary font-semibold hover:underline">
             Đăng nhập
           </Link>{' '}
-          — chỉ xem được đơn của chính user.
+          — chỉ tài khoản admin mới xem được hóa đơn trong màn quản trị.
         </p>
       )}
 

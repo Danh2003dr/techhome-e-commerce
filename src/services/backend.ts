@@ -34,6 +34,7 @@ import type {
   InventoryIdempotencyDto,
   CouponAdminDto,
   CouponAdminListResponse,
+  AdminOrderListResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -249,6 +250,29 @@ export async function getOrders(): Promise<OrderDto[]> {
 /** GET /api/orders/:id – requires Authorization */
 export async function getOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/${id}`, { auth: true });
+}
+
+/** GET /api/orders/admin?page=&size=&status=&userId= (ADMIN) */
+export async function getAdminOrders(params?: {
+  page?: number;
+  size?: number;
+  status?: string;
+  userId?: number;
+}): Promise<AdminOrderListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.page != null) sp.set('page', String(params.page));
+  if (params?.size != null) sp.set('size', String(params.size));
+  if (params?.status != null && String(params.status).trim() !== '') {
+    sp.set('status', String(params.status).trim());
+  }
+  if (params?.userId != null) sp.set('userId', String(params.userId));
+  const query = sp.toString();
+  return apiGet<AdminOrderListResponse>(query ? `/orders/admin?${query}` : '/orders/admin', { auth: true });
+}
+
+/** GET /api/orders/admin/:id (ADMIN) */
+export async function getAdminOrder(id: number | string): Promise<OrderDto> {
+  return apiGet<OrderDto>(`/orders/admin/${id}`, { auth: true });
 }
 
 /** POST /api/auth/logout, luôn dọn token local kể cả khi API lỗi. */

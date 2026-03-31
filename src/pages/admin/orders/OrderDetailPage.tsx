@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getOrder } from '@/services/backend';
+import { getAdminOrder } from '@/services/backend';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import type { OrderDto } from '@/types/api';
@@ -24,7 +24,7 @@ const OrderDetailPage: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    getOrder(orderId)
+    getAdminOrder(orderId)
       .then(setDto)
       .catch((e: unknown) => {
         setDto(null);
@@ -51,9 +51,7 @@ const OrderDetailPage: React.FC = () => {
           <p className="text-xs font-semibold text-slate-500">
             Mã đơn: <span className="font-bold text-slate-700">{orderId ?? '—'}</span>
           </p>
-          <p className="text-xs text-slate-500 mt-1 max-w-xl">
-            Chỉ hiển thị đơn thuộc tài khoản đang đăng nhập (cùng API storefront).
-          </p>
+          <p className="text-xs text-slate-500 mt-1 max-w-xl">Dữ liệu lấy từ API admin orders.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
