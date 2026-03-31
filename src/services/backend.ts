@@ -37,6 +37,9 @@ import type {
   AdminOrderListResponse,
   AdminDashboardSummaryResponse,
   AdminOrderStatus,
+  OrderStatusHistoryDto,
+  ShipmentDto,
+  ReturnRequestDto,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -283,6 +286,58 @@ export async function updateAdminOrderStatus(
   status: AdminOrderStatus
 ): Promise<OrderDto> {
   return apiPatch<OrderDto>(`/orders/admin/${id}/status`, { status }, { auth: true });
+}
+
+/** GET /api/orders/admin/:id/status-history (ADMIN) */
+export async function getAdminOrderStatusHistory(id: number | string): Promise<OrderStatusHistoryDto[]> {
+  return apiGet<OrderStatusHistoryDto[]>(`/orders/admin/${id}/status-history`, { auth: true });
+}
+
+/** GET /api/orders/admin/:id/shipment (ADMIN) */
+export async function getAdminOrderShipment(id: number | string): Promise<ShipmentDto> {
+  return apiGet<ShipmentDto>(`/orders/admin/${id}/shipment`, { auth: true });
+}
+
+/** PUT /api/orders/admin/:id/shipment (ADMIN) */
+export async function upsertAdminOrderShipment(
+  id: number | string,
+  payload: Partial<{
+    carrier: string | null;
+    trackingNumber: string | null;
+    status: string;
+    shippedAt: string | null;
+    estimatedDeliveryAt: string | null;
+    deliveredAt: string | null;
+    note: string | null;
+  }>
+): Promise<ShipmentDto> {
+  return apiPut<ShipmentDto>(`/orders/admin/${id}/shipment`, payload, { auth: true });
+}
+
+/** GET /api/orders/admin/:id/returns (ADMIN) */
+export async function getAdminOrderReturns(id: number | string): Promise<ReturnRequestDto[]> {
+  return apiGet<ReturnRequestDto[]>(`/orders/admin/${id}/returns`, { auth: true });
+}
+
+/** POST /api/orders/admin/:id/returns (ADMIN) */
+export async function createAdminOrderReturn(
+  id: number | string,
+  payload: {
+    reason?: string | null;
+    note?: string | null;
+    items: Array<{ productId: number; quantity: number; reason?: string | null }>;
+  }
+): Promise<ReturnRequestDto> {
+  return apiPost<ReturnRequestDto>(`/orders/admin/${id}/returns`, payload, { auth: true });
+}
+
+/** PATCH /api/orders/admin/:id/returns/:returnId/status (ADMIN) */
+export async function updateAdminReturnStatus(
+  id: number | string,
+  returnId: number | string,
+  payload: { status: string; note?: string | null }
+): Promise<ReturnRequestDto> {
+  return apiPatch<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}/status`, payload, { auth: true });
 }
 
 /** GET /api/admin/dashboard/summary (ADMIN) */

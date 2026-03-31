@@ -182,6 +182,53 @@ export interface AdminDashboardSummaryResponse {
   recentOrders: AdminDashboardRecentOrderDto[];
 }
 
+export interface OrderStatusHistoryDto {
+  id: number | string;
+  orderId: number | string;
+  fromStatus?: string | null;
+  toStatus: string;
+  changedByUserId?: number | string | null;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface ShipmentDto {
+  id: number | string;
+  orderId: number | string;
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  status: string;
+  shippedAt?: string | null;
+  estimatedDeliveryAt?: string | null;
+  deliveredAt?: string | null;
+  note?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ReturnItemDto {
+  productId: number;
+  quantity: number;
+  reason?: string | null;
+}
+
+export interface ReturnRequestDto {
+  id: number | string;
+  orderId: number | string;
+  userId: number | string;
+  status: string;
+  reason?: string | null;
+  note?: string | null;
+  items: ReturnItemDto[];
+  requestedAt?: string | null;
+  approvedAt?: string | null;
+  rejectedAt?: string | null;
+  receivedAt?: string | null;
+  closedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;

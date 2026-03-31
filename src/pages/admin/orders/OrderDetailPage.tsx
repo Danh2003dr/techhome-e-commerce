@@ -1,9 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getAdminOrder, updateAdminOrderStatus } from '@/services/backend';
+import {
+  getAdminOrder,
+  updateAdminOrderStatus,
+  getAdminOrderStatusHistory,
+  getAdminOrderShipment,
+  upsertAdminOrderShipment,
+  getAdminOrderReturns,
+  createAdminOrderReturn,
+  updateAdminReturnStatus,
+} from '@/services/backend';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import type { OrderDto, AdminOrderStatus } from '@/types/api';
+import type {
+  OrderDto,
+  AdminOrderStatus,
+  OrderStatusHistoryDto,
+  ShipmentDto,
+  ReturnRequestDto,
+} from '@/types/api';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
 import { orderStatusLabelVi } from '@/utils/orderDisplay';
@@ -16,6 +31,9 @@ const NEXT_STATUS_OPTIONS: Record<AdminOrderStatus, AdminOrderStatus[]> = {
   DELIVERED: [],
   CANCELLED: [],
 };
+
+const SHIPMENT_STATUSES = ['PENDING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'FAILED', 'RETURNED', 'CANCELLED'] as const;
+const RETURN_STATUSES = ['REQUESTED', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'CANCELLED'] as const;
 
 function normalizeAdminStatus(status: string): AdminOrderStatus {
   const s = String(status || '').trim().toUpperCase();
@@ -32,6 +50,19 @@ function normalizeAdminStatus(status: string): AdminOrderStatus {
   return 'PENDING';
 }
 
+function toIsoInputValue(value?: string | null): string {
+  if (!value) return '';
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = dt.getFullYear();
+  const m = pad(dt.getMonth() + 1);
+  const d = pad(dt.getDate());
+  const h = pad(dt.getHours());
+  const mm = pad(dt.getMinutes());
+  return `${y}-${m}-${d}T${h}:${mm}`;
+}
+
 const OrderDetailPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
@@ -42,6 +73,25 @@ const OrderDetailPage: React.FC = () => {
   const [nextStatus, setNextStatus] = useState<AdminOrderStatus>('PENDING');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryDto[]>([]);
+  const [shipment, setShipment] = useState<ShipmentDto | null>(null);
+  const [returns, setReturns] = useState<ReturnRequestDto[]>([]);
+  const [shipmentStatus, setShipmentStatus] = useState<string>('PENDING');
+  const [shipmentCarrier, setShipmentCarrier] = useState('');
+  const [shipmentTracking, setShipmentTracking] = useState('');
+  const [shipmentShippedAt, setShipmentShippedAt] = useState('');
+  const [shipmentEstimatedAt, setShipmentEstimatedAt] = useState('');
+  const [shipmentDeliveredAt, setShipmentDeliveredAt] = useState('');
+  const [shipmentNote, setShipmentNote] = useState('');
+  const [shipmentSaving, setShipmentSaving] = useState(false);
+  const [shipmentNotice, setShipmentNotice] = useState<string | null>(null);
+  const [createReturnReason, setCreateReturnReason] = useState('');
+  const [createReturnNote, setCreateReturnNote] = useState('');
+  const [createReturnProductId, setCreateReturnProductId] = useState('');
+  const [createReturnQty, setCreateReturnQty] = useState('1');
+  const [returnSaving, setReturnSaving] = useState(false);
+  const [returnNotice, setReturnNotice] = useState<string | null>(null);
+  const [returnStatusInputs, setReturnStatusInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!orderId || !isApiConfigured() || !isAuthenticated) {
@@ -51,12 +101,45 @@ const OrderDetailPage: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    getAdminOrder(orderId)
-      .then((res) => {
-        setDto(res);
-        const current = normalizeAdminStatus(res.status);
+    Promise.all([
+      getAdminOrder(orderId),
+      getAdminOrderStatusHistory(orderId),
+      getAdminOrderReturns(orderId),
+      getAdminOrderShipment(orderId).catch((e: unknown) => {
+        if (e instanceof ApiError && e.status === 404) return null;
+        throw e;
+      }),
+    ])
+      .then(([orderRes, historyRes, returnsRes, shipmentRes]) => {
+        setDto(orderRes);
+        const current = normalizeAdminStatus(orderRes.status);
         const options = NEXT_STATUS_OPTIONS[current];
         setNextStatus(options[0] ?? current);
+        setStatusHistory(historyRes);
+        setReturns(returnsRes);
+        const statusInit: Record<string, string> = {};
+        for (const row of returnsRes) {
+          statusInit[String(row.id)] = String(row.status || 'REQUESTED').toUpperCase();
+        }
+        setReturnStatusInputs(statusInit);
+        setShipment(shipmentRes);
+        if (shipmentRes) {
+          setShipmentStatus(String(shipmentRes.status || 'PENDING').toUpperCase());
+          setShipmentCarrier(shipmentRes.carrier || '');
+          setShipmentTracking(shipmentRes.trackingNumber || '');
+          setShipmentShippedAt(toIsoInputValue(shipmentRes.shippedAt || null));
+          setShipmentEstimatedAt(toIsoInputValue(shipmentRes.estimatedDeliveryAt || null));
+          setShipmentDeliveredAt(toIsoInputValue(shipmentRes.deliveredAt || null));
+          setShipmentNote(shipmentRes.note || '');
+        } else {
+          setShipmentStatus('PENDING');
+          setShipmentCarrier('');
+          setShipmentTracking('');
+          setShipmentShippedAt('');
+          setShipmentEstimatedAt('');
+          setShipmentDeliveredAt('');
+          setShipmentNote('');
+        }
       })
       .catch((e: unknown) => {
         setDto(null);
@@ -90,6 +173,84 @@ const OrderDetailPage: React.FC = () => {
       setStatusNotice(e instanceof ApiError ? e.message : 'Cập nhật trạng thái thất bại.');
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleSaveShipment = async () => {
+    if (!orderId) return;
+    setShipmentSaving(true);
+    setShipmentNotice(null);
+    try {
+      const saved = await upsertAdminOrderShipment(orderId, {
+        carrier: shipmentCarrier || null,
+        trackingNumber: shipmentTracking || null,
+        status: shipmentStatus,
+        shippedAt: shipmentShippedAt ? new Date(shipmentShippedAt).toISOString() : null,
+        estimatedDeliveryAt: shipmentEstimatedAt ? new Date(shipmentEstimatedAt).toISOString() : null,
+        deliveredAt: shipmentDeliveredAt ? new Date(shipmentDeliveredAt).toISOString() : null,
+        note: shipmentNote || null,
+      });
+      setShipment(saved);
+      setShipmentNotice('Lưu vận đơn thành công.');
+    } catch (e: unknown) {
+      setShipmentNotice(e instanceof ApiError ? e.message : 'Lưu vận đơn thất bại.');
+    } finally {
+      setShipmentSaving(false);
+    }
+  };
+
+  const handleCreateReturn = async () => {
+    if (!orderId) return;
+    const productId = Number(createReturnProductId);
+    const quantity = Number(createReturnQty);
+    if (!Number.isFinite(productId) || !Number.isFinite(quantity) || quantity <= 0) {
+      setReturnNotice('Product ID / số lượng return không hợp lệ.');
+      return;
+    }
+    setReturnSaving(true);
+    setReturnNotice(null);
+    try {
+      const created = await createAdminOrderReturn(orderId, {
+        reason: createReturnReason || null,
+        note: createReturnNote || null,
+        items: [{ productId, quantity, reason: createReturnReason || null }],
+      });
+      const rows = await getAdminOrderReturns(orderId);
+      setReturns(rows);
+      setReturnStatusInputs((prev) => ({ ...prev, [String(created.id)]: String(created.status || 'REQUESTED').toUpperCase() }));
+      setCreateReturnReason('');
+      setCreateReturnNote('');
+      setCreateReturnProductId('');
+      setCreateReturnQty('1');
+      setReturnNotice('Tạo yêu cầu trả hàng thành công.');
+    } catch (e: unknown) {
+      setReturnNotice(e instanceof ApiError ? e.message : 'Tạo yêu cầu trả hàng thất bại.');
+    } finally {
+      setReturnSaving(false);
+    }
+  };
+
+  const handleUpdateReturnStatus = async (returnId: number | string) => {
+    if (!orderId) return;
+    const key = String(returnId);
+    const next = (returnStatusInputs[key] || '').toUpperCase();
+    if (!next) {
+      setReturnNotice('Vui lòng chọn trạng thái return.');
+      return;
+    }
+    setReturnSaving(true);
+    setReturnNotice(null);
+    try {
+      await updateAdminReturnStatus(orderId, returnId, {
+        status: next,
+      });
+      const rows = await getAdminOrderReturns(orderId);
+      setReturns(rows);
+      setReturnNotice('Cập nhật trạng thái return thành công.');
+    } catch (e: unknown) {
+      setReturnNotice(e instanceof ApiError ? e.message : 'Cập nhật trạng thái return thất bại.');
+    } finally {
+      setReturnSaving(false);
     }
   };
 
@@ -199,6 +360,206 @@ const OrderDetailPage: React.FC = () => {
 
       {!loading && !dto && !error && orderId && isApiConfigured() && isAuthenticated && (
         <p className="text-sm text-slate-500">Không có dữ liệu.</p>
+      )}
+
+      {dto && (
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-3">
+          <h2 className="text-sm font-bold text-slate-900">Lịch sử trạng thái đơn</h2>
+          {statusHistory.length === 0 ? (
+            <p className="text-sm text-slate-500">Chưa có lịch sử trạng thái.</p>
+          ) : (
+            <div className="space-y-2">
+              {statusHistory.map((h) => (
+                <div key={String(h.id)} className="text-sm border border-slate-100 rounded-lg px-3 py-2">
+                  <div className="font-semibold text-slate-800">
+                    {(h.fromStatus ? `${orderStatusLabelVi(h.fromStatus)} -> ` : '') + orderStatusLabelVi(h.toStatus)}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {formatDate(h.createdAt)} | User: {h.changedByUserId ?? '-'} {h.note ? `| ${h.note}` : ''}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {dto && (
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-bold text-slate-900">Vận đơn (Shipment)</h2>
+          {shipmentNotice && (
+            <p className={`text-sm ${shipmentNotice.includes('thành công') ? 'text-emerald-600' : 'text-red-600'}`}>
+              {shipmentNotice}
+            </p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="text-xs font-semibold text-slate-600">
+              Carrier
+              <input
+                value={shipmentCarrier}
+                onChange={(e) => setShipmentCarrier(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Tracking Number
+              <input
+                value={shipmentTracking}
+                onChange={(e) => setShipmentTracking(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Status
+              <select
+                value={shipmentStatus}
+                onChange={(e) => setShipmentStatus(e.target.value.toUpperCase())}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              >
+                {SHIPMENT_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Shipped At
+              <input
+                type="datetime-local"
+                value={shipmentShippedAt}
+                onChange={(e) => setShipmentShippedAt(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              ETA
+              <input
+                type="datetime-local"
+                value={shipmentEstimatedAt}
+                onChange={(e) => setShipmentEstimatedAt(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Delivered At
+              <input
+                type="datetime-local"
+                value={shipmentDeliveredAt}
+                onChange={(e) => setShipmentDeliveredAt(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            </label>
+          </div>
+          <label className="text-xs font-semibold text-slate-600 block">
+            Note
+            <textarea
+              value={shipmentNote}
+              onChange={(e) => setShipmentNote(e.target.value)}
+              rows={2}
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void handleSaveShipment()}
+            disabled={shipmentSaving}
+            className="inline-flex items-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
+          >
+            {shipmentSaving ? 'Đang lưu…' : shipment ? 'Cập nhật vận đơn' : 'Tạo vận đơn'}
+          </button>
+        </section>
+      )}
+
+      {dto && (
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-bold text-slate-900">Returns</h2>
+          {returnNotice && (
+            <p className={`text-sm ${returnNotice.includes('thành công') ? 'text-emerald-600' : 'text-red-600'}`}>
+              {returnNotice}
+            </p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="text-xs font-semibold text-slate-600">
+              Product ID
+              <input
+                value={createReturnProductId}
+                onChange={(e) => setCreateReturnProductId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                placeholder="vd: 1"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Quantity
+              <input
+                value={createReturnQty}
+                onChange={(e) => setCreateReturnQty(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                placeholder="vd: 1"
+              />
+            </label>
+          </div>
+          <label className="text-xs font-semibold text-slate-600 block">
+            Return Reason
+            <input
+              value={createReturnReason}
+              onChange={(e) => setCreateReturnReason(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="text-xs font-semibold text-slate-600 block">
+            Note
+            <input
+              value={createReturnNote}
+              onChange={(e) => setCreateReturnNote(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void handleCreateReturn()}
+            disabled={returnSaving}
+            className="inline-flex items-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
+          >
+            {returnSaving ? 'Đang tạo…' : 'Tạo yêu cầu return'}
+          </button>
+
+          <div className="space-y-2">
+            {returns.length === 0 ? (
+              <p className="text-sm text-slate-500">Chưa có return cho đơn này.</p>
+            ) : (
+              returns.map((r) => (
+                <div key={String(r.id)} className="rounded-lg border border-slate-100 p-3">
+                  <div className="text-sm font-semibold text-slate-800">
+                    Return #{r.id} - {String(r.status || '')}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    Requested: {r.requestedAt ? formatDate(r.requestedAt) : '-'} | Items: {Array.isArray(r.items) ? r.items.length : 0}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <select
+                      value={returnStatusInputs[String(r.id)] || String(r.status || 'REQUESTED').toUpperCase()}
+                      onChange={(e) =>
+                        setReturnStatusInputs((prev) => ({ ...prev, [String(r.id)]: e.target.value.toUpperCase() }))
+                      }
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                    >
+                      {RETURN_STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => void handleUpdateReturnStatus(r.id)}
+                      disabled={returnSaving}
+                      className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-60"
+                    >
+                      Cập nhật return
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       )}
     </div>
   );
