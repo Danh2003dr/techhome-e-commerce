@@ -35,6 +35,7 @@ import type {
   CouponAdminDto,
   CouponAdminListResponse,
   AdminOrderListResponse,
+  AdminDashboardSummaryResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -273,6 +274,11 @@ export async function getAdminOrders(params?: {
 /** GET /api/orders/admin/:id (ADMIN) */
 export async function getAdminOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/admin/${id}`, { auth: true });
+}
+
+/** GET /api/admin/dashboard/summary (ADMIN) */
+export async function getAdminDashboardSummary(): Promise<AdminDashboardSummaryResponse> {
+  return apiGet<AdminDashboardSummaryResponse>('/admin/dashboard/summary', { auth: true });
 }
 
 /** POST /api/auth/logout, luôn dọn token local kể cả khi API lỗi. */

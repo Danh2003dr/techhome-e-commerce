@@ -5,8 +5,9 @@ import {
   getProducts,
   getFeaturedProducts,
   getAdminInventories,
+  getAdminDashboardSummary,
 } from '@/services/backend';
-import type { ProductDto } from '@/types/api';
+import type { ProductDto, AdminDashboardRecentOrderDto } from '@/types/api';
 
 const LOW_STOCK_THRESHOLD = 5;
 
@@ -19,6 +20,10 @@ export type AdminDashboardMetricsState = {
   lowStockProductCount: number;
   totalStockUnits: number;
   totalSoldFromInventory: number;
+  totalOrders: number;
+  totalRevenue: number;
+  ordersByStatus: Record<string, number>;
+  recentOrders: AdminDashboardRecentOrderDto[];
   featuredProducts: ProductDto[];
   lowStockProducts: ProductDto[];
   lowStockThreshold: number;
@@ -38,6 +43,10 @@ export function useAdminDashboardMetrics(): AdminDashboardMetricsState {
   const [lowStockProductCount, setLowStockProductCount] = useState(0);
   const [totalStockUnits, setTotalStockUnits] = useState(0);
   const [totalSoldFromInventory, setTotalSoldFromInventory] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
+  const [recentOrders, setRecentOrders] = useState<AdminDashboardRecentOrderDto[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<ProductDto[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<ProductDto[]>([]);
 
@@ -45,12 +54,13 @@ export function useAdminDashboardMetrics(): AdminDashboardMetricsState {
     setLoading(true);
     setError(null);
     try {
-      const [users, categories, products, featured, inventories] = await Promise.all([
+      const [users, categories, products, featured, inventories, summary] = await Promise.all([
         getAdminUsers(),
         getCategories(),
         getProducts({}),
         getFeaturedProducts(),
         getAdminInventories(),
+        getAdminDashboardSummary(),
       ]);
 
       const low = products.filter((p) => Number(p.stock) < LOW_STOCK_THRESHOLD);
@@ -60,6 +70,10 @@ export function useAdminDashboardMetrics(): AdminDashboardMetricsState {
       setLowStockProductCount(low.length);
       setTotalStockUnits(sum(products, (p) => Math.max(0, Number(p.stock) || 0)));
       setTotalSoldFromInventory(sum(inventories, (i) => Math.max(0, Number(i.soldCount) || 0)));
+      setTotalOrders(Math.max(0, Number(summary.totalOrders) || 0));
+      setTotalRevenue(Math.max(0, Number(summary.totalRevenue) || 0));
+      setOrdersByStatus(summary.ordersByStatus || {});
+      setRecentOrders(Array.isArray(summary.recentOrders) ? summary.recentOrders : []);
       setFeaturedProducts(featured);
       setLowStockProducts(low.slice(0, 12));
     } catch (e) {
@@ -83,6 +97,10 @@ export function useAdminDashboardMetrics(): AdminDashboardMetricsState {
     lowStockProductCount,
     totalStockUnits,
     totalSoldFromInventory,
+    totalOrders,
+    totalRevenue,
+    ordersByStatus,
+    recentOrders,
     featuredProducts,
     lowStockProducts,
     lowStockThreshold: LOW_STOCK_THRESHOLD,

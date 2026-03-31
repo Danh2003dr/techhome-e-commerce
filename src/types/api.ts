@@ -157,6 +157,23 @@ export interface AdminOrderListResponse {
   items: OrderDto[];
 }
 
+export interface AdminDashboardRecentOrderDto {
+  id: number | string;
+  userId: number | string;
+  totalPrice: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface AdminDashboardSummaryResponse {
+  totalUsers: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
+  ordersByStatus: Record<string, number>;
+  recentOrders: AdminDashboardRecentOrderDto[];
+}
+
 export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;

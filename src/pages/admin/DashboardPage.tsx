@@ -10,6 +10,12 @@ function formatInt(n: number): string {
   return new Intl.NumberFormat('vi-VN').format(Math.round(n));
 }
 
+function formatMoneyVnd(n: number): string {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(
+    Math.max(0, Number(n) || 0)
+  );
+}
+
 function StatGridSkeleton() {
   return (
     <div
@@ -34,10 +40,12 @@ const DashboardPage: React.FC = () => {
     refetch,
     userCount,
     productCount,
-    categoryCount,
     lowStockProductCount,
     totalStockUnits,
-    totalSoldFromInventory,
+    totalOrders,
+    totalRevenue,
+    ordersByStatus,
+    recentOrders,
     featuredProducts,
     lowStockProducts,
     lowStockThreshold,
@@ -62,11 +70,11 @@ const DashboardPage: React.FC = () => {
         iconWrapClass: 'bg-amber-100 text-amber-700',
       },
       {
-        id: 'categories',
-        label: 'Danh mục',
-        value: formatInt(categoryCount),
-        subtitle: 'GET /api/categories',
-        icon: 'category',
+        id: 'orders',
+        label: 'Đơn hàng',
+        value: formatInt(totalOrders),
+        subtitle: 'GET /api/admin/dashboard/summary',
+        icon: 'receipt_long',
         iconWrapClass: 'bg-sky-100 text-sky-700',
       },
       {
@@ -86,10 +94,10 @@ const DashboardPage: React.FC = () => {
         iconWrapClass: 'bg-emerald-100 text-emerald-700',
       },
       {
-        id: 'sold-inv',
-        label: 'Đã bán (ghi nhận kho)',
-        value: formatInt(totalSoldFromInventory),
-        subtitle: 'Tổng soldCount từ GET /api/inventories',
+        id: 'revenue',
+        label: 'Doanh thu',
+        value: formatMoneyVnd(totalRevenue),
+        subtitle: 'Tổng totalPrice (trừ CANCELLED)',
         icon: 'point_of_sale',
         iconWrapClass: 'bg-teal-100 text-teal-800',
       },
@@ -97,10 +105,10 @@ const DashboardPage: React.FC = () => {
     [
       userCount,
       productCount,
-      categoryCount,
       lowStockProductCount,
       totalStockUnits,
-      totalSoldFromInventory,
+      totalOrders,
+      totalRevenue,
       lowStockThreshold,
     ]
   );
@@ -111,7 +119,7 @@ const DashboardPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Số liệu đồng bộ với backend hiện tại; phần doanh thu/đơn hàng toàn hệ thống nằm dưới khung dự phòng.
+            Số liệu đồng bộ với backend hiện tại, bao gồm cả tổng quan đơn hàng và doanh thu toàn hệ thống.
           </p>
         </div>
         <button
@@ -156,7 +164,13 @@ const DashboardPage: React.FC = () => {
         />
       </section>
 
-      <DashboardFutureMetricsScaffold />
+      <DashboardFutureMetricsScaffold
+        totalOrders={totalOrders}
+        totalRevenue={totalRevenue}
+        ordersByStatus={ordersByStatus}
+        recentOrders={recentOrders}
+        loading={loading}
+      />
     </div>
   );
 };
