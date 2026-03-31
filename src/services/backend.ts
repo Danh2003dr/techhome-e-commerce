@@ -317,9 +317,9 @@ export async function upsertAdminOrderShipment(
   return apiPut<ShipmentDto>(`/orders/admin/${id}/shipment`, payload, { auth: true });
 }
 
-/** GET /api/orders/admin/:id/returns (ADMIN) */
-export async function getAdminOrderReturns(id: number | string): Promise<ReturnRequestDto[]> {
-  return apiGet<ReturnRequestDto[]>(`/orders/admin/${id}/returns`, { auth: true });
+/** GET /api/orders/admin/:id/returns (ADMIN, paged response) */
+export async function getAdminOrderReturns(id: number | string): Promise<ReturnListResponse> {
+  return apiGet<ReturnListResponse>(`/orders/admin/${id}/returns`, { auth: true });
 }
 
 /** GET /api/orders/admin/:id/returns?page=&size=&status=&q= (ADMIN) */
