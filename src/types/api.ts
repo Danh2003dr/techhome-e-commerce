@@ -229,6 +229,41 @@ export interface ReturnRequestDto {
   updatedAt?: string;
 }
 
+export interface ReturnListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: ReturnRequestDto[];
+}
+
+export type RefundStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
+
+export interface RefundDto {
+  id: number | string;
+  orderId: number | string;
+  returnId: number | string;
+  status: RefundStatus | string;
+  amount: number;
+  currency?: string;
+  method: string;
+  transactionRef?: string | null;
+  note?: string | null;
+  createdByUserId?: number | string | null;
+  processedByUserId?: number | string | null;
+  approvedAt?: string | null;
+  paidAt?: string | null;
+  rejectedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RefundListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: RefundDto[];
+}
+
 export interface ApiErrorBody {
   message?: string;
   [key: string]: unknown;

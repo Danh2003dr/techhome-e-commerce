@@ -40,6 +40,9 @@ import type {
   OrderStatusHistoryDto,
   ShipmentDto,
   ReturnRequestDto,
+  ReturnListResponse,
+  RefundDto,
+  RefundListResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -319,6 +322,30 @@ export async function getAdminOrderReturns(id: number | string): Promise<ReturnR
   return apiGet<ReturnRequestDto[]>(`/orders/admin/${id}/returns`, { auth: true });
 }
 
+/** GET /api/orders/admin/:id/returns?page=&size=&status=&q= (ADMIN) */
+export async function getAdminOrderReturnsPaged(
+  id: number | string,
+  params?: { page?: number; size?: number; status?: string; q?: string }
+): Promise<ReturnListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.page != null) sp.set('page', String(params.page));
+  if (params?.size != null) sp.set('size', String(params.size));
+  if (params?.status != null && String(params.status).trim() !== '') sp.set('status', String(params.status).trim());
+  if (params?.q != null && String(params.q).trim() !== '') sp.set('q', String(params.q).trim());
+  const query = sp.toString();
+  return apiGet<ReturnListResponse>(query ? `/orders/admin/${id}/returns?${query}` : `/orders/admin/${id}/returns`, {
+    auth: true,
+  });
+}
+
+/** GET /api/orders/admin/:id/returns/:returnId (ADMIN) */
+export async function getAdminOrderReturn(
+  id: number | string,
+  returnId: number | string
+): Promise<ReturnRequestDto> {
+  return apiGet<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, { auth: true });
+}
+
 /** POST /api/orders/admin/:id/returns (ADMIN) */
 export async function createAdminOrderReturn(
   id: number | string,
@@ -338,6 +365,68 @@ export async function updateAdminReturnStatus(
   payload: { status: string; note?: string | null }
 ): Promise<ReturnRequestDto> {
   return apiPatch<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}/status`, payload, { auth: true });
+}
+
+/** PUT /api/orders/admin/:id/returns/:returnId (ADMIN) */
+export async function updateAdminOrderReturn(
+  id: number | string,
+  returnId: number | string,
+  payload: Partial<{
+    reason: string | null;
+    note: string | null;
+    items: Array<{ productId: number; quantity: number; reason?: string | null }>;
+  }>
+): Promise<ReturnRequestDto> {
+  return apiPut<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, payload, { auth: true });
+}
+
+/** DELETE /api/orders/admin/:id/returns/:returnId (ADMIN) */
+export async function deleteAdminOrderReturn(
+  id: number | string,
+  returnId: number | string
+): Promise<ReturnRequestDto> {
+  return apiDelete<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, { auth: true });
+}
+
+/** GET /api/orders/admin/:id/refunds?page=&size=&status=&q= (ADMIN) */
+export async function getAdminOrderRefunds(
+  id: number | string,
+  params?: { page?: number; size?: number; status?: string; q?: string }
+): Promise<RefundListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.page != null) sp.set('page', String(params.page));
+  if (params?.size != null) sp.set('size', String(params.size));
+  if (params?.status != null && String(params.status).trim() !== '') sp.set('status', String(params.status).trim());
+  if (params?.q != null && String(params.q).trim() !== '') sp.set('q', String(params.q).trim());
+  const query = sp.toString();
+  return apiGet<RefundListResponse>(query ? `/orders/admin/${id}/refunds?${query}` : `/orders/admin/${id}/refunds`, {
+    auth: true,
+  });
+}
+
+/** POST /api/orders/admin/:id/refunds (ADMIN) */
+export async function createAdminOrderRefund(
+  id: number | string,
+  payload: {
+    returnId: number;
+    amount: number;
+    method: string;
+    currency?: string;
+    transactionRef?: string | null;
+    note?: string | null;
+    meta?: Record<string, unknown> | null;
+  }
+): Promise<RefundDto> {
+  return apiPost<RefundDto>(`/orders/admin/${id}/refunds`, payload, { auth: true });
+}
+
+/** PATCH /api/orders/admin/:id/refunds/:refundId/status (ADMIN) */
+export async function updateAdminRefundStatus(
+  id: number | string,
+  refundId: number | string,
+  payload: { status: string; note?: string | null; transactionRef?: string | null }
+): Promise<RefundDto> {
+  return apiPatch<RefundDto>(`/orders/admin/${id}/refunds/${refundId}/status`, payload, { auth: true });
 }
 
 /** GET /api/admin/dashboard/summary (ADMIN) */

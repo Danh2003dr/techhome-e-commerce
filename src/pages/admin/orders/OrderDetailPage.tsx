@@ -7,8 +7,15 @@ import {
   getAdminOrderShipment,
   upsertAdminOrderShipment,
   getAdminOrderReturns,
+  getAdminOrderReturnsPaged,
+  getAdminOrderReturn,
   createAdminOrderReturn,
+  updateAdminOrderReturn,
+  deleteAdminOrderReturn,
   updateAdminReturnStatus,
+  getAdminOrderRefunds,
+  createAdminOrderRefund,
+  updateAdminRefundStatus,
 } from '@/services/backend';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -18,6 +25,7 @@ import type {
   OrderStatusHistoryDto,
   ShipmentDto,
   ReturnRequestDto,
+  RefundDto,
 } from '@/types/api';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
@@ -34,6 +42,7 @@ const NEXT_STATUS_OPTIONS: Record<AdminOrderStatus, AdminOrderStatus[]> = {
 
 const SHIPMENT_STATUSES = ['PENDING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'FAILED', 'RETURNED', 'CANCELLED'] as const;
 const RETURN_STATUSES = ['REQUESTED', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'CANCELLED'] as const;
+const REFUND_STATUSES = ['PENDING', 'APPROVED', 'PAID', 'REJECTED'] as const;
 
 function normalizeAdminStatus(status: string): AdminOrderStatus {
   const s = String(status || '').trim().toUpperCase();
@@ -76,6 +85,12 @@ const OrderDetailPage: React.FC = () => {
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryDto[]>([]);
   const [shipment, setShipment] = useState<ShipmentDto | null>(null);
   const [returns, setReturns] = useState<ReturnRequestDto[]>([]);
+  const [refunds, setRefunds] = useState<RefundDto[]>([]);
+  const [returnsPage, setReturnsPage] = useState(0);
+  const [returnsTotal, setReturnsTotal] = useState(0);
+  const [returnsStatusFilter, setReturnsStatusFilter] = useState('');
+  const [returnsQuery, setReturnsQuery] = useState('');
+  const [returnsQueryInput, setReturnsQueryInput] = useState('');
   const [shipmentStatus, setShipmentStatus] = useState<string>('PENDING');
   const [shipmentCarrier, setShipmentCarrier] = useState('');
   const [shipmentTracking, setShipmentTracking] = useState('');
@@ -92,6 +107,39 @@ const OrderDetailPage: React.FC = () => {
   const [returnSaving, setReturnSaving] = useState(false);
   const [returnNotice, setReturnNotice] = useState<string | null>(null);
   const [returnStatusInputs, setReturnStatusInputs] = useState<Record<string, string>>({});
+  const [editingReturnId, setEditingReturnId] = useState<string | null>(null);
+  const [editReturnReason, setEditReturnReason] = useState('');
+  const [editReturnNote, setEditReturnNote] = useState('');
+  const [refundCreateReturnId, setRefundCreateReturnId] = useState('');
+  const [refundCreateAmount, setRefundCreateAmount] = useState('');
+  const [refundCreateMethod, setRefundCreateMethod] = useState('BANK_TRANSFER');
+  const [refundCreateRef, setRefundCreateRef] = useState('');
+  const [refundCreateNote, setRefundCreateNote] = useState('');
+  const [refundNotice, setRefundNotice] = useState<string | null>(null);
+  const [refundSaving, setRefundSaving] = useState(false);
+  const [refundStatusInputs, setRefundStatusInputs] = useState<Record<string, string>>({});
+
+  const loadReturns = async (oid: string | number, page = returnsPage, status = returnsStatusFilter, q = returnsQuery) => {
+    const res = await getAdminOrderReturnsPaged(oid, {
+      page,
+      size: 10,
+      status: status || undefined,
+      q: q || undefined,
+    });
+    setReturns(res.items);
+    setReturnsTotal(res.total);
+    const statusInit: Record<string, string> = {};
+    for (const row of res.items) statusInit[String(row.id)] = String(row.status || 'REQUESTED').toUpperCase();
+    setReturnStatusInputs(statusInit);
+  };
+
+  const loadRefunds = async (oid: string | number) => {
+    const res = await getAdminOrderRefunds(oid, { page: 0, size: 20 });
+    setRefunds(res.items);
+    const statusInit: Record<string, string> = {};
+    for (const row of res.items) statusInit[String(row.id)] = String(row.status || 'PENDING').toUpperCase();
+    setRefundStatusInputs(statusInit);
+  };
 
   useEffect(() => {
     if (!orderId || !isApiConfigured() || !isAuthenticated) {
@@ -104,24 +152,33 @@ const OrderDetailPage: React.FC = () => {
     Promise.all([
       getAdminOrder(orderId),
       getAdminOrderStatusHistory(orderId),
-      getAdminOrderReturns(orderId),
+      getAdminOrderReturnsPaged(orderId, { page: 0, size: 10 }),
+      getAdminOrderRefunds(orderId, { page: 0, size: 20 }),
       getAdminOrderShipment(orderId).catch((e: unknown) => {
         if (e instanceof ApiError && e.status === 404) return null;
         throw e;
       }),
     ])
-      .then(([orderRes, historyRes, returnsRes, shipmentRes]) => {
+      .then(([orderRes, historyRes, returnsRes, refundsRes, shipmentRes]) => {
         setDto(orderRes);
         const current = normalizeAdminStatus(orderRes.status);
         const options = NEXT_STATUS_OPTIONS[current];
         setNextStatus(options[0] ?? current);
         setStatusHistory(historyRes);
-        setReturns(returnsRes);
+        setReturnsPage(0);
+        setReturnsTotal(returnsRes.total);
+        setReturns(returnsRes.items);
         const statusInit: Record<string, string> = {};
-        for (const row of returnsRes) {
+        for (const row of returnsRes.items) {
           statusInit[String(row.id)] = String(row.status || 'REQUESTED').toUpperCase();
         }
         setReturnStatusInputs(statusInit);
+        setRefunds(refundsRes.items);
+        const refundStatusInit: Record<string, string> = {};
+        for (const row of refundsRes.items) {
+          refundStatusInit[String(row.id)] = String(row.status || 'PENDING').toUpperCase();
+        }
+        setRefundStatusInputs(refundStatusInit);
         setShipment(shipmentRes);
         if (shipmentRes) {
           setShipmentStatus(String(shipmentRes.status || 'PENDING').toUpperCase());
@@ -215,9 +272,12 @@ const OrderDetailPage: React.FC = () => {
         note: createReturnNote || null,
         items: [{ productId, quantity, reason: createReturnReason || null }],
       });
-      const rows = await getAdminOrderReturns(orderId);
-      setReturns(rows);
-      setReturnStatusInputs((prev) => ({ ...prev, [String(created.id)]: String(created.status || 'REQUESTED').toUpperCase() }));
+      await loadReturns(orderId, 0);
+      setReturnsPage(0);
+      setReturnStatusInputs((prev) => ({
+        ...prev,
+        [String(created.id)]: String(created.status || 'REQUESTED').toUpperCase(),
+      }));
       setCreateReturnReason('');
       setCreateReturnNote('');
       setCreateReturnProductId('');
@@ -244,13 +304,109 @@ const OrderDetailPage: React.FC = () => {
       await updateAdminReturnStatus(orderId, returnId, {
         status: next,
       });
-      const rows = await getAdminOrderReturns(orderId);
-      setReturns(rows);
+      await loadReturns(orderId);
+      await loadRefunds(orderId);
       setReturnNotice('Cập nhật trạng thái return thành công.');
     } catch (e: unknown) {
       setReturnNotice(e instanceof ApiError ? e.message : 'Cập nhật trạng thái return thất bại.');
     } finally {
       setReturnSaving(false);
+    }
+  };
+
+  const handleStartEditReturn = async (returnId: number | string) => {
+    if (!orderId) return;
+    try {
+      const row = await getAdminOrderReturn(orderId, returnId);
+      setEditingReturnId(String(returnId));
+      setEditReturnReason(row.reason || '');
+      setEditReturnNote(row.note || '');
+    } catch (e: unknown) {
+      setReturnNotice(e instanceof ApiError ? e.message : 'Không tải được return để sửa.');
+    }
+  };
+
+  const handleSaveEditReturn = async () => {
+    if (!orderId || !editingReturnId) return;
+    setReturnSaving(true);
+    setReturnNotice(null);
+    try {
+      await updateAdminOrderReturn(orderId, editingReturnId, {
+        reason: editReturnReason || null,
+        note: editReturnNote || null,
+      });
+      setEditingReturnId(null);
+      await loadReturns(orderId);
+      setReturnNotice('Cập nhật return thành công.');
+    } catch (e: unknown) {
+      setReturnNotice(e instanceof ApiError ? e.message : 'Cập nhật return thất bại.');
+    } finally {
+      setReturnSaving(false);
+    }
+  };
+
+  const handleDeleteReturn = async (returnId: number | string) => {
+    if (!orderId) return;
+    setReturnSaving(true);
+    setReturnNotice(null);
+    try {
+      await deleteAdminOrderReturn(orderId, returnId);
+      await loadReturns(orderId);
+      setReturnNotice('Hủy return thành công.');
+    } catch (e: unknown) {
+      setReturnNotice(e instanceof ApiError ? e.message : 'Hủy return thất bại.');
+    } finally {
+      setReturnSaving(false);
+    }
+  };
+
+  const handleCreateRefund = async () => {
+    if (!orderId) return;
+    const returnId = Number(refundCreateReturnId);
+    const amount = Number(refundCreateAmount);
+    if (!Number.isFinite(returnId) || !Number.isFinite(amount) || amount <= 0) {
+      setRefundNotice('returnId/amount không hợp lệ.');
+      return;
+    }
+    setRefundSaving(true);
+    setRefundNotice(null);
+    try {
+      await createAdminOrderRefund(orderId, {
+        returnId,
+        amount,
+        method: refundCreateMethod,
+        transactionRef: refundCreateRef || null,
+        note: refundCreateNote || null,
+      });
+      await loadRefunds(orderId);
+      await loadReturns(orderId);
+      setRefundCreateReturnId('');
+      setRefundCreateAmount('');
+      setRefundCreateRef('');
+      setRefundCreateNote('');
+      setRefundNotice('Tạo refund thành công.');
+    } catch (e: unknown) {
+      setRefundNotice(e instanceof ApiError ? e.message : 'Tạo refund thất bại.');
+    } finally {
+      setRefundSaving(false);
+    }
+  };
+
+  const handleUpdateRefundStatus = async (refundId: number | string) => {
+    if (!orderId) return;
+    const next = (refundStatusInputs[String(refundId)] || '').toUpperCase();
+    if (!next) return;
+    setRefundSaving(true);
+    setRefundNotice(null);
+    try {
+      await updateAdminRefundStatus(orderId, refundId, { status: next });
+      await loadRefunds(orderId);
+      await loadReturns(orderId);
+      setRefundNotice('Cập nhật refund thành công.');
+    } catch (e: unknown) {
+      setRefundNotice(e instanceof ApiError ? e.message : 'Cập nhật refund thất bại.');
+    } finally {
+      setRefundSaving(false);
     }
   };
 
@@ -522,6 +678,40 @@ const OrderDetailPage: React.FC = () => {
             {returnSaving ? 'Đang tạo…' : 'Tạo yêu cầu return'}
           </button>
 
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="text-xs font-semibold text-slate-600">
+              Filter status
+              <select
+                value={returnsStatusFilter}
+                onChange={(e) => setReturnsStatusFilter(e.target.value)}
+                className="ml-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs"
+              >
+                <option value="">Tất cả</option>
+                {RETURN_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <input
+              value={returnsQueryInput}
+              onChange={(e) => setReturnsQueryInput(e.target.value)}
+              placeholder="Tìm reason/note..."
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!orderId) return;
+                setReturnsPage(0);
+                setReturnsQuery(returnsQueryInput.trim());
+                void loadReturns(orderId, 0, returnsStatusFilter, returnsQueryInput.trim());
+              }}
+              className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+            >
+              Lọc
+            </button>
+          </div>
+
           <div className="space-y-2">
             {returns.length === 0 ? (
               <p className="text-sm text-slate-500">Chưa có return cho đơn này.</p>
@@ -553,6 +743,177 @@ const OrderDetailPage: React.FC = () => {
                       className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-60"
                     >
                       Cập nhật return
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleStartEditReturn(r.id)}
+                      disabled={returnSaving}
+                      className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteReturn(r.id)}
+                      disabled={returnSaving}
+                      className="inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+                    >
+                      Hủy return
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-600">
+            <span>Tổng returns: {returnsTotal}</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={returnsPage <= 0}
+                onClick={() => {
+                  if (!orderId) return;
+                  const next = Math.max(0, returnsPage - 1);
+                  setReturnsPage(next);
+                  void loadReturns(orderId, next);
+                }}
+                className="rounded border border-slate-200 px-2 py-1 disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span>Page {returnsPage + 1}</span>
+              <button
+                type="button"
+                disabled={(returnsPage + 1) * 10 >= returnsTotal}
+                onClick={() => {
+                  if (!orderId) return;
+                  const next = returnsPage + 1;
+                  setReturnsPage(next);
+                  void loadReturns(orderId, next);
+                }}
+                className="rounded border border-slate-200 px-2 py-1 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          {editingReturnId && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+              <div className="text-xs font-semibold text-slate-700">Sửa Return #{editingReturnId}</div>
+              <input
+                value={editReturnReason}
+                onChange={(e) => setEditReturnReason(e.target.value)}
+                placeholder="Reason"
+                className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+              />
+              <input
+                value={editReturnNote}
+                onChange={(e) => setEditReturnNote(e.target.value)}
+                placeholder="Note"
+                className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleSaveEditReturn()}
+                  disabled={returnSaving}
+                  className="rounded bg-primary px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  Lưu sửa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingReturnId(null)}
+                  className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {dto && (
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-bold text-slate-900">Refunds</h2>
+          {refundNotice && (
+            <p className={`text-sm ${refundNotice.includes('thành công') ? 'text-emerald-600' : 'text-red-600'}`}>
+              {refundNotice}
+            </p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              value={refundCreateReturnId}
+              onChange={(e) => setRefundCreateReturnId(e.target.value)}
+              placeholder="Return ID"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+            <input
+              value={refundCreateAmount}
+              onChange={(e) => setRefundCreateAmount(e.target.value)}
+              placeholder="Amount"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+            <input
+              value={refundCreateMethod}
+              onChange={(e) => setRefundCreateMethod(e.target.value)}
+              placeholder="Method"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+            <input
+              value={refundCreateRef}
+              onChange={(e) => setRefundCreateRef(e.target.value)}
+              placeholder="Transaction Ref"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </div>
+          <input
+            value={refundCreateNote}
+            onChange={(e) => setRefundCreateNote(e.target.value)}
+            placeholder="Refund note"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => void handleCreateRefund()}
+            disabled={refundSaving}
+            className="inline-flex items-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
+          >
+            {refundSaving ? 'Đang tạo…' : 'Tạo refund'}
+          </button>
+          <div className="space-y-2">
+            {refunds.length === 0 ? (
+              <p className="text-sm text-slate-500">Chưa có refund cho đơn này.</p>
+            ) : (
+              refunds.map((r) => (
+                <div key={String(r.id)} className="rounded-lg border border-slate-100 p-3">
+                  <div className="text-sm font-semibold text-slate-800">
+                    Refund #{r.id} - {String(r.status)} - {formatVND(Number(r.amount || 0))}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    Return #{r.returnId} | Method: {r.method} | Ref: {r.transactionRef || '-'}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <select
+                      value={refundStatusInputs[String(r.id)] || String(r.status || 'PENDING').toUpperCase()}
+                      onChange={(e) =>
+                        setRefundStatusInputs((prev) => ({ ...prev, [String(r.id)]: e.target.value.toUpperCase() }))
+                      }
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                    >
+                      {REFUND_STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => void handleUpdateRefundStatus(r.id)}
+                      disabled={refundSaving}
+                      className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-60"
+                    >
+                      Cập nhật refund
                     </button>
                   </div>
                 </div>
