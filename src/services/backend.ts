@@ -36,6 +36,7 @@ import type {
   CouponAdminListResponse,
   AdminOrderListResponse,
   AdminDashboardSummaryResponse,
+  AdminOrderStatus,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -274,6 +275,14 @@ export async function getAdminOrders(params?: {
 /** GET /api/orders/admin/:id (ADMIN) */
 export async function getAdminOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/admin/${id}`, { auth: true });
+}
+
+/** PATCH /api/orders/admin/:id/status (ADMIN) */
+export async function updateAdminOrderStatus(
+  id: number | string,
+  status: AdminOrderStatus
+): Promise<OrderDto> {
+  return apiPatch<OrderDto>(`/orders/admin/${id}/status`, { status }, { auth: true });
 }
 
 /** GET /api/admin/dashboard/summary (ADMIN) */

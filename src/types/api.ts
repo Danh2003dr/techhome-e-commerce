@@ -150,6 +150,14 @@ export interface OrderDto {
   items: OrderItemDto[];
 }
 
+export type AdminOrderStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'SHIPPING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED';
+
 export interface AdminOrderListResponse {
   total: number;
   page: number;
