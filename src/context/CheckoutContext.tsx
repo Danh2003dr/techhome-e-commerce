@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { CartItem } from '@/types';
 
 /** Giữ cho `ShippingMethodCard` / `CheckoutStep2` (không còn trong luồng chính). */
@@ -69,26 +69,26 @@ export const CheckoutProvider: React.FC<{ children: ReactNode }> = ({ children }
   /** 1 = địa chỉ, 2 = thanh toán (không còn bước chọn vận chuyển). */
   const [currentStep, setCurrentStep] = useState(1);
 
-  const updateCheckoutData = (data: Partial<CheckoutData>) => {
+  const updateCheckoutData = useCallback((data: Partial<CheckoutData>) => {
     setCheckoutData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
-  };
+  }, [currentStep]);
 
-  const previousStep = () => {
+  const previousStep = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep]);
 
-  const resetCheckout = () => {
+  const resetCheckout = useCallback(() => {
     setCheckoutData(defaultCheckoutData);
     setCurrentStep(1);
-  };
+  }, []);
 
   return (
     <CheckoutContext.Provider

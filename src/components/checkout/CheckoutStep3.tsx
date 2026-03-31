@@ -145,8 +145,13 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
             <p className="text-slate-600 dark:text-slate-400 mb-4">
               You will be redirected to PayPal to complete your payment
             </p>
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-              Continue with PayPal
+            <button
+              type="button"
+              onClick={() => void handlePlaceOrder()}
+              disabled={placing}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
+            >
+              {placing ? 'Placing order...' : 'Continue with PayPal'}
             </button>
           </div>
         )}
@@ -156,8 +161,13 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
             <p className="text-slate-600 dark:text-slate-400 mb-4">
               You will be redirected to PayPal Credit to complete your payment
             </p>
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-              Continue with PayPal Credit
+            <button
+              type="button"
+              onClick={() => void handlePlaceOrder()}
+              disabled={placing}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
+            >
+              {placing ? 'Placing order...' : 'Continue with PayPal Credit'}
             </button>
           </div>
         )}
