@@ -24,7 +24,7 @@ const LoginPage: React.FC = () => {
     if (role === 'ADMIN') return '/admin';
     const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
     if (from && typeof from === 'string') return from;
-    return '/profile';
+    return '/';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
         setLoading(false);
       }
     } else {
-      navigate('/profile');
+      navigate('/');
     }
   };
 

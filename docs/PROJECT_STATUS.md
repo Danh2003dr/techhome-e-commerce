@@ -30,7 +30,7 @@
 
 Từ `PROGRESS_REPORT.md` và cấu trúc code hiện tại:
 
-- **HomePage layout**: hero banner + featured tabs + sections (UI ổn)
+- **HomePage layout**: khối intro + featured tabs + sections (UI ổn)
 - **ProductCard / Product grid**: UI gần hoàn thiện (hiệu ứng, badge, link sang detail)
 - **Routing**: đã refactor để pages dùng `MainLayout` nhất quán (Header/Footer dùng chung cho nhóm routes chính)
 
@@ -49,7 +49,7 @@ Từ `PROGRESS_REPORT.md` và cấu trúc code hiện tại:
   - timeout/retry
   - services tách theo domain (products/orders/auth/admin…)
 - Dữ liệu UI hiện vẫn **phụ thuộc mock**:
-  - Ví dụ `src/pages/store/HomePage.tsx` import `categories, banners, trendingProducts` từ `@/data`.
+  - Ví dụ một số trang vẫn import mock từ `@/data` (HomePage ưu tiên API featured khi có `VITE_API_URL`).
 
 ### 4.3 Checkout / Cart logic
 

@@ -19,7 +19,6 @@ function pathMatchesItem(currentPath: string, itemPath: string): boolean {
     return currentPath === '/admin/orders' || currentPath.startsWith('/admin/orders/');
   }
   if (itemPath === '/admin/seo') return currentPath.startsWith('/admin/seo');
-  if (itemPath === '/admin/banners') return currentPath.startsWith('/admin/banners');
   if (itemPath === '/admin/vouchers') return currentPath.startsWith('/admin/vouchers');
   if (itemPath === '/login') return false;
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);

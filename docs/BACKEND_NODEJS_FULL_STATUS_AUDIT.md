@@ -103,7 +103,6 @@ Tai lieu nay tong hop nhanh va ro rang ve toan bo backend `backend_nodejs`, gom:
   - Dashboard aggregate
   - Calendar event CRUD
   - Admin orders toan he thong + update status
-  - Banner CRUD
   - Voucher CRUD + rule nghiep vu
   - SEO settings read/write
 
@@ -221,8 +220,8 @@ Tai lieu nay tong hop nhanh va ro rang ve toan bo backend `backend_nodejs`, gom:
 - Admin stock page:
   - FE dang dung `productStockMock`
   - Chua map vao `/inventories/*`.
-- Admin banner/voucher/seo:
-  - FE dang dung `adminMockStore` local data
+- Admin voucher/seo:
+  - FE dang dung `adminMockStore` local data (phan voucher/seo)
   - Backend chua co CRUD tuong ung cho cac khoi nay.
 
 ## 4.3 FE cover mot phan, nhung hanh vi chua khop backend
@@ -238,7 +237,7 @@ Tai lieu nay tong hop nhanh va ro rang ve toan bo backend `backend_nodejs`, gom:
 ## 5) Ket luan ngan
 
 - Backend `backend_nodejs` hien da day du cho luong mua hang user + admin products.
-- Khoang trong lon nam o admin modules nang cao (dashboard/calendar/orders all-system/banner/voucher/seo) va ket noi FE cho users/roles/inventories.
+- Khoang trong lon nam o admin modules nang cao (dashboard/calendar/orders all-system/voucher/seo) va ket noi FE cho users/roles/inventories.
 - Tai lieu nay co the dung lam baseline de lap ke hoach migrate het mock sang API that theo tung khoi.
 
 ---

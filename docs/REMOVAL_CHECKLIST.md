@@ -64,39 +64,6 @@
 
 ---
 
-### 1.2. Layout 2 Banners Side-by-Side
-
-**File**: `src/pages/store/HomePage.tsx`
-
-**Lines cần thay đổi**: `92-141`
-
-**Code hiện tại cần loại bỏ**:
-```tsx
-<section className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[500px] mb-12">
-  <div className="relative group rounded-xl overflow-hidden bg-slate-200">
-    {/* Left Banner */}
-  </div>
-  <div className="relative group rounded-xl overflow-hidden bg-slate-200">
-    {/* Right Banner */}
-  </div>
-</section>
-```
-
-**Lý do loại bỏ**:
-- ❌ **Không giống Figma** - Figma có 1 hero banner lớn, không phải 2 banners side-by-side
-- ❌ **UX kém hơn** - 2 banners bằng nhau không tạo visual hierarchy
-- ✅ **Figma design tốt hơn** - 1 hero banner + Smaller Banners section
-
-**Action**: 
-- ❌ **Loại bỏ**: Layout 2 banners side-by-side
-- ✅ **Thay thế**: 1 hero banner lớn + Smaller Banners section (theo Figma)
-
-**Impact**: 
-- ✅ **Tích cực**: Visual hierarchy tốt hơn, giống Figma design
-- ✅ **UX tốt hơn**: User dễ nhìn thấy promotion chính
-
----
-
 ## ⚠️ PHẦN 2: CODE CẦN THAY ĐỔI (KHÔNG PHẢI LOẠI BỎ HOÀN TOÀN)
 
 ### 2.1. "Trending Now" Section Title
@@ -166,7 +133,7 @@ src/components/layout/Header.tsx
 ```tsx
 // ❌ LOẠI BỎ (sau khi có API)
 import { cartItems } from '@/data';
-import { categories, banners, trendingProducts } from '@/data';
+import { categories, trendingProducts } from '@/data';
 import { listingProducts } from '@/data';
 // ... tất cả imports từ @/data
 
@@ -242,12 +209,6 @@ import { productsApi } from '@/services/productsApi';
   - [ ] Di chuyển thông tin vào Footer (nếu cần)
   - [ ] Test header sau khi xóa
 
-- [ ] **Thay đổi Home Page Banner Layout** (`src/pages/store/HomePage.tsx` lines 92-141)
-  - [ ] Xóa layout 2 banners side-by-side
-  - [ ] Tạo 1 hero banner lớn
-  - [ ] Tạo Smaller Banners section
-  - [ ] Test layout mới
-
 ### ⚠️ Phase 2: Thay Đổi (Ưu tiên trung bình)
 
 - [ ] **Thay đổi "Trending Now"** → Tabs ("New Arrival", "Bestseller", "Featured")
@@ -292,10 +253,6 @@ import { productsApi } from '@/services/productsApi';
    - Lý do: Không có trong Figma, không phù hợp Requirements
    - Impact: UI sạch hơn, giống Figma
 
-2. **Layout 2 banners side-by-side** - Lines 92-141 trong `HomePage.tsx`
-   - Lý do: Figma có 1 hero banner, UX tốt hơn
-   - Impact: Visual hierarchy tốt hơn
-
 ### ⚠️ THAY ĐỔI (Không phải loại bỏ hoàn toàn)
 
 1. **"Trending Now"** → Thêm tabs ("New Arrival", "Bestseller", "Featured")
@@ -319,7 +276,7 @@ import { productsApi } from '@/services/productsApi';
 
 **Quyết định**: Loại bỏ Top Bar, nhưng thông tin có thể đưa vào:
 - ✅ **Footer** - "Free Shipping over $35", "Price Match Guarantee"
-- ✅ **Hero Banner** - Có thể hiển thị trong banner text
+- ✅ **Khối intro / thông báo** trên trang chủ hoặc sticky — tùy thiết kế
 - ✅ **Sticky notification** - Optional, nếu cần highlight
 
 **Không mất thông tin**, chỉ di chuyển vị trí.
@@ -352,7 +309,6 @@ import { productsApi } from '@/services/productsApi';
 ### Bước 1: Loại Bỏ UI Elements (Ngay)
 
 1. ✅ Loại bỏ Top Bar trong Header
-2. ✅ Thay đổi Home Page banner layout
 
 ### Bước 2: Thay Đổi Text/Labels (Sau Bước 1)
 
@@ -377,7 +333,6 @@ import { productsApi } from '@/services/productsApi';
 ### Những gì CẦN LOẠI BỎ NGAY:
 
 1. ❌ **Top Bar** trong Header (lines 19-37)
-2. ❌ **Layout 2 banners** side-by-side (lines 92-141)
 
 ### Những gì CẦN THAY ĐỔI:
 

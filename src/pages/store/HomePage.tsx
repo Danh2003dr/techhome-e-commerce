@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { banners as fallbackBanners } from '@/data';
-import { getAdminBanners } from '@/services/adminMockStore';
 import { useApiFeaturedProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
@@ -10,12 +8,6 @@ import type { TrendingProduct as TrendingProductType } from '@/types';
 import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
-
-function bannerToPath(link: string) {
-  if (link.startsWith('/#/')) return link.slice(2);
-  if (link.startsWith('#/')) return link.slice(1);
-  return link;
-}
 
 function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
   const { addItem } = useCart();
@@ -92,12 +84,6 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
 }
 
 const HomePage: React.FC = () => {
-  const heroBanners = useMemo(() => {
-    const b = getAdminBanners();
-    return b.length > 0 ? b : fallbackBanners;
-  }, []);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const heroBanner = heroBanners[heroIndex] ?? heroBanners[0];
   const [activeTab, setActiveTab] = useState<'new' | 'bestseller' | 'featured'>('new');
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set());
   const { data: apiFeaturedProducts } = useApiFeaturedProducts();
@@ -113,66 +99,30 @@ const HomePage: React.FC = () => {
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <main className="container mx-auto px-4 py-8">
-        {/* Hero Banner - Full Width */}
-        <section className="mb-10 md:mb-12">
-          <div className="relative group rounded-xl overflow-hidden bg-slate-200 h-[240px] sm:h-[300px] md:h-[360px] lg:h-[400px]">
-            {heroBanner && (
-              <>
-                <img
-                  src={heroBanner.image}
-                  alt={heroBanner.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent flex items-center p-6 sm:p-8 md:p-10">
-                  <div className="max-w-[320px] md:max-w-md text-white">
-                    <span className="inline-block bg-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded mb-4">
-                      {heroBanner.subtitle}
-                    </span>
-                    <h2 className="text-3xl sm:text-4xl md:text-[44px] font-bold mb-3 md:mb-4 leading-tight">{heroBanner.title}</h2>
-                    <p className="text-slate-200 mb-5 md:mb-7 font-medium text-sm sm:text-base md:text-lg">
-                      Experience lightning-fast performance and crystal clear displays.
-                    </p>
-                    <Link
-                      to={bannerToPath(heroBanner.link) || '/'}
-                      className="inline-block bg-primary hover:bg-blue-600 text-white font-bold py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg text-sm md:text-base"
-                    >
-                      {heroBanner.linkText}
-                    </Link>
-                  </div>
-                </div>
-              </>
-            )}
-            {heroBanners.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  aria-label="Banner trước"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 z-10"
-                  onClick={() => setHeroIndex((i) => (i - 1 + heroBanners.length) % heroBanners.length)}
-                >
-                  <span className="material-icons">chevron_left</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label="Banner sau"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 z-10"
-                  onClick={() => setHeroIndex((i) => (i + 1) % heroBanners.length)}
-                >
-                  <span className="material-icons">chevron_right</span>
-                </button>
-                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
-                  {heroBanners.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      aria-label={`Slide ${i + 1}`}
-                      className={`h-2 rounded-full transition-all ${i === heroIndex ? 'w-8 bg-white' : 'w-2 bg-white/50'}`}
-                      onClick={() => setHeroIndex(i)}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+        <section className="mb-10 md:mb-12" aria-labelledby="home-intro-heading">
+          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm px-6 py-8 md:px-10 md:py-10 shadow-sm">
+            <p className="text-primary font-bold tracking-widest text-[10px] uppercase mb-3">TechHome</p>
+            <h1 id="home-intro-heading" className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4 leading-tight">
+              Công nghệ cho từng ngày
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mb-6 text-sm md:text-base leading-relaxed">
+              Khám phá điện thoại, phụ kiện và âm thanh — giao nhanh, giá minh bạch.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/category/dien-thoai"
+                className="inline-flex items-center gap-2 bg-primary hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors text-sm"
+              >
+                Xem điện thoại
+                <span className="material-icons text-base">arrow_forward</span>
+              </Link>
+              <Link
+                to="/deals"
+                className="inline-flex items-center gap-2 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-100 font-semibold py-2.5 px-5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm"
+              >
+                Ưu đãi
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -185,7 +135,7 @@ const HomePage: React.FC = () => {
               View All <span className="material-icons text-sm">arrow_forward</span>
             </Link>
           </div>
-          
+
           {/* Tabs */}
           <div className="flex gap-4 mb-8 border-b border-slate-200 dark:border-slate-800">
             <button
@@ -225,7 +175,6 @@ const HomePage: React.FC = () => {
             {trendingProducts
               .filter((product) => {
                 if (activeTab === 'new') {
-                  // New Arrival: from API show all; from mock use tag / !isBestSeller
                   if (isUsingApiProducts) return true;
                   return product.tag === 'New Release' || !product.isBestSeller;
                 } else if (activeTab === 'bestseller') {

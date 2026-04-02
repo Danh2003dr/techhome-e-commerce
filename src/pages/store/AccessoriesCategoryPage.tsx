@@ -6,9 +6,6 @@ import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
 import { isApiConfigured } from '@/services/api';
 
-const HERO_IMAGE =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCi1GpWnEhQSlHntiNLVve9xzux9Uvoto9E-Mw4dCOwR502O-eYrKgv20d47lGjmX0Fsn0gFdDcd8tqCBTRkNIvqZcW0uBuumshu6Rg5c2zf6cXEVNcANj1ZzFLq_3xDURsHq7NJt-RLN0YAVi8ft535Ct-Kxt9FUAqYuX0d6gGiHx5P2gTpggxpKUA_QW1Ep06u5P6O8WYHbCW_nr_tdn5OqfcF5k1h7yqKkW_iQ-q_iNXmagg9U4j3ivnwHdYBpTl_EZlRFPV5oY';
-
 const SUB_CATEGORIES = [
   { label: 'Charging & Cables', icon: 'usb' },
   { label: 'Keyboards & Mice', icon: 'keyboard' },
@@ -45,33 +42,15 @@ const AccessoriesCategoryPage: React.FC = () => {
           <span className="text-slate-900 dark:text-slate-200 font-semibold">Accessories</span>
         </nav>
 
-        {/* Hero Banner */}
-        <section className="relative h-64 md:h-80 rounded-xl overflow-hidden mb-10 group">
-          <img
-            src={HERO_IMAGE}
-            alt="Tech Setup"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background-dark/80 via-background-dark/40 to-transparent flex flex-col justify-center px-8 md:px-16">
-            <span className="text-primary font-bold tracking-widest text-sm mb-2">LIMITED TIME OFFERS</span>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Level Up Your
-              <br />
-              Tech Setup
-            </h1>
-            <p className="text-slate-300 max-w-md mb-6 hidden md:block">
-              Discover high-performance peripherals and essential gear designed to boost your productivity and elevate your aesthetic.
-            </p>
-            <div>
-              <Link
-                to="/category/phu-kien"
-                className="inline-block bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20"
-              >
-                Shop the Collection
-              </Link>
-            </div>
-          </div>
-        </section>
+        <header className="mb-8" aria-labelledby="accessories-category-title">
+          <p className="text-primary font-bold tracking-widest text-[10px] uppercase mb-2">Phụ kiện</p>
+          <h1 id="accessories-category-title" className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
+            Nâng cấp bộ thiết bị của bạn
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base max-w-2xl leading-relaxed">
+            Phụ kiện và thiết bị ngoại vi chất lượng — hỗ trợ làm việc và giải trí hiệu quả hơn.
+          </p>
+        </header>
 
         {/* Sub-Category Icons Bar */}
         <section className="mb-12 overflow-x-auto pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>

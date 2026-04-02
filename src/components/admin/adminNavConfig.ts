@@ -11,7 +11,6 @@ export const ADMIN_NAV_GROUPS: Array<{ title?: string; items: AdminNavItem[] }> 
       { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
       { label: 'Orders', path: '/admin/orders', icon: 'receipt_long' },
       { label: 'Calendar', path: '/admin/calendar', icon: 'event' },
-      { label: 'Banners', path: '/admin/banners', icon: 'view_carousel' },
       { label: 'Vouchers', path: '/admin/vouchers', icon: 'confirmation_number' },
       { label: 'Settings', path: '/admin/seo', icon: 'settings' },
     ],

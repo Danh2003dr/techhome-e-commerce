@@ -1,22 +1,43 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
 import { useCart } from '@/context/CartContext';
 import CheckoutStepper from '@/components/checkout/CheckoutStepper';
 import CheckoutStep1 from '@/components/checkout/CheckoutStep1';
 import CheckoutStep3 from '@/components/checkout/CheckoutStep3';
+import { APPLIED_COUPON_STORAGE_KEY } from '@/constants/appliedCouponStorage';
+
+function resolveCouponForCheckout(
+  locationState: unknown
+): string {
+  if (
+    locationState != null &&
+    typeof locationState === 'object' &&
+    'couponCode' in locationState
+  ) {
+    const raw = (locationState as { couponCode?: unknown }).couponCode;
+    return raw != null ? String(raw).trim() : '';
+  }
+  try {
+    return (sessionStorage.getItem(APPLIED_COUPON_STORAGE_KEY) ?? '').trim();
+  } catch {
+    return '';
+  }
+}
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { items: cartItems } = useCart();
   const { currentStep, nextStep, previousStep, updateCheckoutData } = useCheckout();
 
   useEffect(() => {
-    updateCheckoutData({ items: cartItems });
+    const couponCode = resolveCouponForCheckout(location.state);
+    updateCheckoutData({ items: cartItems, couponCode });
     if (cartItems.length === 0) {
       navigate('/cart');
     }
-  }, [navigate, updateCheckoutData, cartItems]);
+  }, [navigate, updateCheckoutData, cartItems, location.state, location.key]);
 
   const handleNext = () => {
     nextStep();

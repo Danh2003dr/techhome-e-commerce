@@ -9,6 +9,7 @@ import { recordPurchasedProducts } from '@/services/purchasesStore';
 import PaymentTabs, { type PaymentMethodType } from './PaymentTabs';
 import CreditCardForm from './CreditCardForm';
 import CheckoutSummary from './CheckoutSummary';
+import { APPLIED_COUPON_STORAGE_KEY } from '@/constants/appliedCouponStorage';
 
 interface CheckoutStep3Props {
   onBack: () => void;
@@ -115,6 +116,11 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         await setCart([]);
       } catch {
         /* giỏ server có thể lỗi mạng — đơn vẫn đã tạo */
+      }
+      try {
+        sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+      } catch {
+        /* ignore */
       }
       resetCheckout();
       navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);

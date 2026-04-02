@@ -52,8 +52,7 @@ Muc tieu: giam mock nhanh nhat, tang coverage FE-BE that, va dong bo nghiep vu a
   - [ ] Segment/deals
 - [ ] Chot contract va implement backend cho Calendar events CRUD:
   - [ ] list/create/update/delete event
-- [ ] Chot contract va implement backend cho Banner/Voucher/SEO:
-  - [ ] Banner CRUD
+- [ ] Chot contract va implement backend cho Voucher/SEO:
   - [ ] Voucher CRUD + validate rule
   - [ ] SEO settings read/write
 

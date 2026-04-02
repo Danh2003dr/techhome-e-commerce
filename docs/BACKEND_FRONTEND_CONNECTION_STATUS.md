@@ -107,7 +107,7 @@ Theo current gap checklist, frontend admin van con mock o cac khoi:
 - Calendar events CRUD
 - Admin orders all-system + update status
 - Stock management endpoint chuyen biet
-- Banner/Voucher/SEO CRUD
+- Voucher/SEO CRUD
 
 Day la cac khoi can backend bo sung contract ro truoc khi migrate frontend sang API that.
 
