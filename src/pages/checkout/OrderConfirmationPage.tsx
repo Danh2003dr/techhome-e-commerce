@@ -16,9 +16,26 @@ type LineRow = {
   lineTotal: number;
 };
 
+function paymentStatusLabelVi(value: unknown): string {
+  const key = String(value ?? '').trim().toUpperCase();
+  const labels: Record<string, string> = {
+    UNPAID: 'Chưa thanh toán',
+    PENDING: 'Đang chờ thanh toán',
+    PAID: 'Đã thanh toán',
+    FAILED: 'Thanh toán thất bại',
+    CANCELLED: 'Đã hủy thanh toán',
+    EXPIRED: 'Hết hạn thanh toán',
+  };
+  return labels[key] ?? 'Chưa có trạng thái thanh toán';
+}
+
 function mapDtoToView(dto: OrderDto): {
   orderId: string;
   statusLabel: string;
+  paymentStatusLabel: string;
+  paymentMethodLabel: string;
+  transactionId: string | null;
+  paidAtLabel: string | null;
   placedAt: string;
   lineItems: LineRow[];
   total: number;
@@ -31,6 +48,19 @@ function mapDtoToView(dto: OrderDto): {
   return {
     orderId: String(dto.id),
     statusLabel: orderStatusLabelVi(dto.status),
+    paymentStatusLabel: paymentStatusLabelVi(dto.paymentStatus),
+    paymentMethodLabel:
+      dto.paymentMethod != null && String(dto.paymentMethod).trim() !== ''
+        ? String(dto.paymentMethod).trim().toUpperCase()
+        : '—',
+    transactionId:
+      dto.paymentTransactionId != null && String(dto.paymentTransactionId).trim() !== ''
+        ? String(dto.paymentTransactionId).trim()
+        : null,
+    paidAtLabel:
+      dto.paidAt != null && String(dto.paidAt).trim() !== ''
+        ? formatDate(String(dto.paidAt))
+        : null,
     placedAt: formatDate(dto.createdAt),
     lineItems: dto.items.map((item, idx) => ({
       key: `${item.productId}-${idx}`,
@@ -171,6 +201,22 @@ const OrderConfirmationPage: React.FC = () => {
             {' · '}
             {view.placedAt}
           </p>
+          <p className="text-sm text-slate-500 mt-2">
+            Thanh toán:{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{view.paymentStatusLabel}</span>
+            {' · '}
+            Phương thức: <span className="font-semibold text-slate-700 dark:text-slate-300">{view.paymentMethodLabel}</span>
+          </p>
+          {view.transactionId && (
+            <p className="text-xs text-slate-500 mt-1">
+              Mã giao dịch: <span className="font-medium text-slate-700 dark:text-slate-300">{view.transactionId}</span>
+            </p>
+          )}
+          {view.paidAtLabel && (
+            <p className="text-xs text-slate-500 mt-1">
+              Thanh toán lúc: <span className="font-medium text-slate-700 dark:text-slate-300">{view.paidAtLabel}</span>
+            </p>
+          )}
           <p className="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
             Địa chỉ giao hàng đã lưu trên đơn. Chi tiết sản phẩm và tổng tiền xem bên dưới hoặc trang chi tiết đơn.
           </p>

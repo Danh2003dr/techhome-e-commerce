@@ -14,6 +14,7 @@ const OrderListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ const OrderListPage: React.FC = () => {
       page,
       size: PAGE_SIZE,
       status: status || undefined,
+      paymentStatus: paymentStatus || undefined,
     })
       .then((res) => {
         setRows(res.items);
@@ -35,7 +37,7 @@ const OrderListPage: React.FC = () => {
         setError(e instanceof ApiError ? e.message : 'Không tải được danh sách đơn hàng admin.');
       })
       .finally(() => setLoading(false));
-  }, [page, status]);
+  }, [page, status, paymentStatus]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
 
@@ -68,6 +70,25 @@ const OrderListPage: React.FC = () => {
               <option value="CANCELLED">CANCELLED</option>
             </select>
           </label>
+          <label className="text-xs font-semibold text-slate-600">
+            Thanh toán
+            <select
+              value={paymentStatus}
+              onChange={(e) => {
+                setPage(0);
+                setPaymentStatus(e.target.value);
+              }}
+              className="ml-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">Tất cả</option>
+              <option value="UNPAID">UNPAID</option>
+              <option value="PENDING">PENDING</option>
+              <option value="PAID">PAID</option>
+              <option value="FAILED">FAILED</option>
+              <option value="CANCELLED">CANCELLED</option>
+              <option value="EXPIRED">EXPIRED</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -84,6 +105,7 @@ const OrderListPage: React.FC = () => {
                   <th className="py-4 px-4">User ID</th>
                   <th className="py-4 px-4">Ngày đặt</th>
                   <th className="py-4 px-4">Trạng thái</th>
+                  <th className="py-4 px-4">Thanh toán</th>
                   <th className="py-4 px-4 text-right">Tổng</th>
                   <th className="py-4 px-4 text-right">Action</th>
                 </tr>
@@ -91,7 +113,7 @@ const OrderListPage: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 px-4 text-center text-sm font-semibold text-slate-500">
+                    <td colSpan={7} className="py-12 px-4 text-center text-sm font-semibold text-slate-500">
                       Không có đơn hàng phù hợp.
                     </td>
                   </tr>
@@ -102,6 +124,7 @@ const OrderListPage: React.FC = () => {
                       <td className="py-4 px-4 tabular-nums">{row.userId}</td>
                       <td className="py-4 px-4 whitespace-nowrap">{formatDate(row.createdAt)}</td>
                       <td className="py-4 px-4">{orderStatusLabelVi(row.status)}</td>
+                      <td className="py-4 px-4">{row.paymentStatus ?? 'UNPAID'}</td>
                       <td className="py-4 px-4 text-right font-semibold text-primary">{formatVND(row.totalPrice)}</td>
                       <td className="py-4 px-4 text-right">
                         <div className="flex flex-wrap items-center justify-end gap-2">

@@ -72,6 +72,19 @@ function toIsoInputValue(value?: string | null): string {
   return `${y}-${m}-${d}T${h}:${mm}`;
 }
 
+function paymentStatusLabelVi(value: unknown): string {
+  const key = String(value ?? '').trim().toUpperCase();
+  const labels: Record<string, string> = {
+    UNPAID: 'Chưa thanh toán',
+    PENDING: 'Đang chờ thanh toán',
+    PAID: 'Đã thanh toán',
+    FAILED: 'Thanh toán thất bại',
+    CANCELLED: 'Đã hủy thanh toán',
+    EXPIRED: 'Hết hạn thanh toán',
+  };
+  return labels[key] ?? (key || '—');
+}
+
 const OrderDetailPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
@@ -509,6 +522,35 @@ const OrderDetailPage: React.FC = () => {
             <div className="flex justify-between text-base font-bold text-slate-900">
               <span>Tổng</span>
               <span className="text-primary">{formatVND(dto.totalPrice)}</span>
+            </div>
+            <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 space-y-1">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Thanh toán</div>
+              <div className="text-sm text-slate-700">
+                Trạng thái: <span className="font-semibold">{paymentStatusLabelVi(dto.paymentStatus)}</span>
+              </div>
+              <div className="text-sm text-slate-700">
+                Phương thức:{' '}
+                <span className="font-semibold">
+                  {dto.paymentMethod != null && String(dto.paymentMethod).trim() !== ''
+                    ? String(dto.paymentMethod).trim().toUpperCase()
+                    : '—'}
+                </span>
+              </div>
+              {dto.paidAt && (
+                <div className="text-sm text-slate-700">
+                  Paid at: <span className="font-semibold">{formatDate(dto.paidAt)}</span>
+                </div>
+              )}
+              {dto.paymentTransactionId && (
+                <div className="text-sm text-slate-700">
+                  Transaction: <span className="font-semibold">{dto.paymentTransactionId}</span>
+                </div>
+              )}
+              {dto.paymentFailureReason && (
+                <div className="text-sm text-rose-600">
+                  Lý do lỗi: <span className="font-semibold">{dto.paymentFailureReason}</span>
+                </div>
+              )}
             </div>
           </div>
         </section>

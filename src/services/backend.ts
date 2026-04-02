@@ -43,6 +43,7 @@ import type {
   ReturnListResponse,
   RefundDto,
   RefundListResponse,
+  CreateMomoPaymentResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -260,11 +261,17 @@ export async function getOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/${id}`, { auth: true });
 }
 
+/** POST /api/orders/:id/payments/momo – tạo link thanh toán MoMo cho đơn hàng */
+export async function createMomoPayment(orderId: number | string): Promise<CreateMomoPaymentResponse> {
+  return apiPost<CreateMomoPaymentResponse>(`/orders/${orderId}/payments/momo`, {}, { auth: true });
+}
+
 /** GET /api/orders/admin?page=&size=&status=&userId= (ADMIN) */
 export async function getAdminOrders(params?: {
   page?: number;
   size?: number;
   status?: string;
+  paymentStatus?: string;
   userId?: number;
 }): Promise<AdminOrderListResponse> {
   const sp = new URLSearchParams();
@@ -272,6 +279,9 @@ export async function getAdminOrders(params?: {
   if (params?.size != null) sp.set('size', String(params.size));
   if (params?.status != null && String(params.status).trim() !== '') {
     sp.set('status', String(params.status).trim());
+  }
+  if (params?.paymentStatus != null && String(params.paymentStatus).trim() !== '') {
+    sp.set('paymentStatus', String(params.paymentStatus).trim());
   }
   if (params?.userId != null) sp.set('userId', String(params.userId));
   const query = sp.toString();

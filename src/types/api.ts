@@ -142,12 +142,30 @@ export interface OrderDto {
   userId: number | string;
   totalPrice: number;
   status: string;
+  paymentStatus?: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'EXPIRED' | string;
+  paymentMethod?: string | null;
+  paymentGatewayOrderId?: string | null;
+  paymentRequestId?: string | null;
+  paymentTransactionId?: string | null;
+  paidAt?: string | null;
+  paymentFailureReason?: string | null;
   createdAt: string;
   /** Snapshot địa chỉ khi đặt; đơn cũ có thể thiếu. */
   shippingAddress?: string | null;
   /** Phí ship do server tính; đơn cũ có thể thiếu. */
   shippingFee?: number | null;
   items: OrderItemDto[];
+}
+
+export interface CreateMomoPaymentResponse {
+  orderId: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  payUrl: string;
+  deeplink?: string | null;
+  qrCodeUrl?: string | null;
+  requestId: string;
+  gatewayOrderId: string;
 }
 
 export type AdminOrderStatus =

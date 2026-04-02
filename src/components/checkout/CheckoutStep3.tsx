@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
 import { useAuth } from '@/context/AuthContext';
-import { createOrder, setCart } from '@/services/backend';
+import { createOrder, createMomoPayment, setCart } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { ApiError } from '@/services/api';
 import { recordPurchasedProducts } from '@/services/purchasesStore';
@@ -123,6 +123,30 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         /* ignore */
       }
       resetCheckout();
+      const isMomoFlow = paymentMethod === 'paypal' || paymentMethod === 'paypal_credit';
+      if (isMomoFlow) {
+        try {
+          const momo = await createMomoPayment(order.id);
+          const redirectUrl = momo.payUrl?.trim();
+          if (!redirectUrl) {
+            navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
+            return;
+          }
+          window.location.href = redirectUrl;
+          return;
+        } catch (momoErr) {
+          const msg =
+            momoErr instanceof ApiError
+              ? momoErr.message
+              : momoErr instanceof Error
+                ? momoErr.message
+                : 'Không tạo được link thanh toán MoMo.';
+          setOrderError(`Đơn hàng đã được tạo nhưng chưa tạo được link thanh toán: ${msg}`);
+          navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
+          return;
+        }
+      }
+
       navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
     } catch (err) {
       setOrderError(err instanceof ApiError ? err.message : 'Không tạo được đơn hàng.');
@@ -149,7 +173,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         {paymentMethod === 'paypal' && (
           <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              You will be redirected to PayPal to complete your payment
+              Bạn sẽ được chuyển đến MoMo để hoàn tất thanh toán
             </p>
             <button
               type="button"
@@ -157,7 +181,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
               disabled={placing}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
             >
-              {placing ? 'Placing order...' : 'Continue with PayPal'}
+              {placing ? 'Đang xử lý...' : 'Tiếp tục với MoMo'}
             </button>
           </div>
         )}
@@ -165,7 +189,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         {paymentMethod === 'paypal_credit' && (
           <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              You will be redirected to PayPal Credit to complete your payment
+              Bạn sẽ được chuyển đến MoMo để hoàn tất thanh toán
             </p>
             <button
               type="button"
@@ -173,7 +197,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
               disabled={placing}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
             >
-              {placing ? 'Placing order...' : 'Continue with PayPal Credit'}
+              {placing ? 'Đang xử lý...' : 'Tiếp tục với MoMo'}
             </button>
           </div>
         )}
