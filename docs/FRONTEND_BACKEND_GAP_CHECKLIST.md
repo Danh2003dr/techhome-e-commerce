@@ -75,10 +75,8 @@ Cap nhat: 2026-03-26
   - `src/pages/admin/products/components/ProductStockModal.tsx`
 - Trang thai: chua migrate API.
 
-## 2.5 Admin Banner/Voucher/SEO
+## 2.5 Admin Voucher/SEO
 
-- Banner:
-  - `src/pages/admin/banners/BannerManagementPage.tsx`
 - Voucher:
   - `src/pages/admin/vouchers/VoucherBuilderPage.tsx`
 - SEO:
@@ -110,8 +108,7 @@ Luu y: cac muc duoi day khong nen ep bo mock truoc khi backend bo sung endpoint 
    - Chua co endpoint rieng cho stock table theo UI admin (search/sort/edit nhanh).
    - Can thong nhat dung product CRUD hien co hay tao inventory endpoint rieng.
 
-5. Admin Banner/Voucher/SEO API
-   - Thieu CRUD banners.
+5. Admin Voucher/SEO API
    - Thieu CRUD vouchers + business rule validate.
    - Thieu read/write SEO settings.
 
@@ -130,7 +127,7 @@ Luu y: cac muc duoi day khong nen ep bo mock truoc khi backend bo sung endpoint 
 - [ ] Admin order endpoints (all orders + update status).
 - [ ] Dashboard aggregate endpoints.
 - [ ] Calendar event CRUD endpoints.
-- [ ] Banner/Voucher/SEO endpoints.
+- [ ] Voucher/SEO endpoints.
 - [ ] (Neu can) stock-specific endpoints.
 
 ---

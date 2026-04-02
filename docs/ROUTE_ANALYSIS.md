@@ -182,11 +182,11 @@ if (isDealsPage) return <ProductListingPage />;
 - Chỉ khác nhau về:
   - Data source: `accessoriesCategoryProducts` vs `audioCategoryProducts`
   - Sub-categories: khác nhau về labels và icons
-  - Hero banner text: "Level Up Your Tech Setup" vs "Immersive Sound Experiences"
+  - Tiêu đề / mô tả trang: khác nhau theo từng danh mục
   - Footer text: khác nhau về mô tả
 
 **So sánh:**
-- Cả 2 đều có cùng structure: Header, Breadcrumb, Hero Banner, Sub-Category Bar, Sidebar Filters, Product Grid, Pagination, Footer
+- Cả 2 đều có cùng structure: Header, Breadcrumb, tiêu đề trang, Sub-Category Bar, Sidebar Filters, Product Grid, Pagination, Footer
 - Cả 2 đều dùng cùng `ProductCard` component (được define inline)
 - Cả 2 đều có cùng `StarRating` component (được define inline)
 - Logic state management giống nhau
@@ -196,7 +196,7 @@ if (isDealsPage) return <ProductListingPage />;
   - `categoryName`: "Accessories" | "Audio"
   - `products`: array of products
   - `subCategories`: array of sub-categories
-  - `heroConfig`: object với title, description, image
+  - `pageHeader`: object với title, description
 - Refactor cả 2 pages để dùng component chung
 - Hoặc tạo base component `BaseCategoryPage` và extend
 

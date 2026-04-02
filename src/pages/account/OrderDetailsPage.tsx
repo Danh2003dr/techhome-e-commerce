@@ -13,6 +13,19 @@ import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
+function paymentStatusLabelVi(value: unknown): string {
+  const key = String(value ?? '').trim().toUpperCase();
+  const labels: Record<string, string> = {
+    UNPAID: 'Chưa thanh toán',
+    PENDING: 'Đang chờ thanh toán',
+    PAID: 'Đã thanh toán',
+    FAILED: 'Thanh toán thất bại',
+    CANCELLED: 'Đã hủy thanh toán',
+    EXPIRED: 'Hết hạn thanh toán',
+  };
+  return labels[key] ?? 'Chưa có trạng thái thanh toán';
+}
+
 function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
   const placedDate = formatDate(dto.createdAt);
   const statusLabel = orderStatusLabelVi(dto.status);
@@ -63,7 +76,20 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
           country: '',
           phone: '',
         },
-    payment: { brand: 'Đã ghi nhận', last4: '—', expires: 'Khi đặt hàng' },
+    payment: {
+      brand:
+        dto.paymentMethod != null && String(dto.paymentMethod).trim() !== ''
+          ? String(dto.paymentMethod).trim().toUpperCase()
+          : '—',
+      last4:
+        dto.paymentTransactionId != null && String(dto.paymentTransactionId).trim() !== ''
+          ? String(dto.paymentTransactionId).trim().slice(-6)
+          : '—',
+      expires:
+        dto.paidAt != null && String(dto.paidAt).trim() !== ''
+          ? `${paymentStatusLabelVi(dto.paymentStatus)} · ${formatDate(String(dto.paidAt))}`
+          : paymentStatusLabelVi(dto.paymentStatus),
+    },
   };
 }
 

@@ -49,24 +49,19 @@
    - Search bar integration
    - User authentication status display
 
-2. **UI: Hero Banner Component**
-   - Banner slider/carousel
-   - Responsive images
-   - Call-to-action buttons
-
-3. **Feature: Product Card Component**
+2. **Feature: Product Card Component**
    - Reusable ProductCard component
    - Display: image, name, price, rating
    - Add to cart button
    - Link to product detail
 
-4. **Feature: Featured Products Section**
+3. **Feature: Featured Products Section**
    - Fetch products from API
    - Display grid layout
    - Filter by featured flag
    - Lazy loading implementation
 
-5. **State: Home Page Layout & Routing**
+4. **State: Home Page Layout & Routing**
    - Create Home page route
    - Layout structure
    - Integrate all components
@@ -168,12 +163,11 @@ Mỗi card sẽ có description bao gồm:
 
 ## 📋 Danh Sách Cards Sẽ Tạo
 
-### Từ "Develop Home Page" → 5 cards mới:
+### Từ "Develop Home Page" → 4 cards mới:
 1. UI: Header & Navigation Component
-2. UI: Hero Banner Component  
-3. Feature: Product Card Component
-4. Feature: Featured Products Section
-5. State: Home Page Layout & Routing
+2. Feature: Product Card Component
+3. Feature: Featured Products Section
+4. State: Home Page Layout & Routing
 
 ### Từ "Develop Product List Page" → 5 cards mới:
 6. UI: Product Filter Component

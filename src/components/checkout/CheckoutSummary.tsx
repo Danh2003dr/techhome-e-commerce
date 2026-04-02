@@ -1,20 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
 import { formatVND } from '@/utils';
-import { isApiConfigured, getToken, ApiError } from '@/services/api';
+import { isApiConfigured, ApiError } from '@/services/api';
 import * as backend from '@/services/backend';
 import type { CheckoutQuoteResponse } from '@/types/api';
 
 const CheckoutSummary: React.FC = () => {
-  const { checkoutData, updateCheckoutData } = useCheckout();
+  const { checkoutData } = useCheckout();
   const items = checkoutData.items;
-  const [voucherInput, setVoucherInput] = useState(checkoutData.couponCode || '');
-  const [voucherMsg, setVoucherMsg] = useState<string | null>(null);
   const [quote, setQuote] = useState<CheckoutQuoteResponse | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [couponAuthHint, setCouponAuthHint] = useState<string | null>(null);
 
   const localSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const quoteItems = useMemo(
     () =>
@@ -26,10 +26,6 @@ const CheckoutSummary: React.FC = () => {
         .filter((row) => !Number.isNaN(row.productId) && row.productId > 0),
     [items]
   );
-
-  useEffect(() => {
-    setVoucherInput((prev) => (checkoutData.couponCode ? checkoutData.couponCode : prev));
-  }, [checkoutData.couponCode]);
 
   useEffect(() => {
     if (!isApiConfigured() || quoteItems.length === 0) {
@@ -55,18 +51,17 @@ const CheckoutSummary: React.FC = () => {
       .then((q) => {
         if (!cancelled) {
           setQuote(q);
-          if (code && q.coupon) {
-            setVoucherMsg(`Đã áp dụng mã ${q.coupon.code}.`);
-          }
+          setCouponAuthHint(null);
         }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
           setQuote(null);
           if (err instanceof ApiError && err.status === 401) {
-            setVoucherMsg('Vui lòng đăng nhập để áp dụng mã giảm giá.');
+            setCouponAuthHint('Vui lòng đăng nhập lại; mã giảm giá chỉ áp dụng khi đăng nhập.');
             setQuoteError(null);
           } else {
+            setCouponAuthHint(null);
             setQuoteError(err instanceof Error ? err.message : 'Không lấy được báo giá.');
           }
         }
@@ -80,28 +75,12 @@ const CheckoutSummary: React.FC = () => {
     };
   }, [quoteItems, checkoutData.couponCode]);
 
-  const applyVoucher = () => {
-    setVoucherMsg(null);
-    const code = voucherInput.trim();
-    if (code !== '' && !getToken()) {
-      setVoucherMsg('Vui lòng đăng nhập để áp dụng mã giảm giá.');
-      updateCheckoutData({ couponCode: '', appliedVoucher: null });
-      return;
-    }
-    updateCheckoutData({ couponCode: code, appliedVoucher: null });
-  };
-
-  const clearVoucher = () => {
-    setVoucherInput('');
-    setVoucherMsg(null);
-    updateCheckoutData({ couponCode: '', appliedVoucher: null });
-  };
-
   const subtotal = quote?.subtotal ?? localSubtotal;
   const discount = quote?.discountTotal ?? 0;
   const tax = quote?.totalTax;
   const shippingFee = quote?.shippingFee ?? 0;
   const total = quote?.grandTotal ?? localSubtotal;
+  const quoteBusy = quoteLoading && isApiConfigured() && quoteItems.length > 0;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sticky top-24">
@@ -149,34 +128,25 @@ const CheckoutSummary: React.FC = () => {
         </div>
       )}
 
-      <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mã giảm giá</h4>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={voucherInput}
-            onChange={(e) => setVoucherInput(e.target.value)}
-            placeholder="Nhập mã"
-            className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
-          />
-          <button
-            type="button"
-            onClick={applyVoucher}
-            className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold"
-          >
-            Áp dụng
-          </button>
+      {checkoutData.couponCode.trim() !== '' && (
+        <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+            Mã giảm giá
+          </h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Mã từ giỏ hàng:{' '}
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              {checkoutData.couponCode.trim()}
+            </span>
+          </p>
         </div>
-        {checkoutData.couponCode && (
-          <div className="mt-2 flex items-center justify-between text-xs">
-            <span className="text-emerald-600 font-semibold">Mã: {checkoutData.couponCode}</span>
-            <button type="button" className="text-red-600 font-semibold" onClick={clearVoucher}>
-              Gỡ
-            </button>
-          </div>
-        )}
-        {voucherMsg && <p className="mt-2 text-xs text-slate-500">{voucherMsg}</p>}
-      </div>
+      )}
+
+      {couponAuthHint && (
+        <p className="text-sm text-amber-700 dark:text-amber-400 mb-4" role="status">
+          {couponAuthHint}
+        </p>
+      )}
 
       {quoteError && (
         <p className="text-sm text-red-600 mb-4" role="alert">
@@ -186,39 +156,37 @@ const CheckoutSummary: React.FC = () => {
 
       <div className="space-y-3 text-sm">
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Tạm tính</span>
+          <span>Tạm tính ({totalItems} sản phẩm)</span>
           <span className="font-semibold text-slate-900 dark:text-white">
-            {quoteLoading && quoteItems.length > 0 ? '…' : formatVND(subtotal)}
+            {quoteBusy ? '…' : formatVND(subtotal)}
           </span>
         </div>
-        {discount > 0 && (
+        {discount > 0 && quote && (
           <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
             <span>Giảm giá</span>
             <span className="font-semibold">−{formatVND(discount)}</span>
           </div>
         )}
         <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Thuế GTGT (ước tính)</span>
-          <span className="font-semibold text-slate-900 dark:text-white">
-            {quoteLoading && quoteItems.length > 0 ? '…' : tax != null ? formatVND(tax) : '—'}
-          </span>
-        </div>
-        <div className="flex justify-between text-slate-600 dark:text-slate-400">
           <span>Phí vận chuyển</span>
           <span className="font-semibold text-slate-900 dark:text-white">
-            {quoteLoading && quoteItems.length > 0 ? (
-              '…'
-            ) : shippingFee === 0 ? (
-              <span className="text-emerald-600">Miễn phí</span>
+            {shippingFee === 0 ? (
+              <span className="text-emerald-600 dark:text-emerald-400">Miễn phí</span>
             ) : (
               formatVND(shippingFee)
             )}
           </span>
         </div>
+        <div className="flex justify-between text-slate-600 dark:text-slate-400">
+          <span>Thuế GTGT (ước tính)</span>
+          <span className="font-semibold text-slate-900 dark:text-white">
+            {quoteBusy ? '…' : tax != null ? formatVND(tax) : '—'}
+          </span>
+        </div>
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
           <span className="text-lg font-bold text-slate-900 dark:text-white">Tổng cộng</span>
           <span className="text-2xl font-black text-primary">
-            {quoteLoading && quoteItems.length > 0 ? '…' : formatVND(total)}
+            {quoteBusy ? '…' : formatVND(total)}
           </span>
         </div>
       </div>

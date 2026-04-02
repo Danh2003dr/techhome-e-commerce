@@ -25,7 +25,7 @@ Design Figma có **7 pages chính**:
 
 #### ✅ Đã có trong dự án
 - Header với logo, search, navigation, icons (Favorites, Cart, User)
-- Hero banner section
+- Khối intro + CTA đầu trang
 - Category section ("Browse By Category")
 - Products grid
 - Footer
@@ -37,37 +37,20 @@ Design Figma có **7 pages chính**:
 - **Hiện tại**: Có top bar với nhiều links
 - **Cần**: Đơn giản hóa header theo Figma (chỉ giữ logo, search, nav, icons)
 
-**1.2. Hero Banner**
-- **Figma**: Banner lớn với iPhone 14 Pro, text "Pro.Beyond." và "IPhone 14 Pro"
-- **Hiện tại**: Có 2 banners side-by-side
-- **Cần**: Thay đổi thành 1 banner lớn như Figma
-
-**1.3. Smaller Banners Section**
-- **Figma**: Có section "Smaller Banners" với:
-  - Left: PlayStation 5 (wide), AirPods Max, Vision Pro (squares)
-  - Right: MacBook Air (big banner)
-- **Hiện tại**: Có 2 banners nhưng layout khác
-- **Cần**: Tạo lại layout theo Figma (3 columns: wide + 2 squares, 1 big banner)
-
-**1.4. Category Section**
+**1.2. Category Section**
 - **Figma**: 6 categories với icons tròn: Phones, Smart Watches, Cameras, Headphones, Computers, Gaming
 - **Hiện tại**: Có categories nhưng có thể khác
 - **Cần**: Đảm bảo có đủ 6 categories với icons tròn
 
-**1.5. Products Section**
+**1.3. Products Section**
 - **Figma**: Có tabs "New Arrival", "Bestseller", "Featured Products"
 - **Hiện tại**: Chỉ có "Trending Now"
 - **Cần**: Thêm tabs để filter products
 
-**1.6. Discount Products Section**
+**1.4. Discount Products Section**
 - **Figma**: Có section "Discounts up to -50%"
 - **Hiện tại**: Chưa có
 - **Cần**: Thêm section này
-
-**1.7. Banner 2 Section**
-- **Figma**: Có "Big Summer Sale" banner
-- **Hiện tại**: Có "TechHome Plus Members" section nhưng khác
-- **Cần**: Thêm hoặc cập nhật banner section
 
 **Files cần chỉnh sửa**:
 - `src/pages/store/HomePage.tsx`
@@ -395,11 +378,8 @@ Design Figma có **7 pages chính**:
 
 #### Home Page
 - [ ] Đơn giản hóa Header (bỏ top bar)
-- [ ] Thay đổi Hero banner thành 1 banner lớn
-- [ ] Tạo lại Smaller Banners section (3 columns layout)
-- [ ] Thêm tabs cho Products section (New Arrival, Bestseller, Featured)
-- [ ] Thêm "Discounts up to -50%" section
-- [ ] Thêm "Big Summer Sale" banner
+- [ ] Thêm tabs cho Products section (New Arrival, Bestseller, Featured) nếu chưa đủ so với Figma
+- [ ] Thêm "Discounts up to -50%" section nếu chưa đủ so với Figma
 
 #### Products Page
 - [ ] Thêm Breadcrumbs component
@@ -463,7 +443,7 @@ Design Figma có **7 pages chính**:
 3. **Cải thiện Reviews** - Star distribution, search, images
 
 ### 🟡 Ưu tiên trung bình (Phase 2)
-1. **Cải thiện Home Page** - Layout banners, tabs
+1. **Cải thiện Home Page** - Tabs, sections sản phẩm
 2. **Breadcrumbs** - Thêm vào tất cả pages
 3. **Design System** - Colors, typography, spacing
 

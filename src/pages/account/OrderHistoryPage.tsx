@@ -14,6 +14,19 @@ import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
+function paymentStatusLabelVi(value: unknown): string {
+  const key = String(value ?? '').trim().toUpperCase();
+  const labels: Record<string, string> = {
+    UNPAID: 'Chưa thanh toán',
+    PENDING: 'Đang chờ thanh toán',
+    PAID: 'Đã thanh toán',
+    FAILED: 'Thanh toán thất bại',
+    CANCELLED: 'Đã hủy thanh toán',
+    EXPIRED: 'Hết hạn thanh toán',
+  };
+  return labels[key] ?? 'Chưa có trạng thái thanh toán';
+}
+
 function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
   const first = dto.items[0];
   const dateFormatted = formatDate(dto.createdAt);
@@ -35,8 +48,8 @@ function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
     productImage: first?.productImage && String(first.productImage).trim() ? String(first.productImage) : '',
     productName: first ? first.productName : `Đơn #${dto.id}`,
     specs: first
-      ? `${dto.items.length} mặt hàng · Đơn giá ${formatVND(first.priceAtOrder)}`
-      : 'Không có dòng sản phẩm',
+      ? `${dto.items.length} mặt hàng · Đơn giá ${formatVND(first.priceAtOrder)} · ${paymentStatusLabelVi(dto.paymentStatus)}`
+      : `Không có dòng sản phẩm · ${paymentStatusLabelVi(dto.paymentStatus)}`,
     extraLine: '',
     extraType: 'return',
     secondaryAction: 'buy_again',

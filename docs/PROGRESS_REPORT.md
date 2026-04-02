@@ -31,24 +31,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 2. UI: Hero Banner Component ✅ **HOÀN THÀNH 100%**
-
-**Card:** UI: Hero Banner Component  
-**File:** `src/pages/store/HomePage.tsx` (lines 102-175)
-
-**Đã có:**
-- ✅ Hero banner với full-width layout
-- ✅ Smaller banners section (3 banners)
-- ✅ Responsive images
-- ✅ Call-to-action buttons
-- ✅ Gradient overlays
-- ✅ Hover effects
-
-**Đánh giá:** Hoàn thiện 100%, có thể thêm carousel nếu muốn.
-
----
-
-### 3. Feature: Product Card Component ✅ **HOÀN THÀNH 95%**
+### 2. Feature: Product Card Component ✅ **HOÀN THÀNH 95%**
 
 **Card:** Feature: Product Card Component  
 **File:** `src/features/products/components/ProductCard.tsx`
@@ -73,7 +56,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 4. Feature: Featured Products Section ✅ **HOÀN THÀNH 100%**
+### 3. Feature: Featured Products Section ✅ **HOÀN THÀNH 100%**
 
 **Card:** Feature: Featured Products Section  
 **File:** `src/pages/store/HomePage.tsx` (lines 209-272)
@@ -90,7 +73,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 5. State: Home Page Layout & Routing ✅ **HOÀN THÀNH 100%**
+### 4. State: Home Page Layout & Routing ✅ **HOÀN THÀNH 100%**
 
 **Card:** State: Home Page Layout & Routing  
 **File:** `src/pages/store/HomePage.tsx`
@@ -98,8 +81,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 **Đã có:**
 - ✅ HomePage route component
 - ✅ Integrate Header component (qua MainLayout)
-- ✅ Integrate HeroBanner
-- ✅ Integrate FeaturedProducts
+- ✅ Khối intro + CTA + FeaturedProducts
 - ✅ Routing setup (React Router)
 - ✅ Error handling (có NotFoundPage)
 - ✅ Responsive design
@@ -108,7 +90,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 6. UI: Product Filter Component ⚠️ **HOÀN THÀNH 60%**
+### 5. UI: Product Filter Component ⚠️ **HOÀN THÀNH 60%**
 
 **Card:** UI: Product Filter Component  
 **File:** `src/pages/store/ProductListingPage.tsx` (lines 27-89)
@@ -133,7 +115,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 7. Feature: Product Grid Component ✅ **HOÀN THÀNH 90%**
+### 6. Feature: Product Grid Component ✅ **HOÀN THÀNH 90%**
 
 **Card:** Feature: Product Grid Component  
 **File:** `src/pages/store/ProductListingPage.tsx` (lines 110-167)
@@ -153,7 +135,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 8. Feature: Product Search Component ✅ **HOÀN THÀNH 80%**
+### 7. Feature: Product Search Component ✅ **HOÀN THÀNH 80%**
 
 **Card:** Feature: Product Search Component  
 **File:** `src/pages/store/SearchResults.tsx`
@@ -174,7 +156,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 9. State: Pagination Component ⚠️ **HOÀN THÀNH 40%**
+### 8. State: Pagination Component ⚠️ **HOÀN THÀNH 40%**
 
 **Card:** State: Pagination Component  
 **File:** `src/pages/store/ProductListingPage.tsx` (lines 169-177)
@@ -194,7 +176,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 10. State: Product List Page Integration ⚠️ **HOÀN THÀNH 50%**
+### 9. State: Product List Page Integration ⚠️ **HOÀN THÀNH 50%**
 
 **Card:** State: Product List Page Integration  
 **File:** `src/pages/store/ProductListingPage.tsx`
@@ -216,7 +198,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 11. UI: Cart Item Component ✅ **HOÀN THÀNH 80%**
+### 10. UI: Cart Item Component ✅ **HOÀN THÀNH 80%**
 
 **Card:** UI: Cart Item Component  
 **File:** `src/pages/checkout/CartPage.tsx` (lines 31-73)
@@ -239,7 +221,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 12. State: Cart Management with Context/Redux ⚠️ **HOÀN THÀNH 30%**
+### 11. State: Cart Management with Context/Redux ⚠️ **HOÀN THÀNH 30%**
 
 **Card:** State: Cart Management with Context/Redux  
 **File:** `src/context/CheckoutContext.tsx`
@@ -260,7 +242,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 13. Feature: Cart Summary Component ✅ **HOÀN THÀNH 90%**
+### 12. Feature: Cart Summary Component ✅ **HOÀN THÀNH 90%**
 
 **Card:** Feature: Cart Summary Component  
 **File:** `src/pages/checkout/CartPage.tsx` (lines 77-120)
@@ -283,7 +265,7 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 
 ---
 
-### 14. State: Cart Page Integration ✅ **HOÀN THÀNH 70%**
+### 13. State: Cart Page Integration ✅ **HOÀN THÀNH 70%**
 
 **Card:** State: Cart Page Integration  
 **File:** `src/pages/checkout/CartPage.tsx`
@@ -309,24 +291,23 @@ Dự án hiện tại đã hoàn thành **khoảng 60-70%** các tính năng Fro
 ## 📈 Tổng Kết
 
 ### Hoàn thành 100%:
-1. ✅ UI: Hero Banner Component
-2. ✅ Feature: Featured Products Section
-3. ✅ State: Home Page Layout & Routing
+1. ✅ Feature: Featured Products Section
+2. ✅ State: Home Page Layout & Routing
 
 ### Hoàn thành 80-95%:
-4. ✅ UI: Header & Navigation Component (90%)
-5. ✅ Feature: Product Card Component (95%)
-6. ✅ Feature: Product Grid Component (90%)
-7. ✅ Feature: Product Search Component (80%)
-8. ✅ UI: Cart Item Component (80%)
-9. ✅ Feature: Cart Summary Component (90%)
-10. ✅ State: Cart Page Integration (70%)
+3. ✅ UI: Header & Navigation Component (90%)
+4. ✅ Feature: Product Card Component (95%)
+5. ✅ Feature: Product Grid Component (90%)
+6. ✅ Feature: Product Search Component (80%)
+7. ✅ UI: Cart Item Component (80%)
+8. ✅ Feature: Cart Summary Component (90%)
+9. ✅ State: Cart Page Integration (70%)
 
 ### Hoàn thành 30-60% (Cần làm tiếp):
-11. ⚠️ UI: Product Filter Component (60%) - Cần logic filter
-12. ⚠️ State: Pagination Component (40%) - Cần logic pagination
-13. ⚠️ State: Product List Page Integration (50%) - Cần kết nối API
-14. ⚠️ State: Cart Management with Context/Redux (30%) - Cần tạo CartContext
+10. ⚠️ UI: Product Filter Component (60%) - Cần logic filter
+11. ⚠️ State: Pagination Component (40%) - Cần logic pagination
+12. ⚠️ State: Product List Page Integration (50%) - Cần kết nối API
+13. ⚠️ State: Cart Management with Context/Redux (30%) - Cần tạo CartContext
 
 ---
 

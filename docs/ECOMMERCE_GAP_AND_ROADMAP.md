@@ -50,7 +50,7 @@
 
 | Nhóm | Thiếu hoặc yếu so với TMĐT thực tế |
 |------|-----------------------------------|
-| **Marketing** | Flash sale slot, mã giảm giá, banner theo chiến dịch, landing theo chương trình |
+| **Marketing** | Flash sale slot, mã giảm giá, landing theo chương trình |
 | **Khách hàng thân thiết** | Điểm tích lũy, hạng thành viên, ưu đãi theo cấp |
 | **Nội dung** | Blog/tin công nghệ, video mở hộp (gắn sản phẩm), FAQ có cấu trúc |
 | **Admin / vận hành** | Phân quyền vai trò (kho, CS, kế toán), quản lý khuyến mãi, kho nhập/xuất, báo cáo bán — vượt mức “biểu đồ demo” |

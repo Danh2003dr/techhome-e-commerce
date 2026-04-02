@@ -1,4 +1,4 @@
-import type { Product, NavItem, Category, CartItem, Banner, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct } from '@/types';
+import type { Product, NavItem, Category, CartItem, FooterLink, ListingProduct, ProductDetailExtras, TrendingProduct, AccessoriesProduct } from '@/types';
 
 export const products: Product[] = [
   {
@@ -163,27 +163,6 @@ export const cartItems: CartItem[] = [
 export const navItems: NavItem[] = [
   { label: 'Hồ sơ cá nhân', icon: 'person', path: '/profile' },
   { label: 'Lịch sử đơn hàng', icon: 'shopping_bag', path: '/orders' },
-];
-
-export const banners: Banner[] = [
-  {
-    id: 'b1',
-    title: 'The New Era of Mobile',
-    subtitle: 'Limited Release',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9EZ0Q4vX9IPndOFjj7_skVf-l7pyevyQ8ULM2DpY-NM09eZjjYMJDJ_boFOXE4o5Psfs5mSqIpQlo2ZDWER7RxkgdL1vPlHd-bd21NvLpz0FL6OWhxl3HVbXXc5NVAUPBuHVCTUtqGvGUFsorSoGjuOyNGA001GS6LbQPg1qhIFBZ3z6P3oDbnTGqy2ycn7egRaB-dDNorDvx3eu_Jgx7YA8RZNQYpP8XzYdLC40WBZyQJzy6HrgULh8QUKS3SKdJ-SofEevLrTw',
-    link: '/category/mobile',
-    linkText: 'Shop Now',
-    theme: 'primary',
-  },
-  {
-    id: 'b2',
-    title: 'Stay Cool, Stay Smart',
-    subtitle: 'Summer Sale',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdtTa2GrJ-3ZpC9KUsMcU1Q9jIWd-nIEdt8lAUB2KAyGHG7nrNpvqPfQzNZpGOeEYDfLZKw_HIczAQMTMF3oBRF4UPihmKi0ppTpef11ASDtnD8FH9mOOVUwQeVjOif5JfgRCao0FzcVIAdUGyKdTYdKA3AVj6xDbl53kXBxM30h2tzMuMAbSCiVkcNXL-qUGX5zi9LHcEq4flgjEcP6R-p24qXLPv-7inYbN5fb7nP3tojXUyVwVhzKfoCdY70MANTmLOVJj6MD0',
-    link: '/category/cooling',
-    linkText: 'View Offers',
-    theme: 'emerald',
-  },
 ];
 
 export const trendingProducts: TrendingProduct[] = [

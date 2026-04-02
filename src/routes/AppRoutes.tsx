@@ -28,7 +28,6 @@ import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 import CalendarPage from '@/pages/admin/CalendarPage';
-import BannerManagementPage from '@/pages/admin/banners/BannerManagementPage';
 import VoucherBuilderPage from '@/pages/admin/vouchers/VoucherBuilderPage';
 import AdminRoute from '@/routes/AdminRoute';
 
@@ -60,7 +59,6 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
       <Route path="/admin/calendar" element={<CalendarPage />} />
-      <Route path="/admin/banners" element={<BannerManagementPage />} />
       <Route path="/admin/vouchers" element={<VoucherBuilderPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/products/stock" element={<ProductStockPage />} />

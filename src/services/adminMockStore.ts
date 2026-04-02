@@ -86,13 +86,10 @@ export type AdminCalendarEvent = {
   description: string;
 };
 
-import type { Banner } from '@/types';
-
 const KEYS = {
   products: 'techhome_admin_products_mock_v1',
   productsV2: 'techhome_admin_products_mock_v2',
   categories: 'techhome_admin_categories_mock_v1',
-  banners: 'techhome_admin_banners_mock_v1',
   vouchers: 'techhome_admin_vouchers_mock_v1',
   orders: 'techhome_admin_orders_mock_v1',
   seo: 'techhome_admin_seo_mock_v1',
@@ -339,7 +336,6 @@ function seedIfMissing() {
     safeWriteJSON(KEYS.seo, seo);
     safeWriteJSON(KEYS.calendarEvents, calendarEvents);
     seedCategories();
-    seedBanners();
     seedVouchers();
     return;
   }
@@ -348,7 +344,6 @@ function seedIfMissing() {
     safeWriteJSON(KEYS.orders, defaultAdminOrders());
   }
   if (!safeReadJSON(KEYS.categories)) seedCategories();
-  if (!safeReadJSON(KEYS.banners)) seedBanners();
   if (!safeReadJSON(KEYS.vouchers)) seedVouchers();
   if (!safeReadJSON(KEYS.seo)) {
     safeWriteJSON(KEYS.seo, {
@@ -375,32 +370,6 @@ function seedCategories() {
     { id: 'cat_dig', name: 'Digital Product', slug: 'digital-product' },
   ];
   safeWriteJSON(KEYS.categories, list);
-}
-
-function seedBanners() {
-  const list: Banner[] = [
-    {
-      id: 'b1',
-      title: 'The New Era of Mobile',
-      subtitle: 'Limited Release',
-      image:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuD9EZ0Q4vX9IPndOFjj7_skVf-l7pyevYQ8ULM2DpY-NM09eZjjYMJDJ_boFOXE4o5Psfs5mSqIpQlo2ZDWER7RxkgdL1vPlHd-bd21NvLpz0FL6OWhxl3HVbXXc5NVAUPBuHVCTUtqGvGUFsorSoGjuOyNGA001GS6LbQPg1qhIFBZ3z6P3oDbnTGqy2ycn7egRaB-dDNorDvx3eu_Jgx7YA8RZNQYpP8XzYdLC40WBZyQJzy6HrgULh8QUKS3SKdJ-SofEevLrTw',
-      link: '/category/mobile',
-      linkText: 'Shop Now',
-      theme: 'primary',
-    },
-    {
-      id: 'b2',
-      title: 'Stay Cool, Stay Smart',
-      subtitle: 'Summer Sale',
-      image:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBdtTa2GrJ-3ZpC9KUsMcUQ9jIWd-nIEdt8lAUB2KAyGHG7nrNpvqPfQzNZpGOeEYDfLZKw_HIczAQMTMF3oBRF4UPihmKi0ppTpef11ASDtnD8FH9mOOVUwQeVjOif5JfgRCao0FzcVIAdUGyKdTYdKA3AVj6xDbl53kXBxM30h2tzMuMAbSCiVkcNXL-qUGX5zi9LHcEq4flgjEcP6R-p24qXLPv-7inYbN5fb7nP3tojXUyVwVhzKfoCdY70MANTmLOVJj6MD0',
-      link: '/#/search',
-      linkText: 'View Offers',
-      theme: 'emerald',
-    },
-  ];
-  safeWriteJSON(KEYS.banners, list);
 }
 
 function seedVouchers() {
@@ -537,19 +506,6 @@ export function addAdminCategory(input: { name: string; slug?: string }): AdminC
   const next = [...list, cat];
   safeWriteJSON(KEYS.categories, next);
   return next;
-}
-
-// ——— Banners (homepage slider) ———
-
-export function getAdminBanners(): Banner[] {
-  initAdminMockData();
-  return safeReadJSON<Banner[]>(KEYS.banners) ?? [];
-}
-
-export function saveAdminBanners(banners: Banner[]): Banner[] {
-  initAdminMockData();
-  safeWriteJSON(KEYS.banners, banners);
-  return banners;
 }
 
 // ——— Vouchers ———

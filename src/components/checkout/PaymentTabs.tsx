@@ -10,8 +10,8 @@ interface PaymentTabsProps {
 const PaymentTabs: React.FC<PaymentTabsProps> = ({ selectedMethod, onSelectMethod }) => {
   const tabs = [
     { id: 'credit_card' as PaymentMethodType, label: 'Credit Card' },
-    { id: 'paypal' as PaymentMethodType, label: 'PayPal' },
-    { id: 'paypal_credit' as PaymentMethodType, label: 'PayPal Credit' },
+    { id: 'paypal' as PaymentMethodType, label: 'MoMo (QR/App)' },
+    { id: 'paypal_credit' as PaymentMethodType, label: 'MoMo (Redirect)' },
   ];
 
   return (

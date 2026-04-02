@@ -18,8 +18,7 @@ Tài liệu này tóm tắt **trạng thái đã rà soát** (UI/UX + hooks/JSX)
 | Validation có message lỗi UX | **Hạn chế** (thường return im lặng) | Cùng file |
 | Voucher builder (%, tiền, date, max uses) | **Chưa** — chỉ lịch event mock | `src/pages/admin/calendar/EventModal.tsx`, `calendarTypes.ts` |
 | Flash sale countdown / time slot | **Chưa** UI countdown; chỉ `timeLabel` string | `EventModal`, `CalendarPage` |
-| Banner / Blog CMS admin | **Chưa** — SEO page placeholder | `src/pages/admin/seo/SEOSettingsPage.tsx` |
-| Banner storefront | Data từ `@/data` (+ API featured nếu có) | `HomePage.tsx`, `data/index.ts` |
+| Blog CMS admin | **Chưa** — SEO page placeholder | `src/pages/admin/seo/SEOSettingsPage.tsx` |
 | Lịch sử đơn hàng — timeline | **Không** — dạng thẻ | `OrderHistoryPage.tsx` |
 | Chi tiết đơn — stepper | Có (mock 4 bước; API map ~2 bước) | `OrderDetailsPage.tsx`, `data/index.ts` |
 | Review đọc + sao (mock) | Có | `ProductDetail.tsx`, `getProductDetailExtras` |
@@ -43,7 +42,7 @@ Tài liệu này tóm tắt **trạng thái đã rà soát** (UI/UX + hooks/JSX)
 3. **Storefront:** sửa `ProductListingPage` — `page` state + `slice`; tương tự `OrderHistoryPage` nếu API trả danh sách dài.
 4. **Sản phẩm admin:** mở `ProductForm` / stock — multi-image, giá sale, variants/SKU khi contract API sẵn.
 5. **Khuyến mãi:** mở rộng `EventModal` hoặc module mới (voucher fields + validate) + countdown component cho PDP/Home nếu có `endAt`.
-6. **CMS:** trang cấu hình banner URL + blog (sau khi có API).
+6. **CMS:** trang cấu hình blog / nội dung (sau khi có API).
 
 ---
 

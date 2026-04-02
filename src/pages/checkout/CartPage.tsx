@@ -5,16 +5,34 @@ import { formatVND } from '@/utils';
 import { isApiConfigured, getToken, ApiError } from '@/services/api';
 import * as backend from '@/services/backend';
 import type { CheckoutQuoteResponse } from '@/types/api';
+import { APPLIED_COUPON_STORAGE_KEY } from '@/constants/appliedCouponStorage';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { items, removeItem, updateQuantity } = useCart();
+  const { items, removeItem, updateQuantity, stockWarningsByItemId, isItemUpdating } = useCart();
   const [quote, setQuote] = useState<CheckoutQuoteResponse | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = appliedCoupon.trim();
+    if (t) {
+      try {
+        sessionStorage.setItem(APPLIED_COUPON_STORAGE_KEY, t);
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        sessionStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [appliedCoupon]);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const localSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -141,6 +159,9 @@ const CartPage: React.FC = () => {
                       {item.name}
                     </Link>
                     {item.variant && <p className="text-sm text-gray-400">{item.variant}</p>}
+                    {stockWarningsByItemId[item.id] && (
+                      <p className="mt-2 text-sm text-amber-700">{stockWarningsByItemId[item.id]}</p>
+                    )}
                     <div className="mt-4">
                       <button
                         type="button"
@@ -160,7 +181,8 @@ const CartPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-3 py-1 hover:bg-gray-50 text-gray-500"
+                      disabled={isItemUpdating(item.id)}
+                      className="px-3 py-1 hover:bg-gray-50 text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       -
                     </button>
@@ -168,7 +190,8 @@ const CartPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1 hover:bg-gray-50 text-gray-500"
+                      disabled={isItemUpdating(item.id)}
+                      className="px-3 py-1 hover:bg-gray-50 text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       +
                     </button>
@@ -273,7 +296,10 @@ const CartPage: React.FC = () => {
               </span>
             </div>
             <button
-              onClick={() => navigate('/checkout')}
+              type="button"
+              onClick={() =>
+                navigate('/checkout', { state: { couponCode: appliedCoupon.trim() } })
+              }
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 group"
             >
               Thanh toán{' '}

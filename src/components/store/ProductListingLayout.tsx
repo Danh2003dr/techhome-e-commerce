@@ -37,8 +37,6 @@ export type CategorySearchFieldProps = {
 export type ProductListingLayoutProps = {
   breadcrumbItems: BreadcrumbNavItem[];
   title: string;
-  /** Optional hero (e.g. category banner) — full width above chips */
-  hero?: React.ReactNode;
   /** Drill-down: quay lại danh mục cha */
   drillBack?: { to: string; label: string };
   /**
@@ -169,7 +167,6 @@ function PaginationBar({ pagination }: { pagination: ProductListingPagination })
 const ProductListingLayout: React.FC<ProductListingLayoutProps> = ({
   breadcrumbItems,
   title,
-  hero,
   drillBack,
   listingSurface = 'plp',
   hubActions,
@@ -197,9 +194,7 @@ const ProductListingLayout: React.FC<ProductListingLayoutProps> = ({
     <div className="max-w-7xl mx-auto px-4 py-8 w-full">
       <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
-      {hero}
-
-      <header className={hero ? 'mt-8 mb-6' : 'mb-6'}>
+      <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{title}</h1>
       </header>
 

@@ -167,22 +167,14 @@ export interface CartItem {
   image: string;
 }
 
-export interface Banner {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
-  link: string;
-  linkText: string;
-  theme: 'indigo' | 'emerald' | 'primary';
-}
-
 export interface TrendingProduct {
   id: string;
   name: string;
   category: string;
   image: string;
   price: number;
+  /** Optional storefront label (e.g. mock / CMS) for “New Arrival” tab filtering. */
+  tag?: string;
   oldPrice?: number;
   /** e.g. 15 for −15% badge */
   discountPercent?: number;
