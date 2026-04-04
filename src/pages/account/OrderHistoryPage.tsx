@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { OrderHistoryCardItem, OrderStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { getOrders } from '@/services/backend';
@@ -8,24 +8,11 @@ import { ApiError } from '@/services/api';
 import type { OrderDto } from '@/types/api';
 import { formatDate } from '@/utils/formatDate';
 import { formatVND } from '@/utils';
-import { orderStatusLabelVi } from '@/utils/orderDisplay';
+import { orderStatusLabelVi, codAwarePaymentStatusVi } from '@/utils/orderDisplay';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
-
-function paymentStatusLabelVi(value: unknown): string {
-  const key = String(value ?? '').trim().toUpperCase();
-  const labels: Record<string, string> = {
-    UNPAID: 'Chưa thanh toán',
-    PENDING: 'Đang chờ thanh toán',
-    PAID: 'Đã thanh toán',
-    FAILED: 'Thanh toán thất bại',
-    CANCELLED: 'Đã hủy thanh toán',
-    EXPIRED: 'Hết hạn thanh toán',
-  };
-  return labels[key] ?? 'Chưa có trạng thái thanh toán';
-}
 
 function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
   const first = dto.items[0];
@@ -48,8 +35,16 @@ function mapOrderDtoToCard(dto: OrderDto): OrderHistoryCardItem {
     productImage: first?.productImage && String(first.productImage).trim() ? String(first.productImage) : '',
     productName: first ? first.productName : `Đơn #${dto.id}`,
     specs: first
-      ? `${dto.items.length} mặt hàng · Đơn giá ${formatVND(first.priceAtOrder)} · ${paymentStatusLabelVi(dto.paymentStatus)}`
-      : `Không có dòng sản phẩm · ${paymentStatusLabelVi(dto.paymentStatus)}`,
+      ? `${dto.items.length} mặt hàng · Đơn giá ${formatVND(first.priceAtOrder)} · ${codAwarePaymentStatusVi({
+          paymentMethod: dto.paymentMethod,
+          paymentStatus: dto.paymentStatus,
+          orderStatus: dto.status,
+        })}`
+      : `Không có dòng sản phẩm · ${codAwarePaymentStatusVi({
+          paymentMethod: dto.paymentMethod,
+          paymentStatus: dto.paymentStatus,
+          orderStatus: dto.status,
+        })}`,
     extraLine: '',
     extraType: 'return',
     secondaryAction: 'buy_again',
@@ -76,6 +71,8 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 }
 
 const OrderHistoryPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const placedOrderId = (searchParams.get('placed') ?? '').trim();
   const [apiOrders, setApiOrders] = useState<OrderHistoryCardItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -83,6 +80,10 @@ const OrderHistoryPage: React.FC = () => {
 
   const apiOn = isApiConfigured();
   const useApiOrders = apiOn && isAuthenticated;
+
+  const dismissPlacedBanner = useCallback(() => {
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
 
   useEffect(() => {
     if (!useApiOrders) {
@@ -101,7 +102,7 @@ const OrderHistoryPage: React.FC = () => {
         setLoadError(e instanceof ApiError ? e.message : 'Không tải được danh sách đơn hàng.');
       })
       .finally(() => setLoading(false));
-  }, [useApiOrders]);
+  }, [useApiOrders, placedOrderId]);
 
   const orders = useApiOrders ? apiOrders : [];
 
@@ -132,7 +133,7 @@ const OrderHistoryPage: React.FC = () => {
 
           {!apiOn && (
             <p className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-sm px-4 py-3">
-              Cấu hình <code className="font-mono text-xs">VITE_API_URL</code> để xem đơn hàng thật.
+              Cần cấu hình kết nối máy chủ để xem đơn hàng.
             </p>
           )}
 
@@ -149,6 +150,44 @@ const OrderHistoryPage: React.FC = () => {
             <p className="text-red-600 dark:text-red-400 text-sm" role="alert">
               {loadError}
             </p>
+          )}
+
+          {placedOrderId && useApiOrders && (
+            <div
+              className="rounded-2xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/40 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              role="status"
+            >
+              <div className="flex items-start gap-3 min-w-0">
+                <span className="material-icons text-green-600 dark:text-green-400 flex-shrink-0">check_circle</span>
+                <div>
+                  <p className="font-bold text-green-900 dark:text-green-100">Đặt hàng thành công</p>
+                  <p className="text-sm text-green-800 dark:text-green-200 mt-0.5">
+                    Đơn #{placedOrderId} đã được ghi nhận. Bạn có thể xem chi tiết hoặc tiếp tục mua sắm.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Link
+                  to={`/order/${encodeURIComponent(placedOrderId)}`}
+                  className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors"
+                >
+                  Xem chi tiết đơn
+                </Link>
+                <Link
+                  to="/"
+                  className="px-4 py-2 rounded-xl border border-green-600/40 dark:border-green-500/50 text-green-800 dark:text-green-200 text-sm font-bold hover:bg-green-100/80 dark:hover:bg-green-900/30 transition-colors"
+                >
+                  Tiếp tục mua sắm
+                </Link>
+                <button
+                  type="button"
+                  onClick={dismissPlacedBanner}
+                  className="px-3 py-2 text-sm font-semibold text-green-800 dark:text-green-300 hover:underline"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
           )}
 
           <div className="space-y-6">

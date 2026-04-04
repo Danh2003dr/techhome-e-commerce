@@ -1,5 +1,5 @@
 import React from 'react';
-import type { OrderStatus } from '../orderListMock';
+import { mockOrderStatusLabelVi, type OrderStatus } from '../orderListMock';
 
 const STATUS_CLASS: Record<OrderStatus, string> = {
   Completed: 'bg-emerald-100 text-emerald-800',
@@ -13,7 +13,7 @@ const OrderStatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => (
   <span
     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_CLASS[status]}`}
   >
-    {status}
+    {mockOrderStatusLabelVi(status)}
   </span>
 );
 

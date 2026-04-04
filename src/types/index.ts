@@ -34,6 +34,10 @@ export interface Product {
   }>;
   /** URL segment for `/product/:slug` (from API catalog). */
   slug?: string;
+  /**
+   * Từ API listing: khi true, không thêm nhanh từ thẻ — mở PDP để chọn màu/dung lượng.
+   */
+  requiresVariantChoice?: boolean;
 }
 
 export type OrderStatus =
@@ -83,7 +87,6 @@ export interface OrderConfirmationData {
   lineItems: OrderConfirmationLineItem[];
   subtotal: number;
   shipping: number;
-  tax: number;
   total: number;
   showInstallationBanner?: boolean;
   installationMessage?: string;
@@ -124,7 +127,6 @@ export interface OrderDetailsData {
   lineItems: OrderDetailsLineItem[];
   subtotal: number;
   shipping: number;
-  tax: number;
   total: number;
   shippingAddress: {
     name: string;
@@ -184,6 +186,8 @@ export interface TrendingProduct {
   productDetailId?: string;
   /** Canonical slug for product detail URL when present. */
   slug?: string;
+  /** true = có nhiều màu hoặc cần chọn cả màu lẫn dung lượng — chỉ thêm giỏ từ PDP. */
+  requiresVariantChoice?: boolean;
 }
 
 export interface FooterLink {
@@ -205,6 +209,7 @@ export interface ListingProduct {
   badge?: string;
   specs?: string;
   slug?: string;
+  requiresVariantChoice?: boolean;
 }
 
 export interface CoolingProduct {
@@ -263,17 +268,6 @@ export interface ProductSpec {
   value: string;
 }
 
-export interface ProductReview {
-  id?: string;
-  author: string;
-  initials: string;
-  rating: number;
-  date: string;
-  text: string;
-  verified?: boolean;
-  photos?: string[];
-}
-
 export interface RelatedProduct {
   id: string;
   name: string;
@@ -284,10 +278,6 @@ export interface RelatedProduct {
 
 export interface ProductDetailExtras {
   specs: ProductSpec[];
-  reviewScore: number;
-  reviewDistribution: { 5: number; 4: number; 3: number };
-  reviews: ProductReview[];
-  customerPhotos: string[];
   relatedProducts: RelatedProduct[];
   brand?: string;
 }

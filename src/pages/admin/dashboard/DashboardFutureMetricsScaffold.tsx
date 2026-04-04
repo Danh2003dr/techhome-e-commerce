@@ -50,7 +50,7 @@ const DashboardFutureMetricsScaffold: React.FC<DashboardFutureMetricsScaffoldPro
     >
       <div>
         <h2 className="text-lg font-bold text-slate-900">Doanh thu & đơn hàng</h2>
-        <p className="mt-1 text-sm text-slate-600 max-w-3xl">Dữ liệu lấy từ `GET /api/admin/dashboard/summary`.</p>
+        <p className="mt-1 text-sm text-slate-600 max-w-3xl">Số liệu tổng hợp trên hệ thống quản trị.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

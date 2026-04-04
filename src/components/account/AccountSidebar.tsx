@@ -9,7 +9,10 @@ const AccountSidebar: React.FC = () => {
     <aside className="w-64 flex-shrink-0 hidden md:block">
       <nav className="space-y-1.5">
         {ACCOUNT_SIDEBAR_LINKS.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive =
+            item.path === '/messages'
+              ? location.pathname === '/messages' || location.pathname.startsWith('/messages/')
+              : location.pathname === item.path;
           return (
             <Link
               key={item.path}

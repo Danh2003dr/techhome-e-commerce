@@ -5,7 +5,7 @@ import { ApiError } from '@/services/api';
 import type { OrderDto } from '@/types/api';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
-import { orderStatusLabelVi } from '@/utils/orderDisplay';
+import { orderStatusLabelVi, codAwarePaymentStatusVi } from '@/utils/orderDisplay';
 
 const PAGE_SIZE = 10;
 
@@ -46,9 +46,6 @@ const OrderListPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-[32px] leading-[44px] font-normal tracking-tight text-[#202224]">Đơn hàng</h1>
-          <p className="text-xs font-semibold text-slate-500 mt-1">
-            Quản trị — dữ liệu từ <code className="text-[11px] bg-slate-100 px-1.5 py-0.5 rounded">GET /api/orders/admin</code>
-          </p>
         </div>
         <div className="flex items-center gap-3">
           <label className="text-xs font-semibold text-slate-600">
@@ -62,12 +59,12 @@ const OrderListPage: React.FC = () => {
               className="ml-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">Tất cả</option>
-              <option value="PENDING">PENDING</option>
-              <option value="PROCESSING">PROCESSING</option>
-              <option value="SHIPPED">SHIPPED</option>
-              <option value="SHIPPING">SHIPPING</option>
-              <option value="DELIVERED">DELIVERED</option>
-              <option value="CANCELLED">CANCELLED</option>
+              <option value="PENDING">Chờ xử lý</option>
+              <option value="PROCESSING">Đang xử lý</option>
+              <option value="SHIPPED">Đã gửi hàng</option>
+              <option value="SHIPPING">Đang giao</option>
+              <option value="DELIVERED">Đã giao</option>
+              <option value="CANCELLED">Đã hủy</option>
             </select>
           </label>
           <label className="text-xs font-semibold text-slate-600">
@@ -81,12 +78,12 @@ const OrderListPage: React.FC = () => {
               className="ml-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">Tất cả</option>
-              <option value="UNPAID">UNPAID</option>
-              <option value="PENDING">PENDING</option>
-              <option value="PAID">PAID</option>
-              <option value="FAILED">FAILED</option>
-              <option value="CANCELLED">CANCELLED</option>
-              <option value="EXPIRED">EXPIRED</option>
+              <option value="UNPAID">Chưa thanh toán</option>
+              <option value="PENDING">Đang chờ thanh toán</option>
+              <option value="PAID">Đã thanh toán</option>
+              <option value="FAILED">Thanh toán thất bại</option>
+              <option value="CANCELLED">Đã hủy thanh toán</option>
+              <option value="EXPIRED">Hết hạn thanh toán</option>
             </select>
           </label>
         </div>
@@ -101,13 +98,13 @@ const OrderListPage: React.FC = () => {
             <table className="min-w-full text-left">
               <thead>
                 <tr className="text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-100">
-                  <th className="py-4 px-4">Order ID</th>
-                  <th className="py-4 px-4">User ID</th>
+                  <th className="py-4 px-4">Mã đơn</th>
+                  <th className="py-4 px-4">Khách hàng</th>
                   <th className="py-4 px-4">Ngày đặt</th>
                   <th className="py-4 px-4">Trạng thái</th>
                   <th className="py-4 px-4">Thanh toán</th>
                   <th className="py-4 px-4 text-right">Tổng</th>
-                  <th className="py-4 px-4 text-right">Action</th>
+                  <th className="py-4 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -121,10 +118,18 @@ const OrderListPage: React.FC = () => {
                   rows.map((row) => (
                     <tr key={String(row.id)} className="text-sm text-slate-900">
                       <td className="py-4 px-4 font-semibold tabular-nums">#{row.id}</td>
-                      <td className="py-4 px-4 tabular-nums">{row.userId}</td>
+                      <td className="py-4 px-4 font-medium text-slate-800">
+                        {(row.userName && String(row.userName).trim()) || '—'}
+                      </td>
                       <td className="py-4 px-4 whitespace-nowrap">{formatDate(row.createdAt)}</td>
                       <td className="py-4 px-4">{orderStatusLabelVi(row.status)}</td>
-                      <td className="py-4 px-4">{row.paymentStatus ?? 'UNPAID'}</td>
+                      <td className="py-4 px-4 max-w-[14rem]">
+                        {codAwarePaymentStatusVi({
+                          paymentMethod: row.paymentMethod,
+                          paymentStatus: row.paymentStatus ?? 'UNPAID',
+                          orderStatus: row.status,
+                        })}
+                      </td>
                       <td className="py-4 px-4 text-right font-semibold text-primary">{formatVND(row.totalPrice)}</td>
                       <td className="py-4 px-4 text-right">
                         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -132,13 +137,13 @@ const OrderListPage: React.FC = () => {
                             to={`/admin/orders/${encodeURIComponent(String(row.id))}`}
                             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            View
+                            Xem
                           </Link>
                           <Link
                             to={`/admin/orders/invoice?orderId=${encodeURIComponent(String(row.id))}`}
                             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            Invoice
+                            Hóa đơn
                           </Link>
                         </div>
                       </td>
@@ -162,10 +167,10 @@ const OrderListPage: React.FC = () => {
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
               >
-                Prev
+                Trước
               </button>
               <span className="text-slate-600">
-                Page {page + 1}/{totalPages}
+                Trang {page + 1}/{totalPages}
               </span>
               <button
                 type="button"
@@ -173,7 +178,7 @@ const OrderListPage: React.FC = () => {
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
               >
-                Next
+                Sau
               </button>
             </div>
           </div>

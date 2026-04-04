@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/context/CheckoutContext';
 import { useAuth } from '@/context/AuthContext';
-import { createOrder, createMomoPayment, setCart } from '@/services/backend';
+import { useCart } from '@/context/CartContext';
+import { createOrder } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
 import { ApiError } from '@/services/api';
 import { recordPurchasedProducts } from '@/services/purchasesStore';
-import PaymentTabs, { type PaymentMethodType } from './PaymentTabs';
-import CreditCardForm from './CreditCardForm';
 import CheckoutSummary from './CheckoutSummary';
 import { APPLIED_COUPON_STORAGE_KEY } from '@/constants/appliedCouponStorage';
 
@@ -19,13 +18,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
   const navigate = useNavigate();
   const { checkoutData, updateCheckoutData, resetCheckout } = useCheckout();
   const { isAuthenticated, user } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('credit_card');
-  const [cardData, setCardData] = useState({
-    cardNumber: '',
-    cardHolder: '',
-    expiryDate: '',
-    cvv: '',
-  });
+  const { clearCart } = useCart();
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -33,26 +26,9 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    if (paymentMethod === 'credit_card') {
-      if (!cardData.cardNumber || cardData.cardNumber.replace(/\s/g, '').length < 16) {
-        newErrors.cardNumber = 'Please enter a valid card number';
-      }
-      if (!cardData.cardHolder || cardData.cardHolder.length < 3) {
-        newErrors.cardHolder = 'Please enter card holder name';
-      }
-      if (!cardData.expiryDate || cardData.expiryDate.length < 5) {
-        newErrors.expiryDate = 'Please enter expiration date';
-      }
-      if (!cardData.cvv || cardData.cvv.length < 3) {
-        newErrors.cvv = 'Please enter CVV';
-      }
-    }
-
     if (!agreeToTerms) {
-      newErrors.terms = 'You must agree to the terms and conditions';
+      newErrors.terms = 'Bạn cần đồng ý với điều khoản và chính sách.';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,15 +37,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
     if (!validateForm()) return;
     setOrderError(null);
     updateCheckoutData({
-      paymentMethod: {
-        type: paymentMethod,
-        ...(paymentMethod === 'credit_card' && {
-          cardNumber: cardData.cardNumber.replace(/\s/g, ''),
-          cardHolder: cardData.cardHolder,
-          expiryDate: cardData.expiryDate,
-          cvv: cardData.cvv,
-        }),
-      },
+      paymentMethod: { type: 'cod' },
       agreeToTerms: true,
     });
 
@@ -77,7 +45,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
     const items = checkoutData.items;
 
     if (!useBackend) {
-      setOrderError('Vui lòng đăng nhập và cấu hình API (VITE_API_URL) để đặt hàng. Chỉ lưu đơn qua backend.');
+      setOrderError('Vui lòng đăng nhập và cấu hình kết nối máy chủ để đặt hàng.');
       return;
     }
 
@@ -106,6 +74,11 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
           price: i.price,
         })),
       });
+      const orderIdRaw = order?.id ?? (order as { _id?: string | number })?._id;
+      const orderIdStr =
+        orderIdRaw !== undefined && orderIdRaw !== null && String(orderIdRaw).trim() !== ''
+          ? String(orderIdRaw).trim()
+          : '';
       if (user?.id != null) {
         recordPurchasedProducts(
           String(user.id),
@@ -113,7 +86,7 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
         );
       }
       try {
-        await setCart([]);
+        await clearCart();
       } catch {
         /* giỏ server có thể lỗi mạng — đơn vẫn đã tạo */
       }
@@ -122,32 +95,10 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
       } catch {
         /* ignore */
       }
+      const ordersUrl = orderIdStr ? `/orders?placed=${encodeURIComponent(orderIdStr)}` : '/orders';
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      navigate(ordersUrl, { replace: true });
       resetCheckout();
-      const isMomoFlow = paymentMethod === 'paypal' || paymentMethod === 'paypal_credit';
-      if (isMomoFlow) {
-        try {
-          const momo = await createMomoPayment(order.id);
-          const redirectUrl = momo.payUrl?.trim();
-          if (!redirectUrl) {
-            navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
-            return;
-          }
-          window.location.href = redirectUrl;
-          return;
-        } catch (momoErr) {
-          const msg =
-            momoErr instanceof ApiError
-              ? momoErr.message
-              : momoErr instanceof Error
-                ? momoErr.message
-                : 'Không tạo được link thanh toán MoMo.';
-          setOrderError(`Đơn hàng đã được tạo nhưng chưa tạo được link thanh toán: ${msg}`);
-          navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
-          return;
-        }
-      }
-
-      navigate(`/order-confirmation/${encodeURIComponent(String(order.id))}`);
     } catch (err) {
       setOrderError(err instanceof ApiError ? err.message : 'Không tạo được đơn hàng.');
       if (err instanceof ApiError && err.status === 401) {
@@ -160,47 +111,18 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
 
   return (
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Payment Details */}
       <div className="lg:col-span-2">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Payment</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Thanh toán</h2>
 
-        <PaymentTabs selectedMethod={paymentMethod} onSelectMethod={setPaymentMethod} />
-
-        {paymentMethod === 'credit_card' && (
-          <CreditCardForm onCardDataChange={setCardData} />
-        )}
-
-        {paymentMethod === 'paypal' && (
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Bạn sẽ được chuyển đến MoMo để hoàn tất thanh toán
-            </p>
-            <button
-              type="button"
-              onClick={() => void handlePlaceOrder()}
-              disabled={placing}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
-            >
-              {placing ? 'Đang xử lý...' : 'Tiếp tục với MoMo'}
-            </button>
-          </div>
-        )}
-
-        {paymentMethod === 'paypal_credit' && (
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-8 text-center">
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Bạn sẽ được chuyển đến MoMo để hoàn tất thanh toán
-            </p>
-            <button
-              type="button"
-              onClick={() => void handlePlaceOrder()}
-              disabled={placing}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:pointer-events-none"
-            >
-              {placing ? 'Đang xử lý...' : 'Tiếp tục với MoMo'}
-            </button>
-          </div>
-        )}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/60">
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
+            Thanh toán khi nhận hàng (COD)
+          </h3>
+          <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+            Đơn hàng được ghi nhận với hình thức COD. Bạn thanh toán bằng tiền mặt khi nhận hàng — vui lòng chuẩn bị đúng
+            số tiền theo tổng đơn (hoặc theo hướng dẫn của shipper).
+          </p>
+        </div>
 
         {orderError && (
           <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
@@ -208,7 +130,6 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
           </div>
         )}
 
-        {/* Terms and Conditions */}
         <div className="mt-6">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -218,40 +139,39 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
               className="mt-1 w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
             />
             <span className="text-sm text-slate-600 dark:text-slate-400">
-              I agree to the{' '}
+              Tôi đồng ý với{' '}
               <a href="#" className="text-primary hover:underline">
-                Terms and Conditions
+                Điều khoản sử dụng
               </a>{' '}
-              and{' '}
+              và{' '}
               <a href="#" className="text-primary hover:underline">
-                Privacy Policy
+                Chính sách bảo mật
               </a>
+              .
             </span>
           </label>
-          {errors.terms && (
-            <p className="mt-1 text-sm text-red-500">{errors.terms}</p>
-          )}
+          {errors.terms && <p className="mt-1 text-sm text-red-500">{errors.terms}</p>}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 mt-8">
           <button
+            type="button"
             onClick={onBack}
             className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
-            Back
+            Quay lại
           </button>
           <button
+            type="button"
             onClick={handlePlaceOrder}
             disabled={placing}
             className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-70 disabled:pointer-events-none"
           >
-            {placing ? 'Placing order...' : 'Place Order'}
+            {placing ? 'Đang đặt hàng…' : 'Đặt hàng'}
           </button>
         </div>
       </div>
 
-      {/* Summary Sidebar */}
       <div className="lg:col-span-1">
         <CheckoutSummary />
       </div>
@@ -260,4 +180,3 @@ const CheckoutStep3: React.FC<CheckoutStep3Props> = ({ onBack }) => {
 };
 
 export default CheckoutStep3;
-

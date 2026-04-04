@@ -18,7 +18,7 @@ const CreditCardPreview: React.FC<CreditCardPreviewProps> = ({
   };
 
   const displayNumber = cardNumber ? formatCardNumber(cardNumber) : '•••• •••• •••• ••••';
-  const displayHolder = cardHolder || 'CARD HOLDER';
+  const displayHolder = cardHolder || 'CHỦ THẺ';
   const displayExpiry = expiryDate || 'MM/YY';
 
   return (
@@ -35,11 +35,11 @@ const CreditCardPreview: React.FC<CreditCardPreviewProps> = ({
         </div>
         <div className="flex justify-between items-end">
           <div>
-            <div className="text-xs text-white/70 mb-1">CARD HOLDER</div>
+            <div className="text-xs text-white/70 mb-1">CHỦ THẺ</div>
             <div className="text-lg font-semibold uppercase">{displayHolder}</div>
           </div>
           <div>
-            <div className="text-xs text-white/70 mb-1">EXPIRES</div>
+            <div className="text-xs text-white/70 mb-1">HẾT HẠN</div>
             <div className="text-lg font-semibold">{displayExpiry}</div>
           </div>
         </div>

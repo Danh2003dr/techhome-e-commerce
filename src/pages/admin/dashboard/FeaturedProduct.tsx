@@ -60,7 +60,6 @@ const FeaturedProduct: React.FC<FeaturedProductProps> = ({ products, loading }) 
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm flex flex-col h-full min-h-[280px]">
       <h2 className="text-base font-bold text-slate-900 mb-4">Sản phẩm nổi bật</h2>
-      <p className="text-xs text-slate-500 mb-2">GET /api/products/featured</p>
       <div className="flex flex-1 items-center gap-2 min-h-0">
         <button
           type="button"

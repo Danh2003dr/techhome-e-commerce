@@ -13,6 +13,7 @@ import CheckoutPage from '@/pages/checkout/CheckoutPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import OrderHistoryPage from '@/pages/account/OrderHistoryPage';
 import OrderDetailsPage from '@/pages/account/OrderDetailsPage';
+import MessagesPage from '@/pages/account/MessagesPage';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
@@ -22,12 +23,11 @@ import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
-import ProductStockPage from '@/pages/admin/products/ProductStockPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
 import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
-import CalendarPage from '@/pages/admin/CalendarPage';
+import AdminMessagesInboxPage from '@/pages/admin/AdminMessagesInboxPage';
 import VoucherBuilderPage from '@/pages/admin/vouchers/VoucherBuilderPage';
 import AdminRoute from '@/routes/AdminRoute';
 
@@ -55,13 +55,17 @@ const AppRoutes: React.FC = () => (
     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
     <Route path="/orders" element={<OrderHistoryPage />} />
     <Route path="/order/:orderId" element={<OrderDetailsPage />} />
+    <Route path="/messages" element={<MessagesPage />} />
+    <Route path="/messages/:peerId" element={<MessagesPage />} />
     <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<DashboardPage />} />
-      <Route path="/admin/calendar" element={<CalendarPage />} />
+      <Route path="/admin/calendar" element={<Navigate to="/admin/messages" replace />} />
+      <Route path="/admin/messages" element={<AdminMessagesInboxPage />} />
+      <Route path="/admin/messages/:customerId" element={<AdminMessagesInboxPage />} />
       <Route path="/admin/vouchers" element={<VoucherBuilderPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
-      <Route path="/admin/products/stock" element={<ProductStockPage />} />
+      <Route path="/admin/products/stock" element={<Navigate to="/admin/products" replace />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
       <Route path="/admin/products/:id" element={<ProductFormPage />} />
 

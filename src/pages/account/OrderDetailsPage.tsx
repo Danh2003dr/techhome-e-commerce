@@ -7,24 +7,11 @@ import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
 import type { OrderDto } from '@/types/api';
 import type { OrderDetailsData } from '@/types';
-import { orderStatusLabelVi } from '@/utils/orderDisplay';
+import { orderStatusLabelVi, paymentMethodLabelVi, codAwarePaymentStatusVi } from '@/utils/orderDisplay';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
-
-function paymentStatusLabelVi(value: unknown): string {
-  const key = String(value ?? '').trim().toUpperCase();
-  const labels: Record<string, string> = {
-    UNPAID: 'Chưa thanh toán',
-    PENDING: 'Đang chờ thanh toán',
-    PAID: 'Đã thanh toán',
-    FAILED: 'Thanh toán thất bại',
-    CANCELLED: 'Đã hủy thanh toán',
-    EXPIRED: 'Hết hạn thanh toán',
-  };
-  return labels[key] ?? 'Chưa có trạng thái thanh toán';
-}
 
 function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
   const placedDate = formatDate(dto.createdAt);
@@ -59,7 +46,6 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
     lineItems,
     subtotal,
     shipping: 0,
-    tax: 0,
     total: Number(dto.totalPrice),
     shippingAddress: shipSnap
       ? {
@@ -79,7 +65,7 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
     payment: {
       brand:
         dto.paymentMethod != null && String(dto.paymentMethod).trim() !== ''
-          ? String(dto.paymentMethod).trim().toUpperCase()
+          ? paymentMethodLabelVi(dto.paymentMethod)
           : '—',
       last4:
         dto.paymentTransactionId != null && String(dto.paymentTransactionId).trim() !== ''
@@ -87,8 +73,16 @@ function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
           : '—',
       expires:
         dto.paidAt != null && String(dto.paidAt).trim() !== ''
-          ? `${paymentStatusLabelVi(dto.paymentStatus)} · ${formatDate(String(dto.paidAt))}`
-          : paymentStatusLabelVi(dto.paymentStatus),
+          ? `${codAwarePaymentStatusVi({
+              paymentMethod: dto.paymentMethod,
+              paymentStatus: dto.paymentStatus,
+              orderStatus: dto.status,
+            })} · ${formatDate(String(dto.paidAt))}`
+          : codAwarePaymentStatusVi({
+              paymentMethod: dto.paymentMethod,
+              paymentStatus: dto.paymentStatus,
+              orderStatus: dto.status,
+            }),
     },
   };
 }
@@ -145,7 +139,7 @@ const OrderDetailsPage: React.FC = () => {
           <div className="text-center max-w-md">
             <p className="text-slate-500 mb-2">
               {!apiOn
-                ? 'Cấu hình VITE_API_URL để xem đơn hàng.'
+                ? 'Cần cấu hình kết nối máy chủ để xem đơn hàng.'
                 : !isAuthenticated
                   ? 'Vui lòng đăng nhập.'
                   : error ?? 'Không tìm thấy đơn hàng.'}
@@ -300,10 +294,6 @@ const OrderDetailsPage: React.FC = () => {
                   <div className="flex justify-between text-sm text-slate-500">
                     <span>Phí vận chuyển</span>
                     <span className="font-semibold text-green-600">{order.shipping === 0 ? 'Miễn phí' : formatVND(order.shipping)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-slate-500">
-                    <span>Thuế</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{formatVND(order.tax)}</span>
                   </div>
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between">
                     <span className="font-bold text-lg text-slate-900 dark:text-white">Tổng cộng</span>

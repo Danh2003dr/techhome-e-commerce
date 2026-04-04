@@ -32,7 +32,7 @@ const ForgotPasswordPage: React.FC = () => {
       return;
     }
     if (!isApiConfigured()) {
-      setError('Chưa cấu hình API (VITE_API_URL). Không thể gửi yêu cầu.');
+      setError('Chưa cấu hình kết nối máy chủ. Không thể gửi yêu cầu.');
       return;
     }
     setLoading(true);

@@ -5,6 +5,7 @@
 import type { CategoryDto, ProductDto } from '@/types/api';
 import type { Category, Product, TrendingProduct, ListingProduct } from '@/types';
 import { discountPercentFromPrices, effectiveUnitPrice } from '@/utils/pricing';
+import { productDtoNeedsPdpBeforeAddToCart } from '@/utils/productVariantChoice';
 
 /** Giá list + sale + đơn giá hiển thị — dùng chung cho map product DTO. */
 function computeProductPricing(dto: ProductDto) {
@@ -113,6 +114,7 @@ export function mapProductDtoToTrending(dto: ProductDto): TrendingProduct {
     reviews: 0,
     isBestSeller: dto.featured,
     productDetailId: String(dto.id),
+    requiresVariantChoice: productDtoNeedsPdpBeforeAddToCart(dto),
   };
 }
 
@@ -130,6 +132,7 @@ export function mapProductDtoToListing(dto: ProductDto): ListingProduct {
     reviews: 0,
     productDetailId: String(dto.id),
     slug: dto.slug,
+    requiresVariantChoice: productDtoNeedsPdpBeforeAddToCart(dto),
   };
 }
 
@@ -161,5 +164,6 @@ export function mapProductDtoToProduct(dto: ProductDto): Product {
     sku,
     tag,
     slug: dto.slug,
+    requiresVariantChoice: productDtoNeedsPdpBeforeAddToCart(dto),
   };
 }

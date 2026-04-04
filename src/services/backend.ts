@@ -26,6 +26,7 @@ import type {
   CheckoutQuoteResponse,
   OrderDto,
   ProfileDto,
+  SavedAddressDto,
   AvatarPresignResponse,
   AssetUploadScope,
   AdminUserDto,
@@ -38,12 +39,6 @@ import type {
   AdminDashboardSummaryResponse,
   AdminOrderStatus,
   OrderStatusHistoryDto,
-  ShipmentDto,
-  ReturnRequestDto,
-  ReturnListResponse,
-  RefundDto,
-  RefundListResponse,
-  CreateMomoPaymentResponse,
 } from '@/types/api';
 import type { CartItem } from '@/types';
 
@@ -246,7 +241,7 @@ export async function createOrder(body: CreateOrderRequest): Promise<OrderDto> {
   return apiPost<OrderDto>('/orders', body, { auth: true });
 }
 
-/** POST /api/checkout/quote — tạm tính, thuế, giá sau giảm (Bearer nếu có để áp mã) */
+/** POST /api/checkout/quote — tạm tính, phí ship, giá sau giảm (Bearer nếu có để áp mã) */
 export async function postCheckoutQuote(body: CheckoutQuoteRequest): Promise<CheckoutQuoteResponse> {
   return apiPost<CheckoutQuoteResponse>('/checkout/quote', body);
 }
@@ -259,11 +254,6 @@ export async function getOrders(): Promise<OrderDto[]> {
 /** GET /api/orders/:id – requires Authorization */
 export async function getOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/${id}`, { auth: true });
-}
-
-/** POST /api/orders/:id/payments/momo – tạo link thanh toán MoMo cho đơn hàng */
-export async function createMomoPayment(orderId: number | string): Promise<CreateMomoPaymentResponse> {
-  return apiPost<CreateMomoPaymentResponse>(`/orders/${orderId}/payments/momo`, {}, { auth: true });
 }
 
 /** GET /api/orders/admin?page=&size=&status=&userId= (ADMIN) */
@@ -293,150 +283,21 @@ export async function getAdminOrder(id: number | string): Promise<OrderDto> {
   return apiGet<OrderDto>(`/orders/admin/${id}`, { auth: true });
 }
 
-/** PATCH /api/orders/admin/:id/status (ADMIN) */
+/** PATCH /api/orders/admin/:id/status (ADMIN). Hủy đơn (CANCELLED) bắt buộc kèm `note` trên server. */
 export async function updateAdminOrderStatus(
   id: number | string,
-  status: AdminOrderStatus
+  status: AdminOrderStatus,
+  options?: { note?: string | null }
 ): Promise<OrderDto> {
-  return apiPatch<OrderDto>(`/orders/admin/${id}/status`, { status }, { auth: true });
+  const body: { status: AdminOrderStatus; note?: string } = { status };
+  const note = options?.note != null ? String(options.note).trim() : '';
+  if (note) body.note = note;
+  return apiPatch<OrderDto>(`/orders/admin/${id}/status`, body, { auth: true });
 }
 
 /** GET /api/orders/admin/:id/status-history (ADMIN) */
 export async function getAdminOrderStatusHistory(id: number | string): Promise<OrderStatusHistoryDto[]> {
   return apiGet<OrderStatusHistoryDto[]>(`/orders/admin/${id}/status-history`, { auth: true });
-}
-
-/** GET /api/orders/admin/:id/shipment (ADMIN) */
-export async function getAdminOrderShipment(id: number | string): Promise<ShipmentDto> {
-  return apiGet<ShipmentDto>(`/orders/admin/${id}/shipment`, { auth: true });
-}
-
-/** PUT /api/orders/admin/:id/shipment (ADMIN) */
-export async function upsertAdminOrderShipment(
-  id: number | string,
-  payload: Partial<{
-    carrier: string | null;
-    trackingNumber: string | null;
-    status: string;
-    shippedAt: string | null;
-    estimatedDeliveryAt: string | null;
-    deliveredAt: string | null;
-    note: string | null;
-  }>
-): Promise<ShipmentDto> {
-  return apiPut<ShipmentDto>(`/orders/admin/${id}/shipment`, payload, { auth: true });
-}
-
-/** GET /api/orders/admin/:id/returns (ADMIN, paged response) */
-export async function getAdminOrderReturns(id: number | string): Promise<ReturnListResponse> {
-  return apiGet<ReturnListResponse>(`/orders/admin/${id}/returns`, { auth: true });
-}
-
-/** GET /api/orders/admin/:id/returns?page=&size=&status=&q= (ADMIN) */
-export async function getAdminOrderReturnsPaged(
-  id: number | string,
-  params?: { page?: number; size?: number; status?: string; q?: string }
-): Promise<ReturnListResponse> {
-  const sp = new URLSearchParams();
-  if (params?.page != null) sp.set('page', String(params.page));
-  if (params?.size != null) sp.set('size', String(params.size));
-  if (params?.status != null && String(params.status).trim() !== '') sp.set('status', String(params.status).trim());
-  if (params?.q != null && String(params.q).trim() !== '') sp.set('q', String(params.q).trim());
-  const query = sp.toString();
-  return apiGet<ReturnListResponse>(query ? `/orders/admin/${id}/returns?${query}` : `/orders/admin/${id}/returns`, {
-    auth: true,
-  });
-}
-
-/** GET /api/orders/admin/:id/returns/:returnId (ADMIN) */
-export async function getAdminOrderReturn(
-  id: number | string,
-  returnId: number | string
-): Promise<ReturnRequestDto> {
-  return apiGet<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, { auth: true });
-}
-
-/** POST /api/orders/admin/:id/returns (ADMIN) */
-export async function createAdminOrderReturn(
-  id: number | string,
-  payload: {
-    reason?: string | null;
-    note?: string | null;
-    items: Array<{ productId: number; quantity: number; reason?: string | null }>;
-  }
-): Promise<ReturnRequestDto> {
-  return apiPost<ReturnRequestDto>(`/orders/admin/${id}/returns`, payload, { auth: true });
-}
-
-/** PATCH /api/orders/admin/:id/returns/:returnId/status (ADMIN) */
-export async function updateAdminReturnStatus(
-  id: number | string,
-  returnId: number | string,
-  payload: { status: string; note?: string | null }
-): Promise<ReturnRequestDto> {
-  return apiPatch<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}/status`, payload, { auth: true });
-}
-
-/** PUT /api/orders/admin/:id/returns/:returnId (ADMIN) */
-export async function updateAdminOrderReturn(
-  id: number | string,
-  returnId: number | string,
-  payload: Partial<{
-    reason: string | null;
-    note: string | null;
-    items: Array<{ productId: number; quantity: number; reason?: string | null }>;
-  }>
-): Promise<ReturnRequestDto> {
-  return apiPut<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, payload, { auth: true });
-}
-
-/** DELETE /api/orders/admin/:id/returns/:returnId (ADMIN) */
-export async function deleteAdminOrderReturn(
-  id: number | string,
-  returnId: number | string
-): Promise<ReturnRequestDto> {
-  return apiDelete<ReturnRequestDto>(`/orders/admin/${id}/returns/${returnId}`, { auth: true });
-}
-
-/** GET /api/orders/admin/:id/refunds?page=&size=&status=&q= (ADMIN) */
-export async function getAdminOrderRefunds(
-  id: number | string,
-  params?: { page?: number; size?: number; status?: string; q?: string }
-): Promise<RefundListResponse> {
-  const sp = new URLSearchParams();
-  if (params?.page != null) sp.set('page', String(params.page));
-  if (params?.size != null) sp.set('size', String(params.size));
-  if (params?.status != null && String(params.status).trim() !== '') sp.set('status', String(params.status).trim());
-  if (params?.q != null && String(params.q).trim() !== '') sp.set('q', String(params.q).trim());
-  const query = sp.toString();
-  return apiGet<RefundListResponse>(query ? `/orders/admin/${id}/refunds?${query}` : `/orders/admin/${id}/refunds`, {
-    auth: true,
-  });
-}
-
-/** POST /api/orders/admin/:id/refunds (ADMIN) */
-export async function createAdminOrderRefund(
-  id: number | string,
-  payload: {
-    returnId: number;
-    amount: number;
-    method: string;
-    currency?: string;
-    transactionRef?: string | null;
-    note?: string | null;
-    meta?: Record<string, unknown> | null;
-  }
-): Promise<RefundDto> {
-  return apiPost<RefundDto>(`/orders/admin/${id}/refunds`, payload, { auth: true });
-}
-
-/** PATCH /api/orders/admin/:id/refunds/:refundId/status (ADMIN) */
-export async function updateAdminRefundStatus(
-  id: number | string,
-  refundId: number | string,
-  payload: { status: string; note?: string | null; transactionRef?: string | null }
-): Promise<RefundDto> {
-  return apiPatch<RefundDto>(`/orders/admin/${id}/refunds/${refundId}/status`, payload, { auth: true });
 }
 
 /** GET /api/admin/dashboard/summary (ADMIN) */
@@ -509,6 +370,34 @@ export async function setCart(items: CartItem[]): Promise<CartItem[]> {
 
 // ——— Profile & Password (requires auth) ———
 
+function mapSavedAddressesFromApi(raw: unknown): SavedAddressDto[] {
+  if (!Array.isArray(raw)) return [];
+  const out: SavedAddressDto[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const o = row as Record<string, unknown>;
+    const id = String(o.id ?? '').trim();
+    const line = String(o.line ?? '').trim();
+    if (!id || !line) continue;
+    const item: SavedAddressDto = { id, label: String(o.label ?? '').trim(), line };
+    const pick = (k: string) => {
+      const v = o[k];
+      if (v == null) return;
+      const s = String(v).trim();
+      if (s) (item as Record<string, string>)[k] = s;
+    };
+    pick('recipientName');
+    pick('recipientPhone');
+    pick('street');
+    pick('ward');
+    pick('district');
+    pick('province');
+    pick('note');
+    out.push(item);
+  }
+  return out;
+}
+
 /** GET /api/profile */
 export async function getProfile(): Promise<ProfileDto> {
   const res = await apiGet<Record<string, unknown>>('/profile', { auth: true });
@@ -520,6 +409,7 @@ export async function getProfile(): Promise<ProfileDto> {
     gender: (res.gender as string | null | undefined) ?? null,
     dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
     defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
+    savedAddresses: mapSavedAddressesFromApi(res.savedAddresses),
     passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
     avatarUrl: (res.avatarUrl as string | null | undefined) ?? null,
   };
@@ -586,16 +476,35 @@ export async function updateProfile(payload: {
   gender?: string;
   dateOfBirth?: string;
   defaultAddress?: string;
+  savedAddresses?: SavedAddressDto[];
   avatarUrl?: string | null;
 }): Promise<ProfileDto> {
-  const res = await apiPut<Record<string, unknown>>('/profile', {
+  const body: Record<string, unknown> = {
     name: payload.name,
     phone: payload.phone,
     gender: payload.gender,
     dateOfBirth: payload.dateOfBirth,
     defaultAddress: payload.defaultAddress,
     avatarUrl: payload.avatarUrl,
-  }, { auth: true });
+  };
+  if (payload.savedAddresses !== undefined) {
+    body.savedAddresses = payload.savedAddresses.map((a) => {
+      const row: Record<string, unknown> = {
+        id: a.id,
+        label: a.label ?? '',
+        line: a.line,
+      };
+      if (a.recipientName?.trim()) row.recipientName = a.recipientName.trim();
+      if (a.recipientPhone?.trim()) row.recipientPhone = a.recipientPhone.trim();
+      if (a.street?.trim()) row.street = a.street.trim();
+      if (a.ward?.trim()) row.ward = a.ward.trim();
+      if (a.district?.trim()) row.district = a.district.trim();
+      if (a.province?.trim()) row.province = a.province.trim();
+      if (a.note?.trim()) row.note = a.note.trim();
+      return row;
+    });
+  }
+  const res = await apiPut<Record<string, unknown>>('/profile', body, { auth: true });
   return {
     id: (res.id ?? '') as string | number,
     name: String(res.name ?? ''),
@@ -604,6 +513,7 @@ export async function updateProfile(payload: {
     gender: (res.gender as string | null | undefined) ?? null,
     dateOfBirth: (res.dateOfBirth as string | null | undefined) ?? null,
     defaultAddress: (res.defaultAddress as string | null | undefined) ?? null,
+    savedAddresses: mapSavedAddressesFromApi(res.savedAddresses),
     passwordChangedAt: (res.passwordChangedAt as string | null | undefined) ?? null,
     avatarUrl: (res.avatarUrl as string | null | undefined) ?? null,
   };

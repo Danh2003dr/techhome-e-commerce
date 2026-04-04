@@ -80,11 +80,11 @@ const InvoicePage: React.FC = () => {
       </div>
 
       {!orderId && (
-        <p className="text-sm text-slate-500">Thêm <code className="text-xs">?orderId=</code> để tải đơn (admin).</p>
+        <p className="text-sm text-slate-500">Mở từ danh sách đơn hoặc chọn đơn có mã hợp lệ.</p>
       )}
 
       {orderId && !isApiConfigured() && (
-        <p className="text-sm text-amber-700">Cấu hình VITE_API_URL.</p>
+        <p className="text-sm text-amber-700">Chưa cấu hình kết nối máy chủ.</p>
       )}
 
       {orderId && isApiConfigured() && !isAuthenticated && (

@@ -72,15 +72,51 @@ export class ApiError extends Error {
 async function parseErrorResponse(res: Response): Promise<ApiError> {
   let body: ApiErrorBody | undefined;
   const text = await res.text();
+  let message = `Không thực hiện được (${res.status}). Vui lòng thử lại.`;
+
   if (text) {
     try {
-      body = JSON.parse(text) as ApiErrorBody;
+      const parsed: unknown = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        const parts = parsed.filter((x): x is string => typeof x === 'string' && x.trim() !== '');
+        message = parts.length > 0 ? parts.join('\n') : message;
+        body = { message, errors: parts };
+      } else if (parsed && typeof parsed === 'object') {
+        body = parsed as ApiErrorBody;
+        const errs = body.errors;
+        const errLines = Array.isArray(errs)
+          ? errs.filter((x): x is string => typeof x === 'string' && x.trim() !== '')
+          : [];
+        if (typeof body.message === 'string' && body.message.trim() !== '') {
+          message = body.message.trim();
+        } else if (errLines.length > 0) {
+          message = errLines.join('\n');
+        }
+      }
     } catch {
-      body = { message: text };
+      message = text.trim() || message;
+      body = { message };
     }
   }
-  const message = body?.message ?? `Request failed: ${res.status} ${res.statusText}`;
+
   return new ApiError(message, res.status, body);
+}
+
+/** Chuỗi hiển thị cho người dùng — ưu tiên nhiều dòng từ `errors` nếu có. */
+export function formatApiErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    const b = err.body;
+    const lines = b?.errors?.filter((x) => typeof x === 'string' && x.trim() !== '');
+    if (lines && lines.length > 1) {
+      return lines.join('\n');
+    }
+    if (lines && lines.length === 1 && (!err.message || err.message === lines[0])) {
+      return lines[0];
+    }
+    return err.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+  }
+  if (err instanceof Error) return err.message;
+  return 'Đã xảy ra lỗi. Vui lòng thử lại.';
 }
 
 /** Gắn Bearer khi có token; giữ nguyên hành vi `auth !== false` như trước. */

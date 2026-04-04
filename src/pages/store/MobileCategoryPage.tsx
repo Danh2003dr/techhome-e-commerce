@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { mobileCategoryProducts } from '@/data';
 import { useCart } from '@/context/CartContext';
 import { useApiCategories, useApiProducts } from '@/hooks/useProductApi';
 import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
 import { isApiConfigured } from '@/services/api';
 import { formatVND } from '@/utils';
+import { productRequiresDetailForAddToCart } from '@/utils/productVariantChoice';
 import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -41,6 +42,7 @@ function Badge({ label, variant }: { label: string; variant: 'primary' | 'red' |
 
 const MobileCategoryPage: React.FC = () => {
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const { data: apiCategories } = useApiCategories();
   const mobileCategory = findCategoryInGroup(apiCategories, slugGroups.mobile);
   const mobileCategoryId = mobileCategory ? Number(mobileCategory.id) : undefined;
@@ -243,6 +245,10 @@ const MobileCategoryPage: React.FC = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          if (productRequiresDetailForAddToCart(product)) {
+                            navigate(productPath);
+                            return;
+                          }
                           try {
                             addItem({
                               productId: product.productDetailId ?? product.id,

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { formatVND, discountPercentFromPrices } from '@/utils';
+import { productRequiresDetailForAddToCart } from '@/utils/productVariantChoice';
 import type { Product } from '@/types';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
@@ -12,6 +13,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
   const productId = (product as any).productDetailId || product.id;
   const pathSegment = (product.slug && String(product.slug).trim() !== '' ? product.slug : productId) as string;
@@ -50,6 +52,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (productRequiresDetailForAddToCart(product)) {
+      navigate(productPath);
+      return;
+    }
     try {
       addItem({
         productId,
@@ -89,11 +95,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="space-y-2 flex-grow">
         <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{product.category}</p>
         <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-tight line-clamp-2">{product.name}</h4>
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <span key={i} className={`material-icons text-sm ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-200'}`}>star</span>
-          ))}
-          <span className="text-[10px] text-gray-400 font-bold ml-1">({product.reviews.toLocaleString()})</span>
+        <div
+          className="flex items-center gap-1 flex-wrap"
+          role="img"
+          aria-label={`Điểm trung bình ${Number(product.rating).toFixed(1)} trên 5 sao, ${product.reviews.toLocaleString('vi-VN')} lượt đánh giá`}
+        >
+          <span className="flex" aria-hidden>
+            {[...Array(5)].map((_, i) => (
+              <span key={i} className={`material-icons text-sm ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-200'}`}>star</span>
+            ))}
+          </span>
+          <span className="text-[10px] font-bold text-gray-600 tabular-nums" aria-hidden>
+            {Number(product.rating).toFixed(1)}/5
+          </span>
+          <span className="text-[10px] text-gray-400 font-bold">({product.reviews.toLocaleString('vi-VN')} đánh giá)</span>
         </div>
       </div>
       <div className="flex items-center justify-between mt-4">

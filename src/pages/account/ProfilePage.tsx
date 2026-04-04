@@ -4,16 +4,24 @@ import { useAuth } from '@/context/AuthContext';
 import { useAvatar } from '@/context/AvatarContext';
 import { isApiConfigured, ApiError, getStoredUser, setStoredUser } from '@/services/api';
 import { getProfile, changePassword, updateProfile, uploadAvatarFile } from '@/services/backend';
-import type { ProfileDto } from '@/types/api';
+import type { ProfileDto, SavedAddressDto } from '@/types/api';
+import {
+  emptySavedAddressForm,
+  validateSavedAddressForm,
+  composeSavedAddressLine,
+  savedAddressDtoToForm,
+  buildSavedAddressDto,
+  type SavedAddressFormFields,
+} from '@/utils/savedAddressForm';
 import AccountSidebar from '@/components/account/AccountSidebar';
 import AccountHeader from '@/components/account/AccountHeader';
 import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
+import { DEFAULT_PROFILE_IMAGE } from '@/constants/user';
 
 const PROFILE_STORAGE_KEY = 'techhome_profile';
 const PASSWORD_UPDATED_KEY = 'techhome_password_updated';
 
-const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAr-5cpNGoo6_fXpCQEnJFpyIGX4571JMorTIFS1W_oR0yGp1IBTI1_wLO51A6b6JfC_35uve5CoPYM2-is77gcOReXdd7VPBeLws-awri7PskL8u2xh1eUq1gEueTXzsqrp1FazpahCNs2KQX5oD6Y71wxx9yphpqUC_70AN9j0OhuIPUMTQtlrRSkHGsR-Ae0MukU5Jd4FVlVWsEW6CT2kWvy2xncJ-4KiWGLTbYe6MdSfuaEhKi8EN4oTy2OdUS4X6E2bOW0w5E';
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -23,26 +31,26 @@ export interface ProfileExtension {
   gender: string;
   dateOfBirth: string;
   defaultAddress: string;
+  savedAddresses: SavedAddressDto[];
 }
 
-const defaultProfile: ProfileExtension = {
-  fullName: 'Danh Lê',
-  phone: '0913955274',
+const emptyProfile = (): ProfileExtension => ({
+  fullName: '',
+  phone: '',
   gender: '',
   dateOfBirth: '',
   defaultAddress: '',
-};
-
-const DEFAULT_PASSWORD_UPDATED = '24/01/2024 11:46';
+  savedAddresses: [],
+});
 
 function loadProfile(): ProfileExtension {
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (!raw) return { ...defaultProfile };
-    const parsed = JSON.parse(raw);
-    return { ...defaultProfile, ...parsed };
+    if (!raw) return emptyProfile();
+    const parsed = JSON.parse(raw) as Partial<ProfileExtension>;
+    return { ...emptyProfile(), ...parsed };
   } catch {
-    return { ...defaultProfile };
+    return emptyProfile();
   }
 }
 
@@ -51,15 +59,15 @@ function saveProfile(p: ProfileExtension) {
 }
 
 function loadPasswordUpdated(): string {
-  return localStorage.getItem(PASSWORD_UPDATED_KEY) || DEFAULT_PASSWORD_UPDATED;
+  return localStorage.getItem(PASSWORD_UPDATED_KEY) || '';
 }
 
 /** Format ISO date to "dd/MM/yyyy HH:mm" */
 function formatPasswordChangedAt(iso: string | null | undefined): string {
-  if (!iso) return loadPasswordUpdated();
+  if (!iso) return '';
   try {
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return loadPasswordUpdated();
+    if (Number.isNaN(d.getTime())) return '';
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
@@ -67,7 +75,7 @@ function formatPasswordChangedAt(iso: string | null | undefined): string {
     const m = String(d.getMinutes()).padStart(2, '0');
     return `${day}/${month}/${year} ${h}:${m}`;
   } catch {
-    return loadPasswordUpdated();
+    return '';
   }
 }
 
@@ -76,13 +84,29 @@ function displayValue(value: string, placeholder: string) {
 }
 
 function mapApiProfileToExtension(dto: ProfileDto): ProfileExtension {
+  const saved = Array.isArray(dto.savedAddresses)
+    ? dto.savedAddresses.filter((a) => a && String(a.id).trim() && String(a.line).trim())
+    : [];
   return {
     fullName: dto.name || '',
     phone: dto.phone || '',
     gender: dto.gender || '',
     dateOfBirth: dto.dateOfBirth || '',
     defaultAddress: dto.defaultAddress || '',
+    savedAddresses: saved.map((a) => ({
+      ...a,
+      id: String(a.id).trim(),
+      label: String(a.label ?? '').trim(),
+      line: String(a.line).trim(),
+    })),
   };
+}
+
+function newSavedAddressId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `addr_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 /** Giữ techhome_user khớp profile (avatar/name) để sau reload Auth không xóa avatar. */
@@ -112,11 +136,20 @@ const ProfilePage: React.FC = () => {
   const [saveProfileError, setSaveProfileError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarSaveLoading, setAvatarSaveLoading] = useState(false);
+  const [addressesError, setAddressesError] = useState<string | null>(null);
+  const [addressesSaving, setAddressesSaving] = useState(false);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [addressEditingId, setAddressEditingId] = useState<string | null>(null);
+  const [addrForm, setAddrForm] = useState<SavedAddressFormFields>(() => emptySavedAddressForm());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentAvatar = avatarUrl ?? DEFAULT_AVATAR;
-  const displayName = user?.name ?? profile.fullName;
-  const displayEmail = user?.email ?? 'danh1924.d@gmail.com';
+  const INPUT_ROW =
+    'w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-primary';
+  const LABEL_CLS = 'block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1';
+
+  const currentAvatar = avatarUrl ?? DEFAULT_PROFILE_IMAGE;
+  const displayName = (user?.name ?? profile.fullName)?.trim() || '—';
+  const displayEmail = user?.email?.trim() || '—';
 
   useEffect(() => {
     setProfile(loadProfile());
@@ -244,9 +277,121 @@ const ProfilePage: React.FC = () => {
     }
   }, [editForm]);
 
-  const displayPasswordUpdated = isApiConfigured() && apiProfile?.passwordChangedAt
-    ? formatPasswordChangedAt(apiProfile.passwordChangedAt)
-    : passwordUpdated;
+  const persistSavedAddresses = useCallback(async (next: SavedAddressDto[]) => {
+    setAddressesError(null);
+    const list = next.slice(0, 20);
+    if (!isApiConfigured()) {
+      setProfile((prev) => {
+        const merged = { ...prev, savedAddresses: list };
+        saveProfile(merged);
+        return merged;
+      });
+      return;
+    }
+    setAddressesSaving(true);
+    try {
+      const updated = await updateProfile({ savedAddresses: list });
+      setApiProfile(updated);
+      syncStoredUserFromProfile(updated);
+      const mapped = mapApiProfileToExtension(updated);
+      setProfile(mapped);
+      saveProfile(mapped);
+    } catch (err: unknown) {
+      setAddressesError(err instanceof ApiError ? err.message : 'Không lưu được sổ địa chỉ.');
+    } finally {
+      setAddressesSaving(false);
+    }
+  }, []);
+
+  const openAddressModalNew = useCallback(() => {
+    setAddressesError(null);
+    setAddressEditingId(null);
+    setAddrForm(emptySavedAddressForm());
+    setAddressModalOpen(true);
+  }, []);
+
+  const openAddressModalEdit = useCallback((a: SavedAddressDto) => {
+    setAddressesError(null);
+    setAddressEditingId(a.id);
+    setAddrForm(savedAddressDtoToForm(a));
+    setAddressModalOpen(true);
+  }, []);
+
+  const closeAddressModal = useCallback(() => {
+    setAddressModalOpen(false);
+    setAddressEditingId(null);
+  }, []);
+
+  const submitAddressModal = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const err = validateSavedAddressForm(addrForm);
+      if (err) {
+        setAddressesError(err);
+        return;
+      }
+      const line = composeSavedAddressLine(addrForm);
+      const id = addressEditingId ?? newSavedAddressId();
+      const item = buildSavedAddressDto(id, addrForm, line);
+      let next: SavedAddressDto[];
+      if (addressEditingId) {
+        next = profile.savedAddresses.map((x) => (x.id === addressEditingId ? item : x));
+      } else {
+        if (profile.savedAddresses.length >= 20) {
+          setAddressesError('Tối đa 20 địa chỉ.');
+          return;
+        }
+        next = [...profile.savedAddresses, item];
+      }
+      setAddressesError(null);
+      closeAddressModal();
+      void persistSavedAddresses(next);
+    },
+    [addrForm, addressEditingId, profile.savedAddresses, persistSavedAddresses, closeAddressModal]
+  );
+
+  const handleRemoveSavedAddress = useCallback(
+    (id: string) => {
+      const next = profile.savedAddresses.filter((a) => a.id !== id);
+      void persistSavedAddresses(next);
+    },
+    [profile.savedAddresses, persistSavedAddresses]
+  );
+
+  const handleMakeDefaultFromSaved = useCallback(
+    async (line: string) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      setAddressesError(null);
+      if (!isApiConfigured()) {
+        setProfile((prev) => {
+          const merged = { ...prev, defaultAddress: trimmed };
+          saveProfile(merged);
+          return merged;
+        });
+        return;
+      }
+      setAddressesSaving(true);
+      try {
+        const updated = await updateProfile({ defaultAddress: trimmed });
+        setApiProfile(updated);
+        syncStoredUserFromProfile(updated);
+        const mapped = mapApiProfileToExtension(updated);
+        setProfile(mapped);
+        saveProfile(mapped);
+      } catch (err: unknown) {
+        setAddressesError(err instanceof ApiError ? err.message : 'Không cập nhật được địa chỉ mặc định.');
+      } finally {
+        setAddressesSaving(false);
+      }
+    },
+    []
+  );
+
+  const displayPasswordUpdated =
+    (isApiConfigured() && apiProfile?.passwordChangedAt
+      ? formatPasswordChangedAt(apiProfile.passwordChangedAt)
+      : passwordUpdated.trim()) || '—';
 
   const openPasswordModal = useCallback(() => {
     setChangePasswordError(null);
@@ -398,11 +543,11 @@ const ProfilePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Số điện thoại</p>
-                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.phone, '-')}</p>
+                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.phone, '—')}</p>
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Giới tính</p>
-                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.gender, '- (Chưa cập nhật)')}</p>
+                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.gender, '—')}</p>
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Email</p>
@@ -410,11 +555,104 @@ const ProfilePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Ngày sinh</p>
-                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.dateOfBirth, '- (Chưa cập nhật)')}</p>
+                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.dateOfBirth, '—')}</p>
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Địa chỉ mặc định</p>
-                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.defaultAddress, '- (Chưa cập nhật)')}</p>
+                <p className="text-slate-900 dark:text-white font-medium">{displayValue(profile.defaultAddress, '—')}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sổ địa chỉ giao hàng</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Thêm địa chỉ tại đây — khi thanh toán bạn có thể chọn một dòng trong sổ để điền nhanh ô giao hàng.
+              </p>
+            </div>
+            <div className="p-8 space-y-4">
+              {addressesError && !addressModalOpen && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                  {addressesError}
+                </p>
+              )}
+              {profile.savedAddresses.length === 0 ? (
+                <p className="text-sm text-slate-500 dark:text-slate-400">Chưa có địa chỉ đã lưu.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {profile.savedAddresses.map((a) => (
+                    <li
+                      key={a.id}
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-bold text-slate-900 dark:text-white">{a.label.trim() || 'Địa chỉ'}</p>
+                        {(a.recipientName || a.recipientPhone) && (
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            <span className="text-slate-500">Người nhận: </span>
+                            {[a.recipientName, a.recipientPhone].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
+                        {(a.street || a.ward || a.district || a.province) && (
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            {[a.street, a.ward, a.district, a.province].filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                        {a.note?.trim() && (
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Ghi chú: {a.note.trim()}</p>
+                        )}
+                        <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-wrap break-words border-t border-slate-100 dark:border-slate-800 pt-2">
+                          {a.line}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => void handleMakeDefaultFromSaved(a.line)}
+                          disabled={addressesSaving}
+                          className="px-3 py-1.5 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/10 disabled:opacity-50"
+                        >
+                          Đặt làm mặc định
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openAddressModalEdit(a)}
+                          disabled={addressesSaving}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSavedAddress(a.id)}
+                          disabled={addressesSaving}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!isApiConfigured() && (
+                <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                  Bật <span className="font-mono">VITE_API_URL</span> để đồng bộ sổ địa chỉ lên tài khoản. Hiện chỉ lưu tạm trên trình duyệt này.
+                </p>
+              )}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={openAddressModalNew}
+                  disabled={addressesSaving || profile.savedAddresses.length >= 20}
+                  className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-blue-600 disabled:opacity-50"
+                >
+                  Thêm địa chỉ
+                </button>
+                {profile.savedAddresses.length >= 20 && (
+                  <p className="text-xs text-slate-500 mt-2">Đã đạt tối đa 20 địa chỉ.</p>
+                )}
               </div>
             </div>
           </section>
@@ -442,47 +680,9 @@ const ProfilePage: React.FC = () => {
             </div>
           </section>
 
-          {/* 3. Tài khoản liên kết */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Tài khoản liên kết</h2>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <span className="material-icons text-slate-600 dark:text-slate-400">mail</span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Google</p>
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">Đã liên kết</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="px-4 py-2 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm font-bold rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                >
-                  Hủy liên kết
-                </button>
-              </div>
-              <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <span className="material-icons text-slate-600 dark:text-slate-400">chat</span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Zalo</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Chưa liên kết</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors"
-                >
-                  Liên kết
-                </button>
-              </div>
-            </div>
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/30 px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+            Đăng nhập bằng email và mật khẩu. Liên kết mạng xã hội (Google, Zalo, …) sẽ được bổ sung khi có tích hợp thật trên
+            server.
           </section>
         </main>
       </div>
@@ -574,6 +774,175 @@ const ProfilePage: React.FC = () => {
                   className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60"
                 >
                   {saveProfileLoading ? 'Đang lưu...' : 'Lưu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal địa chỉ giao hàng */}
+      {addressModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={closeAddressModal}>
+          <div
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                {addressEditingId ? 'Sửa địa chỉ' : 'Thêm địa chỉ'}
+              </h3>
+              <button
+                type="button"
+                onClick={closeAddressModal}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <form className="p-6 space-y-4" onSubmit={submitAddressModal}>
+              <div>
+                <label htmlFor="addr-label" className={LABEL_CLS}>
+                  Tên gợi nhớ <span className="text-slate-500 font-normal normal-case">(tuỳ chọn)</span>
+                </label>
+                <input
+                  id="addr-label"
+                  type="text"
+                  value={addrForm.label}
+                  onChange={(e) => setAddrForm((f) => ({ ...f, label: e.target.value }))}
+                  placeholder="Nhà, Công ty, …"
+                  disabled={addressesSaving}
+                  className={INPUT_ROW}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="addr-name" className={LABEL_CLS}>
+                    Họ và tên người nhận <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="addr-name"
+                    type="text"
+                    autoComplete="name"
+                    value={addrForm.recipientName}
+                    onChange={(e) => setAddrForm((f) => ({ ...f, recipientName: e.target.value }))}
+                    disabled={addressesSaving}
+                    className={INPUT_ROW}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-phone" className={LABEL_CLS}>
+                    Số điện thoại người nhận <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="addr-phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={addrForm.recipientPhone}
+                    onChange={(e) => setAddrForm((f) => ({ ...f, recipientPhone: e.target.value }))}
+                    disabled={addressesSaving}
+                    className={INPUT_ROW}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="addr-street" className={LABEL_CLS}>
+                  Số nhà, tên đường <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="addr-street"
+                  type="text"
+                  autoComplete="street-address"
+                  value={addrForm.street}
+                  onChange={(e) => setAddrForm((f) => ({ ...f, street: e.target.value }))}
+                  disabled={addressesSaving}
+                  className={INPUT_ROW}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="addr-ward" className={LABEL_CLS}>
+                    Phường / xã <span className="text-slate-500 font-normal normal-case">(tuỳ chọn)</span>
+                  </label>
+                  <input
+                    id="addr-ward"
+                    type="text"
+                    value={addrForm.ward}
+                    onChange={(e) => setAddrForm((f) => ({ ...f, ward: e.target.value }))}
+                    disabled={addressesSaving}
+                    className={INPUT_ROW}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-district" className={LABEL_CLS}>
+                    Quận / huyện <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="addr-district"
+                    type="text"
+                    value={addrForm.district}
+                    onChange={(e) => setAddrForm((f) => ({ ...f, district: e.target.value }))}
+                    disabled={addressesSaving}
+                    className={INPUT_ROW}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-province" className={LABEL_CLS}>
+                    Tỉnh / thành phố <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="addr-province"
+                    type="text"
+                    value={addrForm.province}
+                    onChange={(e) => setAddrForm((f) => ({ ...f, province: e.target.value }))}
+                    disabled={addressesSaving}
+                    className={INPUT_ROW}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="addr-note" className={LABEL_CLS}>
+                  Ghi chú giao hàng <span className="text-slate-500 font-normal normal-case">(tuỳ chọn)</span>
+                </label>
+                <textarea
+                  id="addr-note"
+                  value={addrForm.note}
+                  onChange={(e) => setAddrForm((f) => ({ ...f, note: e.target.value }))}
+                  disabled={addressesSaving}
+                  rows={2}
+                  className={INPUT_ROW}
+                />
+              </div>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Xem trước gửi đơn</p>
+                <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-words">
+                  {composeSavedAddressLine(addrForm) || '—'}
+                </p>
+              </div>
+              {addressesError && addressModalOpen && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                  {addressesError}
+                </p>
+              )}
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeAddressModal}
+                  className="flex-1 py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={addressesSaving}
+                  className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60"
+                >
+                  {addressesSaving ? 'Đang lưu…' : addressEditingId ? 'Lưu thay đổi' : 'Thêm vào sổ'}
                 </button>
               </div>
             </form>

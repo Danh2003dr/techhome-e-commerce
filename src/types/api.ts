@@ -64,6 +64,20 @@ export interface AuthUserDto {
   avatarUrl?: string | null;
 }
 
+/** Địa chỉ đã lưu trong hồ sơ — dùng khi checkout. Bản cũ có thể chỉ có `line`. */
+export interface SavedAddressDto {
+  id: string;
+  label: string;
+  line: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  street?: string;
+  ward?: string;
+  district?: string;
+  province?: string;
+  note?: string;
+}
+
 /** Profile từ GET /api/profile (UserDto). */
 export interface ProfileDto {
   id: number | string;
@@ -73,6 +87,7 @@ export interface ProfileDto {
   gender?: string | null;
   dateOfBirth?: string | null;
   defaultAddress?: string | null;
+  savedAddresses?: SavedAddressDto[];
   passwordChangedAt?: string | null;
   /** URL http(s) tới ảnh (CDN/S3); bản ghi cũ có thể còn data URL từ trước khi đổi luồng */
   avatarUrl?: string | null;
@@ -111,7 +126,7 @@ export interface CreateOrderRequest {
   couponCode?: string;
 }
 
-/** POST /api/checkout/quote — tạm tính + thuế + giảm giá từ server */
+/** POST /api/checkout/quote — tạm tính, phí ship, giảm giá từ server */
 export interface CheckoutQuoteRequest {
   items: { productId: number; quantity: number }[];
   couponCode?: string;
@@ -119,7 +134,6 @@ export interface CheckoutQuoteRequest {
 
 export interface CheckoutQuoteResponse {
   subtotal: number;
-  totalTax: number;
   discountTotal: number;
   /** Tiền hàng sau giảm (chưa ship) — khớp backend goodsTotal */
   goodsTotal: number;
@@ -140,6 +154,8 @@ export interface OrderItemDto {
 export interface OrderDto {
   id: number | string;
   userId: number | string;
+  /** Tên hiển thị từ hồ sơ user (admin list/detail). */
+  userName?: string | null;
   totalPrice: number;
   status: string;
   paymentStatus?: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'EXPIRED' | string;
@@ -155,17 +171,6 @@ export interface OrderDto {
   /** Phí ship do server tính; đơn cũ có thể thiếu. */
   shippingFee?: number | null;
   items: OrderItemDto[];
-}
-
-export interface CreateMomoPaymentResponse {
-  orderId: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  payUrl: string;
-  deeplink?: string | null;
-  qrCodeUrl?: string | null;
-  requestId: string;
-  gatewayOrderId: string;
 }
 
 export type AdminOrderStatus =
@@ -210,80 +215,10 @@ export interface OrderStatusHistoryDto {
   createdAt: string;
 }
 
-export interface ShipmentDto {
-  id: number | string;
-  orderId: number | string;
-  carrier?: string | null;
-  trackingNumber?: string | null;
-  status: string;
-  shippedAt?: string | null;
-  estimatedDeliveryAt?: string | null;
-  deliveredAt?: string | null;
-  note?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ReturnItemDto {
-  productId: number;
-  quantity: number;
-  reason?: string | null;
-}
-
-export interface ReturnRequestDto {
-  id: number | string;
-  orderId: number | string;
-  userId: number | string;
-  status: string;
-  reason?: string | null;
-  note?: string | null;
-  items: ReturnItemDto[];
-  requestedAt?: string | null;
-  approvedAt?: string | null;
-  rejectedAt?: string | null;
-  receivedAt?: string | null;
-  closedAt?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ReturnListResponse {
-  total: number;
-  page: number;
-  size: number;
-  items: ReturnRequestDto[];
-}
-
-export type RefundStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
-
-export interface RefundDto {
-  id: number | string;
-  orderId: number | string;
-  returnId: number | string;
-  status: RefundStatus | string;
-  amount: number;
-  currency?: string;
-  method: string;
-  transactionRef?: string | null;
-  note?: string | null;
-  createdByUserId?: number | string | null;
-  processedByUserId?: number | string | null;
-  approvedAt?: string | null;
-  paidAt?: string | null;
-  rejectedAt?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface RefundListResponse {
-  total: number;
-  page: number;
-  size: number;
-  items: RefundDto[];
-}
-
 export interface ApiErrorBody {
   message?: string;
+  /** Một số endpoint (validation) trả thêm danh sách lỗi từng dòng. */
+  errors?: string[];
   [key: string]: unknown;
 }
 
@@ -343,6 +278,8 @@ export interface CouponAdminDto {
   maxUses: number | null;
   perUserLimit: number | null;
   active: boolean;
+  /** Backend: validTo đã qua (so với giờ server khi trả DTO) */
+  expiredByDate?: boolean;
   usedCount: number;
   excludedProductIds: number[];
   applicableCategoryIds: number[];
@@ -353,4 +290,39 @@ export interface CouponAdminListResponse {
   total: number;
   page: number;
   size: number;
+}
+
+/** GET/POST /api/messages — chat 1–1 (backend TechHome). */
+export interface MessageUserRefDto {
+  id: number;
+  name?: string;
+  email?: string;
+}
+
+export interface MessageContentDto {
+  type: 'text' | 'file';
+  text: string;
+}
+
+export interface MessageDto {
+  id: number;
+  from: MessageUserRefDto;
+  to: MessageUserRefDto;
+  messageContent: MessageContentDto;
+  contextType?: 'GENERAL' | 'PRODUCT_FEEDBACK' | string;
+  productId?: number | null;
+  productNameSnapshot?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface SupportMetaDto {
+  supportUserId: number;
+  isStaff: boolean;
+  label: string;
+}
+
+export interface ConversationListItemDto {
+  user: string;
+  message: MessageDto;
 }

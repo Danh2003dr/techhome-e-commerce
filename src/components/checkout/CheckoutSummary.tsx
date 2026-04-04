@@ -77,7 +77,6 @@ const CheckoutSummary: React.FC = () => {
 
   const subtotal = quote?.subtotal ?? localSubtotal;
   const discount = quote?.discountTotal ?? 0;
-  const tax = quote?.totalTax;
   const shippingFee = quote?.shippingFee ?? 0;
   const total = quote?.grandTotal ?? localSubtotal;
   const quoteBusy = quoteLoading && isApiConfigured() && quoteItems.length > 0;
@@ -175,12 +174,6 @@ const CheckoutSummary: React.FC = () => {
             ) : (
               formatVND(shippingFee)
             )}
-          </span>
-        </div>
-        <div className="flex justify-between text-slate-600 dark:text-slate-400">
-          <span>Thuế GTGT (ước tính)</span>
-          <span className="font-semibold text-slate-900 dark:text-white">
-            {quoteBusy ? '…' : tax != null ? formatVND(tax) : '—'}
           </span>
         </div>
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">

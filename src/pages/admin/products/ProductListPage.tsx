@@ -4,6 +4,7 @@ import AdminProductsTabs from '@/components/admin/AdminProductsTabs';
 import { deleteAdminProduct, getProducts, importAdminProductsExcel } from '@/services/backend';
 import { ApiError, isApiConfigured } from '@/services/api';
 import type { ProductDto } from '@/types/api';
+import { formatVND } from '@/utils';
 
 const PAGE_SIZE = 10;
 
@@ -12,10 +13,10 @@ type AdminProductCardModel = {
   /** Storefront URL segment; falls back to numeric id */
   slug?: string;
   name: string;
-  priceUsd: number;
-  /** 0–5 */
-  rating: number;
-  reviewCount: number;
+  /** Giá hiển thị (VND, từ API) */
+  priceVnd: number;
+  /** Tồn kho (catalog) */
+  stock: number;
   images: string[];
 };
 
@@ -29,9 +30,8 @@ function mapProductDtoToAdminCardModel(dto: ProductDto): AdminProductCardModel {
     id: String(dto.id),
     slug: dto.slug,
     name: dto.name,
-    priceUsd: Number(dto.salePrice ?? dto.price ?? 0),
-    rating: 4,
-    reviewCount: 0,
+    priceVnd: Number(dto.salePrice ?? dto.price ?? 0),
+    stock: Number(dto.stock ?? 0),
     images,
   };
 }
@@ -62,27 +62,6 @@ function getPaginationPages(current: number, total: number): (number | 'ellipsis
   pages.push(total);
   return pages;
 }
-
-const formatUsd = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
-const StarRow: React.FC<{ rating: number }> = ({ rating }) => {
-  const full = Math.min(5, Math.max(0, Math.round(rating)));
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span
-          key={i}
-          className={`material-icons text-[18px] leading-none ${
-            i < full ? 'text-[#FF9500]' : 'text-black/20'
-          }`}
-        >
-          star
-        </span>
-      ))}
-    </div>
-  );
-};
 
 const ProductCard: React.FC<{
   product: AdminProductCardModel;
@@ -121,6 +100,13 @@ const ProductCard: React.FC<{
       }}
     >
       <div className="relative bg-[#F9F9F9] rounded-t-[14px] min-h-[200px] flex items-center justify-center">
+        <span
+          className="absolute top-3 right-3 z-[2] inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-sm border border-slate-200/80"
+          title="Tồn kho"
+        >
+          <span className="material-icons text-[14px] text-slate-500">inventory_2</span>
+          {product.stock}
+        </span>
         <img
           src={imgs[slide]}
           alt=""
@@ -151,12 +137,7 @@ const ProductCard: React.FC<{
 
       <div className="px-4 pt-4 pb-5 flex-1 flex flex-col">
         <h2 className="text-[18px] leading-5 font-bold text-[#202224] mb-2 line-clamp-2">{product.name}</h2>
-        <p className="text-base font-bold text-[#4880FF] mb-3">{formatUsd(product.priceUsd)}</p>
-
-        <div className="flex items-center gap-2 mb-5 flex-wrap">
-          <StarRow rating={product.rating} />
-          <span className="text-sm text-black/40 font-semibold">({product.reviewCount})</span>
-        </div>
+        <p className="text-base font-bold text-[#4880FF] mb-5">{formatVND(product.priceVnd)}</p>
 
         <div className="mt-auto flex flex-col gap-2 relative z-[1]">
           <Link

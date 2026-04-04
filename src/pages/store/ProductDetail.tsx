@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useSupportChat } from '@/context/SupportChatContext';
+import { isApiConfigured } from '@/services/api';
 import { useApiProduct } from '@/hooks/useProductApi';
 import { getFallbackProductDetailExtras } from '@/services/fallbackAdapters';
-import { getStoredReviewsForProduct, addStoredReview } from '@/services/reviewsStore';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
 import { formatVND, discountPercentFromPrices } from '@/utils';
 import { getProductStockDisplay } from '@/utils/stockDisplay';
 import Breadcrumbs from '@/components/store/Breadcrumbs';
@@ -14,32 +15,20 @@ const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns
 const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: apiProduct, loading: apiLoading } = useApiProduct(slug);
-  const { user, isAuthenticated } = useAuth();
   const product = apiProduct;
   const extras = getFallbackProductDetailExtras(product?.id ?? slug);
 
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { openSupportChat } = useSupportChat();
+  const apiOn = isApiConfigured();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addInstallation, setAddInstallation] = useState(false);
   const [justAddedToCart, setJustAddedToCart] = useState(false);
   const [failedThumbIndices, setFailedThumbIndices] = useState<Set<number>>(() => new Set());
-  const [reviewRefresh, setReviewRefresh] = useState(0);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-
   const stockDisplay = useMemo(() => (product ? getProductStockDisplay(product) : null), [product]);
-
-  const reviewProductKey = product?.id ?? slug ?? '';
-  const storedReviews = useMemo(
-    () => (reviewProductKey ? getStoredReviewsForProduct(reviewProductKey) : []),
-    [reviewProductKey, reviewRefresh]
-  );
-  const canReview = useMemo(
-    () => Boolean(isAuthenticated && reviewProductKey && user),
-    [isAuthenticated, reviewProductKey, user]
-  );
 
   /**
    * Màu / dung lượng: ưu tiên đúng dữ liệu catalog từ API (`colors`, `storageOptions`).
@@ -105,7 +94,7 @@ const ProductDetail: React.FC = () => {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Product not found</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Không tìm thấy sản phẩm</h1>
           <Link to="/" className="text-primary hover:underline">Về trang chủ</Link>
         </div>
       </div>
@@ -116,22 +105,6 @@ const ProductDetail: React.FC = () => {
   const mainImage = images[selectedImageIndex] ?? images[0];
   const mainImageSrc = failedThumbIndices.has(selectedImageIndex) ? PLACEHOLDER_IMAGE : mainImage;
   const thumbSrc = (idx: number) => (failedThumbIndices.has(idx) ? PLACEHOLDER_IMAGE : (images[idx] ?? ''));
-
-  const renderStars = (rating: number, size = 'text-sm') => {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5;
-    return (
-      <div className={`flex ${size}`}>
-        {[1, 2, 3, 4, 5].map((i) => {
-          const filled = i <= full || (i === full + 1 && half);
-          const icon = i <= full ? 'star' : i === full + 1 && half ? 'star_half' : 'star';
-          return (
-            <span key={i} className={`material-icons ${filled ? 'text-amber-400' : 'text-slate-300'}`}>{icon}</span>
-          );
-        })}
-      </div>
-    );
-  };
 
   // Determine category path for breadcrumbs (slug-based category URLs)
   const getCategoryPath = () => {
@@ -196,16 +169,11 @@ const ProductDetail: React.FC = () => {
               <div className="mb-4">
                 {product.tag && <span className="text-xs font-bold text-primary uppercase tracking-widest">{product.tag}</span>}
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mt-2 leading-tight">{product.name}</h1>
-                <div className="flex items-center gap-4 mt-4">
-                  {renderStars(product.rating)}
-                  <span className="text-sm font-medium text-slate-500 underline cursor-pointer">{product.reviews} reviews</span>
-                  {(matchedVariant?.sku || product.sku) && (
-                    <>
-                      <span className="text-sm text-slate-400">|</span>
-                      <span className="text-sm text-slate-500">SKU: {matchedVariant?.sku ?? product.sku}</span>
-                    </>
-                  )}
-                </div>
+                {(matchedVariant?.sku || product.sku) && (
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <span className="text-sm text-slate-500">SKU: {matchedVariant?.sku ?? product.sku}</span>
+                  </div>
+                )}
               </div>
               <div className="mb-8">
                 <div className="flex flex-wrap items-baseline gap-2">
@@ -274,6 +242,35 @@ const ProductDetail: React.FC = () => {
                   {justAddedToCart ? ' Đã thêm vào giỏ' : ' Thêm vào giỏ'}
                 </button>
               </div>
+              {apiOn && (
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">Sản phẩm lỗi hoặc cần góp ý?</span>
+                    <span className="block text-xs mt-0.5">Nhắn trực tiếp cho cửa hàng kèm ngữ cảnh sản phẩm này.</span>
+                  </div>
+                  {isAuthenticated ? (
+                    <button
+                      type="button"
+                      onClick={() => openSupportChat({ productId: Number(product.id) })}
+                      className="inline-flex items-center justify-center gap-2 shrink-0 px-4 py-2.5 rounded-lg border-2 border-primary/30 text-primary font-bold text-sm hover:bg-primary/10 transition-colors"
+                    >
+                      <span className="material-icons text-lg">support_agent</span>
+                      Báo lỗi &amp; góp ý
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      state={{
+                        from: { pathname: '/messages', search: `?product=${encodeURIComponent(String(product.id))}` },
+                      }}
+                      className="inline-flex items-center justify-center gap-2 shrink-0 px-4 py-2.5 rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold text-sm hover:opacity-90 transition-opacity"
+                    >
+                      <span className="material-icons text-lg">login</span>
+                      Đăng nhập để góp ý
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         {product.description?.trim() ? (
@@ -480,148 +477,10 @@ const ProductDetail: React.FC = () => {
           );
         })()}
 
-        <section className="mb-20 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8">
-          <h2 className="text-2xl font-bold mb-6">Đánh giá từ khách hàng</h2>
-          {canReview ? (
-            <form
-              className="mb-10 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!reviewProductKey || !user || !reviewText.trim()) return;
-                addStoredReview({
-                  productId: reviewProductKey,
-                  userId: String(user.id),
-                  authorName: user.name,
-                  rating: reviewRating,
-                  text: reviewText,
-                  photos: [],
-                });
-                setReviewText('');
-                setReviewRefresh((n) => n + 1);
-              }}
-            >
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Viết đánh giá</p>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setReviewRating(i)}
-                    className="text-amber-400"
-                    aria-label={`${i} sao`}
-                  >
-                    <span className="material-icons">{i <= reviewRating ? 'star' : 'star_border'}</span>
-                  </button>
-                ))}
-              </div>
-              <textarea
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[88px]"
-                placeholder="Chia sẻ trải nghiệm của bạn..."
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-              />
-              <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold">
-                Gửi đánh giá
-              </button>
-            </form>
-          ) : (
-            <div className="mb-10 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
-              Vui lòng đăng nhập để viết bình luận.
-            </div>
-          )}
-
-          {storedReviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {storedReviews.map((r) => (
-                <div key={r.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
-                        {r.initials}
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm">{r.author}</p>
-                        <p className="text-[11px] text-slate-500">
-                          {r.verified ? 'Đã mua hàng' : ''} • {r.date}
-                        </p>
-                      </div>
-                    </div>
-                    {renderStars(r.rating, 'text-xs')}
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{r.text}</p>
-                  {r.photos && r.photos.length > 0 && (
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {r.photos.map((ph, i) => (
-                        <img key={i} src={ph} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-              Chưa có bình luận nào cho sản phẩm này.
-            </div>
-          )}
-        </section>
-
-        {extras && (
-          <section className="mb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Customer Reviews</h2>
-                <div className="flex items-center gap-4">
-                  <span className="text-5xl font-bold">{extras.reviewScore}</span>
-                  <div>{renderStars(extras.reviewScore, '')}<p className="text-sm text-slate-500 font-medium">Based on {product.reviews} ratings</p></div>
-                </div>
-              </div>
-              {extras.reviewDistribution && (
-                <div className="flex-grow max-w-md">
-                  <div className="space-y-2">
-                    {([5, 4, 3] as const).map((star) => (
-                      <div key={star} className="flex items-center gap-4">
-                        <span className="text-xs font-medium w-4">{star}</span>
-                        <div className="flex-grow bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden"><div className="bg-primary h-full" style={{ width: `${extras.reviewDistribution[star] ?? 0}%` }} /></div>
-                        <span className="text-xs text-slate-500 w-10 text-right">{extras.reviewDistribution[star] ?? 0}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <button type="button" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Write a Review</button>
-            </div>
-            {extras.customerPhotos && extras.customerPhotos.length > 0 && (
-              <div className="mb-10">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">Customer Photos</h3>
-                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-                  {extras.customerPhotos.map((photo, i) => <img key={i} src={photo} alt="" className="w-32 h-32 rounded-lg object-cover flex-shrink-0" />)}
-                  <div className="w-32 h-32 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center cursor-pointer text-slate-500 flex-shrink-0"><span className="text-sm font-bold">+24 more</span></div>
-                </div>
-              </div>
-            )}
-            {extras.reviews && extras.reviews.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {extras.reviews.map((review, i) => (
-                  <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${i === 0 ? 'bg-primary/20 text-primary' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>{review.initials}</div>
-                        <div><p className="font-bold">{review.author}</p><p className="text-xs text-slate-500">{review.verified ? 'Verified Buyer' : ''} • {review.date}</p></div>
-                      </div>
-                      {renderStars(review.rating, 'text-xs')}
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{review.text}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
         {extras && extras.relatedProducts && extras.relatedProducts.length > 0 && (
           <section className="mb-20">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Related Products</h2>
+              <h2 className="text-2xl font-bold">Sản phẩm liên quan</h2>
               <div className="flex gap-2">
                 <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_left</span></button>
                 <button type="button" className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons">chevron_right</span></button>

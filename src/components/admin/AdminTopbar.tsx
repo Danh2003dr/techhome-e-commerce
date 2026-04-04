@@ -36,7 +36,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
           <button
             type="button"
             onClick={onToggleSidebar}
-            aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+            aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Thu gọn thanh bên'}
             aria-pressed={!sidebarCollapsed}
             className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0"
           >
@@ -49,7 +49,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ onToggleSidebar, sidebarColla
             to="/"
             className="text-sm font-medium text-primary hover:text-primary/80 dark:text-blue-400 dark:hover:text-blue-300 transition-colors shrink-0"
           >
-            Shop
+            Cửa hàng
           </Link>
 
           <div className="relative" ref={profileRef}>

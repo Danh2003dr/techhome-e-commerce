@@ -57,7 +57,7 @@ const DashboardPage: React.FC = () => {
         id: 'users',
         label: 'Người dùng',
         value: formatInt(userCount),
-        subtitle: 'GET /api/users (admin)',
+        subtitle: 'Tài khoản đã đăng ký',
         icon: 'person',
         iconWrapClass: 'bg-violet-100 text-violet-700',
       },
@@ -65,7 +65,7 @@ const DashboardPage: React.FC = () => {
         id: 'products',
         label: 'Sản phẩm (catalog)',
         value: formatInt(productCount),
-        subtitle: 'GET /api/products — toàn bộ khi không phân trang',
+        subtitle: 'Trong danh mục cửa hàng',
         icon: 'inventory_2',
         iconWrapClass: 'bg-amber-100 text-amber-700',
       },
@@ -73,7 +73,7 @@ const DashboardPage: React.FC = () => {
         id: 'orders',
         label: 'Đơn hàng',
         value: formatInt(totalOrders),
-        subtitle: 'GET /api/admin/dashboard/summary',
+        subtitle: 'Tổng số đơn đã tạo',
         icon: 'receipt_long',
         iconWrapClass: 'bg-sky-100 text-sky-700',
       },
@@ -81,7 +81,7 @@ const DashboardPage: React.FC = () => {
         id: 'low-stock',
         label: 'SKU tồn thấp',
         value: formatInt(lowStockProductCount),
-        subtitle: `Số SP có stock < ${lowStockThreshold} (theo catalog)`,
+        subtitle: `Sản phẩm có tồn dưới ${lowStockThreshold} đơn vị`,
         icon: 'warning',
         iconWrapClass: 'bg-orange-100 text-orange-700',
       },
@@ -89,7 +89,7 @@ const DashboardPage: React.FC = () => {
         id: 'stock-units',
         label: 'Tổng đơn vị tồn',
         value: formatInt(totalStockUnits),
-        subtitle: 'Tổng trường stock trên sản phẩm',
+        subtitle: 'Cộng dồn số lượng tồn',
         icon: 'warehouse',
         iconWrapClass: 'bg-emerald-100 text-emerald-700',
       },
@@ -97,7 +97,7 @@ const DashboardPage: React.FC = () => {
         id: 'revenue',
         label: 'Doanh thu',
         value: formatMoneyVnd(totalRevenue),
-        subtitle: 'Tổng totalPrice (trừ CANCELLED)',
+        subtitle: 'Không tính đơn đã hủy',
         icon: 'point_of_sale',
         iconWrapClass: 'bg-teal-100 text-teal-800',
       },
@@ -119,7 +119,7 @@ const DashboardPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Số liệu đồng bộ với backend hiện tại, bao gồm cả tổng quan đơn hàng và doanh thu toàn hệ thống.
+            Số liệu tổng hợp đơn hàng và doanh thu trên hệ thống.
           </p>
         </div>
         <button

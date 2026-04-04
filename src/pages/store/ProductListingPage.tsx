@@ -38,7 +38,7 @@ const ProductListingPage: React.FC = () => {
   );
 
   const resultSummary = useMemo(() => {
-    if (!apiOn) return 'API chưa được cấu hình (VITE_API_URL).';
+    if (!apiOn) return 'Chưa cấu hình kết nối máy chủ.';
     if (sortedProducts.length === 0 && !loading) return 'Không có sản phẩm trên trang này.';
     const start = sortedProducts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
     const end = (page - 1) * PAGE_SIZE + sortedProducts.length;

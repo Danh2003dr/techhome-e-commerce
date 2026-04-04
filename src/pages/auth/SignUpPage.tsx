@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, ApiError } from '@/context/AuthContext';
-import { isApiConfigured } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { formatApiErrorMessage, isApiConfigured } from '@/services/api';
 
 const LIFESTYLE_IMAGE =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuC87hFHibc21XzN6pKfUGXFhj4yTrJHGYw95G2qu_hwuI7PbqfxbaUyrFVbLVMe9QX7nEIqlXQLKR_ZDRWU2WMOWxHBhJKv7J0WCfB0pgvI9RFVozBIKn3JCkAa3Dbo0zY2TdwfVmOAKOBhgLFhr4cwxgl8qNTAsYizTJQWo0jRcrAJa4ZxsdmPQKW9zBQz76DMwtX_A6Agv8J4cncmOCLi2ErhEmV0H4OU7YmMLtk-IRFDvNp-yiwCpinBNqqua2sdY2rpsw12bt4';
@@ -37,8 +37,8 @@ const SignUpPage: React.FC = () => {
       setError('Vui lòng nhập email.');
       return;
     }
-    if (password.length < 6) {
-      setError('Mật khẩu tối thiểu 6 ký tự.');
+    if (password.length < 8) {
+      setError('Mật khẩu cần ít nhất 8 ký tự (gồm chữ hoa, chữ thường, số và ký tự đặc biệt).');
       return;
     }
     if (password !== confirmPassword) {
@@ -52,7 +52,7 @@ const SignUpPage: React.FC = () => {
         const path = res.postLoginRedirect?.trim() || '/profile';
         navigate(path, { replace: true });
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Đăng ký thất bại.');
+        setError(formatApiErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -108,7 +108,10 @@ const SignUpPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+              <div
+                className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm whitespace-pre-line"
+                role="alert"
+              >
                 {error}
               </div>
             )}
@@ -150,7 +153,7 @@ const SignUpPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="password">
-                  Mật khẩu (tối thiểu 6 ký tự)
+                  Mật khẩu (≥8 ký tự: chữ hoa, chữ thường, số, ký tự đặc biệt)
                 </label>
                 <div className="relative">
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock_open</span>
@@ -221,33 +224,13 @@ const SignUpPage: React.FC = () => {
               </button>
             </form>
 
-            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-4">
+            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center">
               <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Đã có tài khoản?{' '}
                 <Link to="/login" className="text-primary hover:underline font-bold ml-1 transition-colors">
                   Đăng nhập
                 </Link>
               </p>
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  className="p-2 border border-slate-200 dark:border-slate-700 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-700 dark:text-slate-300"
-                  aria-label="Đăng ký bằng Google"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.909 3.292-1.908 4.292-1.28 1.28-3.32 2.672-7.84 2.672-7.14 0-12.86-5.78-12.86-12.86s5.72-12.86 12.86-12.86c3.84 0 6.8 1.512 9.04 3.648l2.56-2.56c-2.4-2.28-5.56-4.048-11.6-4.048-10.4 0-19.04 8.64-19.04 19.04s8.64 19.04 19.04 19.04c5.64 0 9.88-1.88 13.08-5.24 3.32-3.32 4.36-7.96 4.36-11.6 0-.84-.08-1.64-.24-2.36h-17.2z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="p-2 border border-slate-200 dark:border-slate-700 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-700 dark:text-slate-300"
-                  aria-label="Đăng ký bằng Apple"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M16.365 1.43c-1.14 0-2.812.63-3.722 1.583-.934 1.01-1.467 2.457-1.467 3.9 0 .15.02.296.04.425a3.29 3.29 0 0 0 2.21-1.076c.866-.94 1.48-2.404 1.48-3.834a3.17 3.17 0 0 0-.04-.425c-.173-.027-.346-.043-.5-.043zM15.46 8.163c-.888 0-2.316.533-3.084.533-.77 0-1.89-.505-2.61-.505-2.022 0-4.04 1.523-4.04 4.333 0 1.235.295 2.827 1.025 4.34.424.873 1.157 1.956 2.13 2.012.89.05 1.114-.543 2.193-.543 1.08 0 1.25.568 2.22.54 1.045-.028 1.636-.957 2.13-1.666.565-.815.795-1.636.812-1.674-.02-.008-1.572-.614-1.587-2.42-.016-1.515 1.223-2.243 1.278-2.278-.716-1.05-1.815-1.173-2.467-1.21z" />
-                  </svg>
-                </button>
-              </div>
             </div>
           </div>
         </section>

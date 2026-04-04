@@ -15,68 +15,68 @@ const AccountFooter: React.FC = () => {
             </span>
           </div>
           <p className="text-sm text-slate-500 leading-relaxed">
-            Your one-stop destination for premium electronics and smart home solutions. We provide high-quality gadgets for modern living.
+            Điểm đến cho thiết bị điện tử và giải pháp nhà thông minh chất lượng, phục vụ nhu cầu sống hiện đại của bạn.
           </p>
         </div>
         <div>
-          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Support</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Hỗ trợ</h4>
           <ul className="text-[14px] text-slate-500 space-y-3">
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Help Center
+                Trung tâm trợ giúp
               </a>
             </li>
             <li>
               <Link to="/orders" className="hover:text-primary transition-colors">
-                Track Order
+                Theo dõi đơn hàng
               </Link>
             </li>
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Shipping Info
+                Vận chuyển
               </a>
             </li>
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Returns & Refunds
+                Đổi trả & hoàn tiền
               </a>
             </li>
           </ul>
         </div>
         <div>
-          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Company</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Công ty</h4>
           <ul className="text-[14px] text-slate-500 space-y-3">
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                About Us
+                Về chúng tôi
               </a>
             </li>
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Careers
+                Tuyển dụng
               </a>
             </li>
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Privacy Policy
+                Chính sách bảo mật
               </a>
             </li>
             <li>
               <a href="#" className="hover:text-primary transition-colors">
-                Terms of Service
+                Điều khoản dịch vụ
               </a>
             </li>
           </ul>
         </div>
         <div>
-          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Newsletter</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white mb-6">Bản tin</h4>
           <p className="text-[14px] text-slate-500 mb-5 leading-relaxed">
-            Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
+            Đăng ký để nhận ưu đãi, thông tin khuyến mãi và cập nhật sản phẩm mới.
           </p>
           <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
             <input
               className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm w-full focus:ring-2 focus:ring-primary"
-              placeholder="Email address"
+              placeholder="Địa chỉ email"
               type="email"
             />
             <button type="submit" className="bg-primary text-white px-4 rounded-xl hover:bg-blue-600 transition-colors shadow-md">
@@ -86,7 +86,7 @@ const AccountFooter: React.FC = () => {
         </div>
       </div>
       <div className="max-w-[1440px] mx-auto px-6 sm:px-8 mt-16 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-xs font-medium text-slate-400">© 2024 TechHome E-commerce. All rights reserved.</p>
+        <p className="text-xs font-medium text-slate-400">© 2024 TechHome. Bảo lưu mọi quyền.</p>
         <div className="flex items-center gap-6">
           <a href="#" className="text-slate-400 hover:text-primary transition-colors">
             <span className="material-icons">leaderboard</span>
@@ -104,4 +104,3 @@ const AccountFooter: React.FC = () => {
 };
 
 export default AccountFooter;
-

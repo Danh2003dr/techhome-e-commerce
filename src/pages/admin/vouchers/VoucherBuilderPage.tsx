@@ -91,13 +91,47 @@ export default function VoucherBuilderPage() {
     }
   };
 
+  const handleReactivate = async (v: CouponAdminDto) => {
+    if (!getToken()) return;
+    setError(null);
+    let expiresAt: string | undefined;
+    if (v.expiredByDate) {
+      const suggested = new Date();
+      suggested.setMonth(suggested.getMonth() + 1);
+      const raw = window.prompt(
+        'Mã đã quá hạn theo ngày. Nhập ngày giờ hết hạn mới (định dạng như ô datetime-local, ví dụ 2026-12-31T23:59) hoặc để trống chỉ bật lại trạng thái (khách vẫn không dùng được cho đến khi bạn gia hạn bằng PATCH/API).',
+        suggested.toISOString().slice(0, 16),
+      );
+      if (raw === null) return;
+      const t = raw.trim();
+      if (t !== '') {
+        const d = new Date(t);
+        if (Number.isNaN(d.getTime())) {
+          setError('Ngày hết hạn không hợp lệ.');
+          return;
+        }
+        expiresAt = d.toISOString();
+      }
+    }
+    try {
+      await backend.updateAdminCoupon(v.id, { active: true, ...(expiresAt ? { expiresAt } : {}) });
+      await reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Không thể mở lại voucher.');
+    }
+  };
+
+  function statusLabel(v: CouponAdminDto): string {
+    if (v.active && !v.expiredByDate) return 'Hoạt động';
+    if (v.active && v.expiredByDate) return 'Bật (quá hạn — cần gia hạn)';
+    if (!v.active && v.expiredByDate) return 'Tắt (hết hạn)';
+    return 'Tắt';
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Voucher</h1>
-        <p className="text-xs text-slate-500">
-          Tạo mã giảm giá (% hoặc số tiền), hạn dùng, giới hạn lượt — lưu trên server (MongoDB), đồng bộ với checkout.
-        </p>
       </div>
 
       {error && (
@@ -217,19 +251,27 @@ export default function VoucherBuilderPage() {
                     <td className="px-4 py-3">
                       {v.usedCount} / {limitLabel}
                     </td>
-                    <td className="px-4 py-3 text-xs">{v.active ? 'Hoạt động' : 'Tắt'}</td>
+                    <td className="px-4 py-3 text-xs">{statusLabel(v)}</td>
                     <td className="px-4 py-3">
-                      {v.active ? (
-                        <button
-                          type="button"
-                          className="text-red-600 font-semibold text-xs"
-                          onClick={() => handleDeactivate(v.id)}
-                        >
-                          Vô hiệu
-                        </button>
-                      ) : (
-                        <span className="text-slate-400 text-xs">—</span>
-                      )}
+                      <div className="flex flex-col gap-1 items-start">
+                        {v.active ? (
+                          <button
+                            type="button"
+                            className="text-red-600 font-semibold text-xs"
+                            onClick={() => handleDeactivate(v.id)}
+                          >
+                            Vô hiệu
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs"
+                            onClick={() => void handleReactivate(v)}
+                          >
+                            Mở lại
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

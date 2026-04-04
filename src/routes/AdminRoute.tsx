@@ -19,7 +19,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  if (normalizeRole(user?.role) !== 'ADMIN') {
+  const role = normalizeRole(user?.role);
+  if (role !== 'ADMIN' && role !== 'MODERATOR') {
     return <Navigate to="/403" replace />;
   }
   return <>{children}</>;

@@ -1,16 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApiFeaturedProducts } from '@/hooks/useProductApi';
 import { isApiConfigured } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import { formatVND } from '@/utils';
 import type { TrendingProduct as TrendingProductType } from '@/types';
 import { StarRating } from '@/components/common/StarRating';
+import { productRequiresDetailForAddToCart } from '@/utils/productVariantChoice';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
 function TrendingCard({ product, imageError, onImageError }: { product: TrendingProductType; imageError: boolean; onImageError: () => void }) {
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const pathSegment = product.slug?.trim() || product.productDetailId || product.id;
   const to = `/product/${encodeURIComponent(pathSegment)}`;
   const productId = product.productDetailId ?? product.id;
@@ -19,6 +21,10 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (productRequiresDetailForAddToCart(product)) {
+      navigate(to);
+      return;
+    }
     try {
       addItem({ productId, name: product.name, price: product.price, image: product.image || '' });
     } catch (_) {}
@@ -54,9 +60,11 @@ function TrendingCard({ product, imageError, onImageError }: { product: Trending
       <div className="flex-grow">
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category}</span>
         <h4 className="font-bold text-slate-900 dark:text-white mt-1 mb-2 line-clamp-2">{product.name}</h4>
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
           <StarRating variant="home" rating={product.rating} />
-          <span className="text-xs text-slate-400 font-medium">({product.reviews.toLocaleString()})</span>
+          <span className="text-xs text-slate-400 font-medium">
+            ({product.reviews.toLocaleString('vi-VN')} đánh giá)
+          </span>
         </div>
       </div>
       <div className="mt-4 flex items-center justify-between">

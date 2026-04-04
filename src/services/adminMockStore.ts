@@ -77,15 +77,6 @@ export type AdminSEO = {
   logoDataUrl?: string;
 };
 
-export type AdminCalendarEvent = {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  time: string;
-  description: string;
-};
-
 const KEYS = {
   products: 'techhome_admin_products_mock_v1',
   productsV2: 'techhome_admin_products_mock_v2',
@@ -93,7 +84,6 @@ const KEYS = {
   vouchers: 'techhome_admin_vouchers_mock_v1',
   orders: 'techhome_admin_orders_mock_v1',
   seo: 'techhome_admin_seo_mock_v1',
-  calendarEvents: 'techhome_admin_calendar_events_mock_v1',
 } as const;
 
 function uid(prefix: string) {
@@ -292,52 +282,24 @@ function seedIfMissing() {
     }),
   ];
 
-    const orders: AdminOrder[] = defaultAdminOrders();
+  const orders: AdminOrder[] = defaultAdminOrders();
 
   const seo: AdminSEO = {
-    siteName: 'TechHome',
-    copyright: 'All rights reserved by TechHome',
-    seoTitle: 'TechHome e-commerce',
-    seoKeywords: 'techhome, ecommerce, mobile, audio',
-    seoDescription: 'TechHome is an e-commerce platform for modern devices.',
-    metaTags: 'og:title, og:description, twitter:card',
+    siteName: '',
+    copyright: '',
+    seoTitle: '',
+    seoKeywords: '',
+    seoDescription: '',
+    metaTags: '',
     logoDataUrl: undefined,
   };
 
-  const calendarEvents: AdminCalendarEvent[] = [
-    {
-      id: 'e1',
-      title: 'Design Conference',
-      date: 'Oct 5',
-      location: 'Lyndon Convention Center',
-      time: '12:30 BOT',
-      description: 'A design conference placeholder event with static data to match the template UI state.',
-    },
-    {
-      id: 'e2',
-      title: 'Weekend Festival',
-      date: 'Oct 12',
-      location: 'Central Park',
-      time: '8:00 PM',
-      description: 'Festival details placeholder for Dashboard #19 event detail overlay.',
-    },
-    {
-      id: 'e3',
-      title: 'Glastonbury Festival',
-      date: 'Oct 16',
-      location: 'Glastonbury',
-      time: '6:00 PM',
-      description: 'Glastonbury festival placeholder.',
-    },
-  ];
-
-    safeWriteJSON(KEYS.productsV2, products);
-    safeWriteJSON(KEYS.orders, orders);
-    safeWriteJSON(KEYS.seo, seo);
-    safeWriteJSON(KEYS.calendarEvents, calendarEvents);
-    seedCategories();
-    seedVouchers();
-    return;
+  safeWriteJSON(KEYS.productsV2, products);
+  safeWriteJSON(KEYS.orders, orders);
+  safeWriteJSON(KEYS.seo, seo);
+  seedCategories();
+  seedVouchers();
+  return;
   }
 
   if (!safeReadJSON(KEYS.orders)) {
@@ -347,17 +309,14 @@ function seedIfMissing() {
   if (!safeReadJSON(KEYS.vouchers)) seedVouchers();
   if (!safeReadJSON(KEYS.seo)) {
     safeWriteJSON(KEYS.seo, {
-      siteName: 'TechHome',
-      copyright: 'All rights reserved by TechHome',
-      seoTitle: 'TechHome e-commerce',
-      seoKeywords: 'techhome, ecommerce, mobile, audio',
-      seoDescription: 'TechHome is an e-commerce platform for modern devices.',
-      metaTags: 'og:title, og:description, twitter:card',
+      siteName: '',
+      copyright: '',
+      seoTitle: '',
+      seoKeywords: '',
+      seoDescription: '',
+      metaTags: '',
       logoDataUrl: undefined,
     });
-  }
-  if (!safeReadJSON(KEYS.calendarEvents)) {
-    safeWriteJSON(KEYS.calendarEvents, []);
   }
 }
 
@@ -467,20 +426,6 @@ export function saveAdminSEO(seo: AdminSEO): AdminSEO {
   initAdminMockData();
   safeWriteJSON(KEYS.seo, seo);
   return seo;
-}
-
-export function getAdminCalendarEvents(): AdminCalendarEvent[] {
-  initAdminMockData();
-  return safeReadJSON<AdminCalendarEvent[]>(KEYS.calendarEvents) ?? [];
-}
-
-export function addAdminCalendarEvent(event: Omit<AdminCalendarEvent, 'id'>): AdminCalendarEvent[] {
-  initAdminMockData();
-  const list = getAdminCalendarEvents();
-  const nextEvent: AdminCalendarEvent = { id: uid('e'), ...event };
-  const next = [nextEvent, ...list];
-  safeWriteJSON(KEYS.calendarEvents, next);
-  return next;
 }
 
 // ——— Categories ———

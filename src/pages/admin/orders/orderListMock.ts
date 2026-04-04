@@ -146,3 +146,30 @@ export const ORDER_STATUS_OPTIONS: OrderStatus[] = [
   'On Hold',
   'In Transit',
 ];
+
+/** Nhãn tiếng Việt cho chip trạng thái mock — giữ giá trị gốc để lọc. */
+export function mockOrderStatusLabelVi(status: OrderStatus): string {
+  const map: Record<OrderStatus, string> = {
+    Completed: 'Hoàn thành',
+    Processing: 'Đang xử lý',
+    Rejected: 'Từ chối',
+    'On Hold': 'Tạm giữ',
+    'In Transit': 'Đang vận chuyển',
+  };
+  return map[status] ?? status;
+}
+
+/** Nhãn tiếng Việt cho loại đơn mock — giữ giá trị gốc để lọc. */
+export function mockOrderTypeOptionLabelVi(type: OrderTypeOption): string {
+  const map: Record<OrderTypeOption, string> = {
+    'Health & Medicine': 'Sức khỏe & Dược phẩm',
+    'Book & Stationary': 'Sách & văn phòng phẩm',
+    'Services & Industry': 'Dịch vụ & Công nghiệp',
+    'Fashion & Beauty': 'Thời trang & Làm đẹp',
+    'Home & Living': 'Nhà cửa & Đời sống',
+    Electronics: 'Điện tử',
+    'Mobile & Phone': 'Di động & Điện thoại',
+    Accessories: 'Phụ kiện',
+  };
+  return map[type] ?? type;
+}

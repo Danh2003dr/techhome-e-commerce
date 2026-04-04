@@ -231,7 +231,7 @@ export default function CategoryDynamicPage() {
   if (!apiOn) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center text-slate-600 dark:text-slate-400">
-        <p>Kết nối API để xem danh mục (cấu hình VITE_API_URL).</p>
+        <p>Cần kết nối máy chủ để xem danh mục.</p>
         <Link to="/search" className="text-primary hover:underline mt-3 inline-block">
           Mua theo danh mục
         </Link>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ORDER_STATUS_OPTIONS, type OrderStatus } from '../orderListMock';
+import { mockOrderStatusLabelVi, ORDER_STATUS_OPTIONS, type OrderStatus } from '../orderListMock';
 
 type StatusFilterPopoverProps = {
   initialStatuses: Set<OrderStatus>;
@@ -31,9 +31,9 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
     <div
       className="absolute left-0 top-full z-40 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
       role="dialog"
-      aria-label="Select order status"
+      aria-label="Chọn trạng thái đơn"
     >
-      <div className="text-sm font-bold text-slate-900 mb-3">Select Order Status</div>
+      <div className="text-sm font-bold text-slate-900 mb-3">Chọn trạng thái đơn</div>
       <div className="flex flex-wrap gap-2">
         {ORDER_STATUS_OPTIONS.map((opt) => {
           const on = draft.has(opt);
@@ -48,12 +48,12 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
                   : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
               }`}
             >
-              {opt}
+              {mockOrderStatusLabelVi(opt)}
             </button>
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] text-slate-500 italic">*You can choose multiple Order Status</p>
+      <p className="mt-3 text-[11px] text-slate-500 italic">*Có thể chọn nhiều trạng thái</p>
       <div className="mt-4 flex justify-center gap-2">
         <button
           type="button"
@@ -70,7 +70,7 @@ const StatusFilterPopover: React.FC<StatusFilterPopoverProps> = ({
           }}
           className="px-6 py-2 text-sm font-semibold text-white bg-[#4880FF] hover:bg-blue-600 rounded-lg"
         >
-          Apply Now
+          Áp dụng
         </button>
       </div>
     </div>

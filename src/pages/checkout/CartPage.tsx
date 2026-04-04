@@ -118,7 +118,6 @@ const CartPage: React.FC = () => {
 
   const displayShipping = quote?.shippingFee ?? 0;
   const displaySubtotal = quote != null ? quote.subtotal : localSubtotal;
-  const displayTax = quote?.totalTax;
   const displayDiscount = quote != null ? quote.discountTotal : 0;
   const displayTotal = quote != null ? quote.grandTotal : localSubtotal;
 
@@ -268,20 +267,6 @@ const CartPage: React.FC = () => {
                 <span>Phí vận chuyển</span>
                 <span className="font-bold text-emerald-600">
                   {displayShipping === 0 ? 'Miễn phí' : formatVND(displayShipping)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Thuế GTGT (ước tính)</span>
-                <span className="font-bold text-gray-900">
-                  {quoteLoading && isApiConfigured() && quoteItems.length > 0 ? (
-                    <span className="text-gray-400">…</span>
-                  ) : displayTax != null ? (
-                    formatVND(displayTax)
-                  ) : (
-                    <span className="text-gray-400 text-xs font-normal">
-                      {isApiConfigured() ? '—' : 'Kết nối API để hiển thị'}
-                    </span>
-                  )}
                 </span>
               </div>
             </div>

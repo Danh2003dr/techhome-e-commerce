@@ -14,9 +14,9 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
-/** "14 Feb 2019" */
+/** Ngày đơn theo locale Việt Nam */
 export function formatOrderDate(d: Date): string {
-  return d.toLocaleDateString('en-GB', {
+  return d.toLocaleDateString('vi-VN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -24,7 +24,7 @@ export function formatOrderDate(d: Date): string {
 }
 
 export function monthYearLabel(d: Date): string {
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
 }
 
 export function getDaysInMonth(year: number, month: number): number {

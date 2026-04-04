@@ -213,7 +213,6 @@ export const trendingProducts: TrendingProduct[] = [
 export const footerSupportLinks: FooterLink[] = [
   { label: 'Contact Us', href: '#' },
   { label: 'Shipping Info', href: '#' },
-  { label: 'Returns & Exchanges', href: '#' },
   { label: 'FAQs', href: '#' },
 ];
 
@@ -388,7 +387,7 @@ export const mobileCategoryProducts: ListingProduct[] = [
   },
 ];
 
-// Product detail page extras (specs, reviews, related) – for iPhone 15 Pro and similar
+// Product detail page extras (specs, related) — ví dụ iPhone 15 Pro
 export function getProductDetailExtras(productId: string): ProductDetailExtras | null {
   if (productId !== 'iphone-15-pro') return null;
   return {
@@ -400,17 +399,6 @@ export function getProductDetailExtras(productId: string): ProductDetailExtras |
       { label: 'Battery', value: 'Up to 23 hours video playback' },
       { label: 'Connector', value: 'USB-C (supports USB 3)' },
       { label: 'Safety', value: 'Emergency SOS via satellite, Crash Detection' },
-    ],
-    reviewScore: 4.8,
-    reviewDistribution: { 5: 85, 4: 10, 3: 3 },
-    reviews: [
-      { author: 'Jordan D.', initials: 'JD', rating: 5, date: '2 days ago', text: "The titanium finish is incredible. It's noticeably lighter than my previous iPhone 13 Pro. The camera performance in low light has taken a massive leap forward. Highly recommend!", verified: true },
-      { author: 'Marcus S.', initials: 'MS', rating: 4, date: '1 week ago', text: 'Great phone, but the price is definitely steep. USB-C makes life much easier for charging. The screen is buttery smooth with the ProMotion display.', verified: true },
-    ],
-    customerPhotos: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCxN7CskxlGWRIbGQr92_Y8TM8VOi1EdjYpqwiBJxVC5xNIfBTKUFl6LXjv2wzDzt4Gnu4YHDiv6w9edYiEFtFApogVNkrAUGOJ0l2FAKJS0P6FicAAwk3E3FR15BHrJvsroXWX0jkDXb7hBWdq8huanLWvhTqbGMuBO_FOi_PZ3JtQr0M-5PKnp57-cBOBcka3d3VTqH7ut9vmqMPBYBDu3otAvTaxxofoQfWplOLugKsnzXGu3WPaQTfv_qoU5g_t2dqxW-wkiqo',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAICfQAcEC_GkaXrL3jMlSqPoTvdI6WttpHwaT_K0ueVWFaBhjzeE0gWr6EDDcop1J7Xdnri7dtKAodivvjCn61G4gHLsy9Hjf503x5oWn4BNiWKUorBSyFHA49kSKyL6ClH6e1id0v0UJFoulIR1Spk8ICFGbFe-cLG3m8n6AgeWghprhTIVxcSoTFv22F_ABqxQqImiVVRY613PBfiq4qyrdtXkX52TH7QhlFQjVlIGkzQMztvo2ZbI25dkqA7-zmkS6mhUOFrWw',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBibcHCI_6-FlVAvjesbyxqP2YwOM5CiGO9flL-URdLuRaCVefTt2MZYMddDqpIqXnYnMd7w4OhHw0-m2_Eigjsyys_4enaj36cDBbuRiXWulmyZZvQzkYqqLCSYhA6GoBKCsJstYK07WlaOQHwCufD3-rPuCJ6qBPSiPm6TNlm2Bmi8QiL9_arZ1GPQJNv33KowyZrJZ8WJ0KIHyNQElYPYsazKXZ5LLT_6npdob2wkQFx7zjS516O1TNGfhdmwnyZ1PcXZz_KH0s',
     ],
     relatedProducts: [
       { id: 'magsafe-case', name: 'MagSafe Silicone Case', subtitle: 'Midnight Blue', price: 49, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDBA7pnRp2FjNuPCyq04u8DzLhsuBu3IHjPGg3Pcq_-MCs097lyNEV8kkaW4ygXH8U6gPslaaSLRTa1ZiWjEegL8T7VaLTxbJh2C4CsPsQriEDi3gQJ9o9ShFwkjMYZQ9y-lnx88KdXh2y19juiAKcFDpihqpU7mT09tuvWmygwl3YcCUXBOwZPQdRcmOe1wmodCJJdAVTogyk6tX0IfdnmOhUwXxTP8rO-KgZW2n0ykxvysmm-UQhVh6ZrCMo5_QrYILMbkb6CNQ8' },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getOrder } from '@/services/backend';
 import { isApiConfigured } from '@/services/api';
@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { OrderDto } from '@/types/api';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
-import { orderStatusLabelVi } from '@/utils/orderDisplay';
+import { orderStatusLabelVi, paymentMethodLabelVi, codAwarePaymentStatusVi } from '@/utils/orderDisplay';
 
 type LineRow = {
   key: string;
@@ -15,19 +15,6 @@ type LineRow = {
   quantity: number;
   lineTotal: number;
 };
-
-function paymentStatusLabelVi(value: unknown): string {
-  const key = String(value ?? '').trim().toUpperCase();
-  const labels: Record<string, string> = {
-    UNPAID: 'Chưa thanh toán',
-    PENDING: 'Đang chờ thanh toán',
-    PAID: 'Đã thanh toán',
-    FAILED: 'Thanh toán thất bại',
-    CANCELLED: 'Đã hủy thanh toán',
-    EXPIRED: 'Hết hạn thanh toán',
-  };
-  return labels[key] ?? 'Chưa có trạng thái thanh toán';
-}
 
 function mapDtoToView(dto: OrderDto): {
   orderId: string;
@@ -40,6 +27,7 @@ function mapDtoToView(dto: OrderDto): {
   lineItems: LineRow[];
   total: number;
   shippingAddress: string | null;
+  codUnpaidNote: boolean;
 } {
   const ship =
     dto.shippingAddress != null && String(dto.shippingAddress).trim() !== ''
@@ -48,10 +36,14 @@ function mapDtoToView(dto: OrderDto): {
   return {
     orderId: String(dto.id),
     statusLabel: orderStatusLabelVi(dto.status),
-    paymentStatusLabel: paymentStatusLabelVi(dto.paymentStatus),
+    paymentStatusLabel: codAwarePaymentStatusVi({
+      paymentMethod: dto.paymentMethod,
+      paymentStatus: dto.paymentStatus,
+      orderStatus: dto.status,
+    }),
     paymentMethodLabel:
       dto.paymentMethod != null && String(dto.paymentMethod).trim() !== ''
-        ? String(dto.paymentMethod).trim().toUpperCase()
+        ? paymentMethodLabelVi(dto.paymentMethod)
         : '—',
     transactionId:
       dto.paymentTransactionId != null && String(dto.paymentTransactionId).trim() !== ''
@@ -71,6 +63,13 @@ function mapDtoToView(dto: OrderDto): {
     })),
     total: Number(dto.totalPrice),
     shippingAddress: ship,
+    codUnpaidNote:
+      String(dto.paymentMethod ?? '')
+        .trim()
+        .toUpperCase() === 'COD' &&
+      String(dto.paymentStatus ?? '')
+        .trim()
+        .toUpperCase() === 'UNPAID',
   };
 }
 
@@ -82,6 +81,10 @@ const OrderConfirmationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const canFetch = Boolean(orderId && isApiConfigured() && isAuthenticated);
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [orderId]);
 
   useEffect(() => {
     if (!orderId) {
@@ -128,7 +131,7 @@ const OrderConfirmationPage: React.FC = () => {
     return (
       <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center px-6">
         <p className="text-slate-600 dark:text-slate-400 text-center">
-          Cấu hình <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 rounded">VITE_API_URL</code> để xem xác nhận đơn hàng.
+          Cần cấu hình kết nối máy chủ để xem xác nhận đơn hàng.
         </p>
       </div>
     );
@@ -220,6 +223,11 @@ const OrderConfirmationPage: React.FC = () => {
           <p className="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
             Địa chỉ giao hàng đã lưu trên đơn. Chi tiết sản phẩm và tổng tiền xem bên dưới hoặc trang chi tiết đơn.
           </p>
+          {view.codUnpaidNote && (
+            <p className="text-sm text-amber-900 dark:text-amber-100 mt-4 max-w-xl mx-auto bg-amber-50 dark:bg-amber-900/25 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3">
+              Đơn thanh toán khi nhận hàng (COD): vui lòng chuẩn bị tiền mặt đúng tổng đơn khi shipper giao hàng.
+            </p>
+          )}
         </div>
 
         {view.shippingAddress && (
@@ -229,7 +237,7 @@ const OrderConfirmationPage: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center mb-12">
           <Link
             to="/orders"
             className="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
@@ -243,6 +251,13 @@ const OrderConfirmationPage: React.FC = () => {
           >
             <span className="material-icons text-sm">visibility</span>
             Chi tiết đơn hàng
+          </Link>
+          <Link
+            to="/"
+            className="px-8 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 font-semibold rounded-lg transition-all hover:border-primary/40 flex items-center justify-center gap-2"
+          >
+            <span className="material-icons text-sm">shopping_bag</span>
+            Tiếp tục mua sắm
           </Link>
         </div>
 

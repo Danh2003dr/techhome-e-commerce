@@ -27,7 +27,7 @@ const LowStockTable: React.FC<LowStockTableProps> = ({ products, threshold, load
       <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
         <h2 className="text-base font-bold text-slate-900 mb-1">Cảnh báo tồn kho</h2>
         <p className="text-sm text-slate-600">
-          Không có sản phẩm nào dưới {threshold} đơn vị (theo catalog GET /api/products).
+          Không có sản phẩm nào dưới {threshold} đơn vị tồn.
         </p>
       </div>
     );

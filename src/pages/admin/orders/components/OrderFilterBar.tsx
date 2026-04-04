@@ -1,5 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import type { OrderStatus, OrderTypeOption } from '../orderListMock';
+import {
+  mockOrderStatusLabelVi,
+  mockOrderTypeOptionLabelVi,
+  type OrderStatus,
+  type OrderTypeOption,
+} from '../orderListMock';
 import { formatOrderDate } from '../orderListUtils';
 import DateFilterPopover from './DateFilterPopover';
 import StatusFilterPopover from './StatusFilterPopover';
@@ -20,21 +25,21 @@ type OrderFilterBarProps = {
 };
 
 function dateTriggerLabel(dates: Date[]): string {
-  if (dates.length === 0) return 'Date';
+  if (dates.length === 0) return 'Ngày';
   if (dates.length === 1) return formatOrderDate(dates[0]);
-  return `${dates.length} dates`;
+  return `${dates.length} ngày đã chọn`;
 }
 
 function typeTriggerLabel(types: Set<OrderTypeOption>): string {
-  if (types.size === 0) return 'Order Type';
-  if (types.size === 1) return [...types][0];
-  return `${types.size} types selected`;
+  if (types.size === 0) return 'Loại đơn';
+  if (types.size === 1) return mockOrderTypeOptionLabelVi([...types][0]);
+  return `${types.size} loại đã chọn`;
 }
 
 function statusTriggerLabel(statuses: Set<OrderStatus>): string {
-  if (statuses.size === 0) return 'Order Status';
-  if (statuses.size === 1) return [...statuses][0];
-  return `${statuses.size} statuses`;
+  if (statuses.size === 0) return 'Trạng thái đơn';
+  if (statuses.size === 1) return mockOrderStatusLabelVi([...statuses][0]);
+  return `${statuses.size} trạng thái đã chọn`;
 }
 
 const OrderFilterBar: React.FC<OrderFilterBarProps> = ({
@@ -75,7 +80,7 @@ const OrderFilterBar: React.FC<OrderFilterBarProps> = ({
       </div>
 
       <div className="flex items-center px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100 sm:border-b-0 sm:border-r border-slate-100">
-        Filter By
+        Lọc theo
       </div>
 
       <div className="relative flex-1 min-w-[140px] border-b border-slate-100 sm:border-b-0 sm:border-r border-slate-100">
@@ -142,7 +147,7 @@ const OrderFilterBar: React.FC<OrderFilterBarProps> = ({
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-500 hover:text-rose-600 transition-colors"
         >
           <span className="material-icons text-[20px]">refresh</span>
-          Reset Filter
+          Xóa bộ lọc
         </button>
       </div>
     </div>

@@ -35,6 +35,8 @@ interface CartContextType {
   addItem: (payload: AddToCartPayload) => void;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
+  /** Xóa toàn bộ giỏ (API + state + localStorage) — gọi sau đặt hàng thành công. */
+  clearCart: () => Promise<void>;
   totalCount: number;
   stockWarningsByItemId: Record<string, string>;
   clearStockWarningForItem: (cartItemId: string) => void;
@@ -176,6 +178,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.filter((i) => i.id !== cartItemId));
   }, [clearStockWarningForItem]);
 
+  const clearCart = useCallback(async () => {
+    setStockWarningsByItemId({});
+    if (isApiConfigured() && getToken()) {
+      try {
+        const cart = await backend.setCart([]);
+        setItems(cart);
+        saveCartToStorage(cart);
+      } catch {
+        setItems([]);
+        saveCartToStorage([]);
+      }
+      return;
+    }
+    setItems([]);
+    saveCartToStorage([]);
+  }, []);
+
   const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity < 1) {
       removeItem(cartItemId);
@@ -221,6 +240,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addItem,
         removeItem,
         updateQuantity,
+        clearCart,
         totalCount,
         stockWarningsByItemId,
         clearStockWarningForItem,

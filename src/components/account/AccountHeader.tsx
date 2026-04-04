@@ -26,25 +26,14 @@ const AccountHeader: React.FC = () => {
           </Link>
           <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-600 dark:text-slate-400">
             <Link to="/search" className="hover:text-primary transition-colors">
-              Shop
+              Cửa hàng
             </Link>
             <Link to="/deals" className="hover:text-primary transition-colors">
-              Deals
-            </Link>
-            <Link to="/search" className="hover:text-primary transition-colors">
-              Support
+              Khuyến mãi
             </Link>
           </nav>
         </div>
         <div className="flex items-center gap-6">
-          <div className="relative hidden md:block">
-            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-            <input
-              className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary"
-              placeholder="Search tech..."
-              type="text"
-            />
-          </div>
           <div className="flex items-center gap-2">
             <Link
               to="/cart"
@@ -63,7 +52,7 @@ const AccountHeader: React.FC = () => {
               className="flex items-center gap-3 p-1 pr-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
             >
               <img
-                alt="Profile"
+                alt="Ảnh đại diện"
                 className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
                 src={displayAvatar}
               />

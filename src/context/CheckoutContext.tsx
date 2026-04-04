@@ -10,15 +10,10 @@ export interface ShippingMethod {
   description?: string;
 }
 
+/** Chỉ COD — đồng bộ với backend (paymentMethod: COD). */
 export interface PaymentMethod {
-  type: 'credit_card' | 'paypal' | 'paypal_credit';
-  cardNumber?: string;
-  cardHolder?: string;
-  expiryDate?: string;
-  cvv?: string;
+  type: 'cod';
 }
-
-export type PaymentMethodType = 'credit_card' | 'paypal' | 'paypal_credit';
 
 export interface AppliedVoucherInfo {
   code: string;

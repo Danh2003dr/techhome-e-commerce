@@ -27,7 +27,7 @@ const ResetPasswordPage: React.FC = () => {
       return;
     }
     if (!isApiConfigured()) {
-      setError('Chưa cấu hình API (VITE_API_URL).');
+      setError('Chưa cấu hình kết nối máy chủ.');
       return;
     }
     setLoading(true);
