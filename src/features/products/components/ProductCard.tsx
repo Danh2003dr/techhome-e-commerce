@@ -95,21 +95,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="space-y-2 flex-grow">
         <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{product.category}</p>
         <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-tight line-clamp-2">{product.name}</h4>
-        <div
-          className="flex items-center gap-1 flex-wrap"
-          role="img"
-          aria-label={`Điểm trung bình ${Number(product.rating).toFixed(1)} trên 5 sao, ${product.reviews.toLocaleString('vi-VN')} lượt đánh giá`}
-        >
-          <span className="flex" aria-hidden>
-            {[...Array(5)].map((_, i) => (
-              <span key={i} className={`material-icons text-sm ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-200'}`}>star</span>
-            ))}
-          </span>
-          <span className="text-[10px] font-bold text-gray-600 tabular-nums" aria-hidden>
-            {Number(product.rating).toFixed(1)}/5
-          </span>
-          <span className="text-[10px] text-gray-400 font-bold">({product.reviews.toLocaleString('vi-VN')} đánh giá)</span>
-        </div>
       </div>
       <div className="flex items-center justify-between mt-4">
         <div className="flex flex-col">

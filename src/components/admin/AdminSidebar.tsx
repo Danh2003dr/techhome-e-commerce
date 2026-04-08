@@ -15,10 +15,10 @@ function pathMatchesItem(currentPath: string, itemPath: string): boolean {
       currentPath.startsWith('/admin/products/new')
     );
   }
+  if (itemPath === '/admin/categories') return currentPath.startsWith('/admin/categories');
   if (itemPath === '/admin/orders') {
     return currentPath === '/admin/orders' || currentPath.startsWith('/admin/orders/');
   }
-  if (itemPath === '/admin/seo') return currentPath.startsWith('/admin/seo');
   if (itemPath === '/admin/vouchers') return currentPath.startsWith('/admin/vouchers');
   if (itemPath === '/login') return false;
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);

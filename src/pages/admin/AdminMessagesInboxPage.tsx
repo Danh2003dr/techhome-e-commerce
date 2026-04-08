@@ -197,7 +197,7 @@ const AdminMessagesInboxPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Hộp thư khách hàng</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Trả lời tin nhắn và góp ý sản phẩm từ khách.
+            Trả lời tin nhắn; tin kèm sản phẩm có nhãn riêng.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -264,7 +264,7 @@ const AdminMessagesInboxPage: React.FC = () => {
                     <div className="font-semibold text-sm text-slate-900 dark:text-white truncate">{chatDisplayName(other)}</div>
                     {fb && (
                       <span className="inline-block mt-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
-                        Góp ý SP
+                        Sản phẩm
                       </span>
                     )}
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{snippet}</p>
@@ -344,7 +344,7 @@ const AdminMessagesInboxPage: React.FC = () => {
                                   : 'border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
                               }`}
                             >
-                              Góp ý / lỗi SP
+                              Sản phẩm
                               {m.productNameSnapshot ? ` · ${m.productNameSnapshot}` : ''}
                               {m.productId != null ? ` (#${m.productId})` : ''}
                             </div>

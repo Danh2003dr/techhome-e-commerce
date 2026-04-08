@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSupportChat } from '@/context/SupportChatContext';
 import { isApiConfigured } from '@/services/api';
@@ -9,11 +9,12 @@ import AccountFooter from '@/components/account/AccountFooter';
 import Breadcrumb from '@/components/common/Breadcrumb';
 
 /**
- * Khách: hướng dẫn dùng khung chat góc phải toàn trang. Mở /messages?product= để kèm gợi ý sản phẩm.
+ * Khách: hướng dẫn — kèm sản phẩm nằm trong khung chat góc phải (tìm tên / dán link sản phẩm).
  * Admin/Mod: chuyển /admin/messages.
  */
 const MessagesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { openSupportChat, setIsOpen } = useSupportChat();
   const apiOn = isApiConfigured();
@@ -28,8 +29,9 @@ const MessagesPage: React.FC = () => {
     const pid = parseInt(String(raw), 10);
     if (!Number.isNaN(pid) && pid >= 1) {
       openSupportChat({ productId: pid });
+      setIsOpen(true);
     }
-  }, [searchParams, openSupportChat]);
+  }, [searchParams, openSupportChat, setIsOpen]);
 
   if (isStaffUser) {
     return <Navigate to="/admin/messages" replace />;
@@ -53,9 +55,32 @@ const MessagesPage: React.FC = () => {
             />
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-2">Hỗ trợ cửa hàng</h1>
             <p className="text-slate-500 mt-1.5 text-sm">
-              Khung chat nằm ở <strong className="text-slate-700 dark:text-slate-300">góc phải màn hình</strong> (biểu tượng
-              tin nhắn) — mở mọi lúc khi duyệt cửa hàng.
+              Dùng biểu tượng chat <strong className="text-slate-700 dark:text-slate-300">góc phải màn hình</strong>. Trong
+              khung chat, mục <strong></strong> cho phép tìm theo tên hoặc <strong>dán link</strong> trang sản
+              phẩm (ví dụ <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">.../product/ten-sp</code>
+              ), xem thẻ xem trước rồi bấm <strong>Áp dụng</strong> trước khi gửi tin.
             </p>
+            <div className="mt-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm space-y-4 max-w-xl">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                Nếu khung chat đang đóng, bấm nút dưới đây để mở lại.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!apiOn) return;
+                  if (!isAuthenticated) {
+                    navigate('/login', { state: { from: { pathname: '/messages' } } });
+                    return;
+                  }
+                  setIsOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!apiOn}
+              >
+                <span className="material-icons text-lg">chat</span>
+                Mở hộp chat hỗ trợ
+              </button>
+            </div>
           </div>
 
           {!apiOn && (
@@ -69,23 +94,9 @@ const MessagesPage: React.FC = () => {
               <Link to="/login" className="text-primary font-semibold hover:underline">
                 Đăng nhập
               </Link>{' '}
-              để chat — sau đó bấm biểu tượng chat góc phải.
+              để chat với cửa hàng.
             </p>
           )}
-
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm space-y-4">
-            <p className="text-slate-700 dark:text-slate-300 text-sm">
-              Nếu khung chat đang đóng, bấm nút dưới đây để mở lại.
-            </p>
-            <button
-              type="button"
-              onClick={() => setIsOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-colors"
-            >
-              <span className="material-icons text-lg">chat</span>
-              Mở hộp chat hỗ trợ
-            </button>
-          </div>
         </main>
       </div>
 

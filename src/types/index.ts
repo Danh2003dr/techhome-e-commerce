@@ -112,6 +112,8 @@ export interface OrderDetailsStep {
 }
 
 export interface OrderDetailsLineItem {
+  /** Id sản phẩm từ API đơn hàng — dùng kèm tin hỗ trợ */
+  productId?: number;
   name: string;
   image: string;
   specs: string;

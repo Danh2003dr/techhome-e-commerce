@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getOrder } from '@/services/backend';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { useSupportChat } from '@/context/SupportChatContext';
 import { formatVND } from '@/utils';
 import { formatDate } from '@/utils/formatDate';
 import type { OrderDto } from '@/types/api';
@@ -16,13 +17,17 @@ import Breadcrumb from '@/components/common/Breadcrumb';
 function mapOrderDtoToDetails(dto: OrderDto): OrderDetailsData {
   const placedDate = formatDate(dto.createdAt);
   const statusLabel = orderStatusLabelVi(dto.status);
-  const lineItems = dto.items.map((item) => ({
+  const lineItems = dto.items.map((item) => {
+    const pid = Number(item.productId);
+    return {
+    productId: Number.isFinite(pid) && pid >= 1 ? pid : undefined,
     name: item.productName,
     image: item.productImage && String(item.productImage).trim() ? String(item.productImage) : '',
     specs: `SL: ${item.quantity}`,
     quantity: item.quantity,
     price: Number(item.priceAtOrder),
-  }));
+  };
+  });
   const subtotal = lineItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const pending = String(dto.status || '').toUpperCase() === 'PENDING';
   const shipSnap =
@@ -91,6 +96,7 @@ const OrderDetailsPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { openSupportChat } = useSupportChat();
   const [order, setOrder] = useState<OrderDetailsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -253,9 +259,6 @@ const OrderDetailsPage: React.FC = () => {
                           <span className="text-primary font-bold">{formatVND(item.price)}</span>
                         </div>
                       </div>
-                      <button type="button" className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-[12px] font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-shrink-0">
-                        Viết đánh giá
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -272,12 +275,22 @@ const OrderDetailsPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-3 flex-shrink-0">
-                  <button type="button" className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const first = order.lineItems.find(
+                        (li) => li.productId != null && Number.isFinite(li.productId) && li.productId >= 1
+                      );
+                      if (first?.productId != null) {
+                        openSupportChat({ productId: first.productId });
+                      } else {
+                        openSupportChat();
+                      }
+                      navigate('/messages');
+                    }}
+                    className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors"
+                  >
                     Liên hệ hỗ trợ
-                  </button>
-                  <button type="button" className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-2">
-                    <span className="material-icons text-lg">download</span>
-                    Tải hóa đơn
                   </button>
                 </div>
               </div>

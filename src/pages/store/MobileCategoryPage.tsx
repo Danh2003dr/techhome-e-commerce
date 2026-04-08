@@ -7,7 +7,6 @@ import { findCategoryInGroup, slugGroups } from '@/services/categoryNavigation';
 import { isApiConfigured } from '@/services/api';
 import { formatVND } from '@/utils';
 import { productRequiresDetailForAddToCart } from '@/utils/productVariantChoice';
-import { StarRating } from '@/components/common/StarRating';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f1f5f9" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">📱</text></svg>');
 
@@ -217,10 +216,6 @@ const MobileCategoryPage: React.FC = () => {
                     />
                   </div>
                   <div className="p-6 flex-grow flex flex-col">
-                    <div className="flex items-center gap-1 mb-2">
-                      <StarRating variant="category" rating={product.rating} />
-                      <span className="text-xs text-slate-400 ml-1">({product.reviews} đánh giá)</span>
-                    </div>
                     <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>

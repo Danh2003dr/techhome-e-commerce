@@ -5,18 +5,48 @@ import { useAuth } from '@/context/AuthContext';
 import { useSupportChat } from '@/context/SupportChatContext';
 import { isApiConfigured, ApiError } from '@/services/api';
 import { getMessageThread, getSupportMeta, sendTextMessage } from '@/services/messagesApi';
-import { getProduct } from '@/services/backend';
+import { getProduct, getProductBySlug, getProducts } from '@/services/backend';
 import { useChatSocket } from '@/hooks/useChatSocket';
-import type { MessageDto, SupportMetaDto } from '@/types/api';
+import type { MessageDto, ProductDto, SupportMetaDto } from '@/types/api';
 import { formatDate } from '@/utils/formatDate';
 import { chatFilePublicUrl } from '@/utils/chatUi';
+import { formatVND } from '@/utils';
+import { effectiveUnitPrice } from '@/utils/pricing';
+
+/** Nhận slug từ URL/hash dạng .../product/ten-slug hoặc #/product/ten-slug */
+function extractProductSlugFromText(text: string): string | null {
+  const m = String(text).match(/(?:#\/)?product\/([^/?#\\s]+)/i);
+  if (!m?.[1]) return null;
+  try {
+    return decodeURIComponent(m[1].trim());
+  } catch {
+    return m[1].trim();
+  }
+}
+
+function productThumb(p: ProductDto): string {
+  if (p.image && String(p.image).trim()) return String(p.image);
+  const first = p.images?.[0];
+  return first && String(first).trim() ? String(first) : '';
+}
+
+function productDisplayPrice(p: ProductDto): number {
+  return effectiveUnitPrice(Number(p.price) || 0, p.salePrice);
+}
 
 /**
  * Hộp thoại chat hỗ trợ cố định góc phải (kiểu chatbot / Messenger).
  */
 const SupportChatWidget: React.FC = () => {
   const navigate = useNavigate();
-  const { isOpen, setIsOpen, pendingProductId, clearPendingProduct } = useSupportChat();
+  const {
+    isOpen,
+    setIsOpen,
+    pendingProductId,
+    clearPendingProduct,
+    composeProductAttachId,
+    setComposeProductAttachId,
+  } = useSupportChat();
   const { isAuthenticated, user } = useAuth();
   const myId = user?.id != null ? Number(user.id) : NaN;
 
@@ -30,10 +60,16 @@ const SupportChatWidget: React.FC = () => {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [socketTick, setSocketTick] = useState(0);
-  const [attachProductId, setAttachProductId] = useState<number | null>(null);
   const productHintConsumed = useRef(false);
   const threadRef = useRef<MessageDto[]>([]);
   threadRef.current = thread;
+
+  const [attachPanelOpen, setAttachPanelOpen] = useState(true);
+  const [attachInput, setAttachInput] = useState('');
+  const [previewProduct, setPreviewProduct] = useState<ProductDto | null>(null);
+  const [searchHits, setSearchHits] = useState<ProductDto[]>([]);
+  const [attachLoading, setAttachLoading] = useState(false);
+  const [attachError, setAttachError] = useState<string | null>(null);
 
   const apiOn = isApiConfigured();
   const peerId = meta?.supportUserId != null ? String(meta.supportUserId) : null;
@@ -47,6 +83,36 @@ const SupportChatWidget: React.FC = () => {
 
   const socketEnabled = apiOn && isAuthenticated && Number.isFinite(myId) && isOpen && Boolean(peerId);
   const { emitNewMess } = useChatSocket(socketEnabled, peerId, bumpFromSocket);
+
+  const tryResolveProductFromString = useCallback(async (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    const slug = extractProductSlugFromText(trimmed);
+    setAttachLoading(true);
+    setAttachError(null);
+    try {
+      if (slug) {
+        const p = await getProductBySlug(slug);
+        setPreviewProduct(p);
+        setSearchHits([]);
+        return;
+      }
+      if (/^\d+$/.test(trimmed)) {
+        const id = parseInt(trimmed, 10);
+        if (id >= 1) {
+          const p = await getProduct(id);
+          setPreviewProduct(p);
+          setSearchHits([]);
+          return;
+        }
+      }
+    } catch {
+      setPreviewProduct(null);
+      setAttachError('Không tìm thấy sản phẩm.');
+    } finally {
+      setAttachLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!apiOn || !isAuthenticated) {
@@ -74,7 +140,7 @@ const SupportChatWidget: React.FC = () => {
     const pid = pendingProductId;
     if (productHintConsumed.current) return;
     productHintConsumed.current = true;
-    setAttachProductId(pid);
+    setComposeProductAttachId(pid);
     void (async () => {
       try {
         const p = await getProduct(pid);
@@ -82,18 +148,64 @@ const SupportChatWidget: React.FC = () => {
         setDraft(
           (prev) =>
             prev.trim() ||
-            `[Góp ý / báo lỗi sản phẩm]\n${name} (ID: ${pid})\n\nMô tả chi tiết: `
+            `[Sản phẩm]\n${name} (ID: ${pid})\n\nNội dung: `
         );
       } catch {
         setDraft(
           (prev) =>
             prev.trim() ||
-            `[Góp ý / báo lỗi sản phẩm]\nSản phẩm ID: ${pid}\n\nMô tả chi tiết: `
+            `[Sản phẩm]\nSản phẩm ID: ${pid}\n\nNội dung: `
         );
       }
       clearPendingProduct();
     })();
-  }, [isOpen, pendingProductId, meta?.isStaff, clearPendingProduct]);
+  }, [isOpen, pendingProductId, meta?.isStaff, clearPendingProduct, setComposeProductAttachId]);
+
+  const qDebounceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const q = attachInput.trim();
+    if (qDebounceRef.current != null) {
+      window.clearTimeout(qDebounceRef.current);
+      qDebounceRef.current = null;
+    }
+    if (!q) {
+      setSearchHits([]);
+      setAttachError(null);
+      return;
+    }
+    const slug = extractProductSlugFromText(q);
+    if (slug || /^\d+$/.test(q)) {
+      qDebounceRef.current = window.setTimeout(() => {
+        void tryResolveProductFromString(q);
+      }, 320);
+      return () => {
+        if (qDebounceRef.current != null) window.clearTimeout(qDebounceRef.current);
+      };
+    }
+    if (q.length < 2) {
+      setSearchHits([]);
+      return;
+    }
+    qDebounceRef.current = window.setTimeout(() => {
+      void (async () => {
+        setAttachLoading(true);
+        setAttachError(null);
+        try {
+          const list = await getProducts({ q, size: 10 });
+          setSearchHits(Array.isArray(list) ? list : []);
+          setPreviewProduct(null);
+        } catch {
+          setSearchHits([]);
+          setAttachError('Không tải được gợi ý tìm kiếm.');
+        } finally {
+          setAttachLoading(false);
+        }
+      })();
+    }, 420);
+    return () => {
+      if (qDebounceRef.current != null) window.clearTimeout(qDebounceRef.current);
+    };
+  }, [attachInput, tryResolveProductFromString]);
 
   const loadThread = useCallback(async () => {
     if (!apiOn || !isAuthenticated || !peerId || !isOpen) {
@@ -141,16 +253,46 @@ const SupportChatWidget: React.FC = () => {
 
   const supportIdNum = meta?.supportUserId;
 
+  const applyPreviewAttachment = useCallback(() => {
+    if (!previewProduct) return;
+    const id = Number(previewProduct.id);
+    if (!Number.isFinite(id) || id < 1) return;
+    setComposeProductAttachId(id);
+    const name = previewProduct.name?.trim() || `Mã ${id}`;
+    setDraft((prev) => prev.trim() || `[Sản phẩm]\n${name} (ID: ${id})\n\nNội dung: `);
+    setPreviewProduct(null);
+    setAttachInput('');
+    setSearchHits([]);
+    setAttachError(null);
+  }, [previewProduct, setComposeProductAttachId]);
+
+  const clearPreview = useCallback(() => {
+    setPreviewProduct(null);
+    setAttachError(null);
+  }, []);
+
+  const handlePasteProductLink = useCallback(
+    (text: string) => {
+      const slug = extractProductSlugFromText(text);
+      if (!slug) return false;
+      setAttachPanelOpen(true);
+      setAttachInput(text.trim());
+      void tryResolveProductFromString(text);
+      return true;
+    },
+    [tryResolveProductFromString]
+  );
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!draft.trim() || !Number.isFinite(myId) || supportIdNum == null) return;
     setSending(true);
     setSendError(null);
     try {
-      const productId = attachProductId != null ? attachProductId : undefined;
+      const productId = composeProductAttachId != null ? composeProductAttachId : undefined;
       const msg = await sendTextMessage(supportIdNum, draft.trim(), productId != null ? { productId } : undefined);
       setDraft('');
-      if (attachProductId != null) setAttachProductId(null);
+      if (composeProductAttachId != null) setComposeProductAttachId(null);
       emitNewMess(Number(msg.from.id), Number(msg.to.id));
       await loadThread();
     } catch (err: unknown) {
@@ -179,14 +321,12 @@ const SupportChatWidget: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-[1000] flex flex-col items-end gap-3 pointer-events-none">
-      {/* Panel */}
       {isOpen && (
         <div
           className="pointer-events-auto flex flex-col w-[min(calc(100vw-2rem),380px)] h-[min(calc(100dvh-5.5rem),520px)] rounded-2xl overflow-hidden shadow-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 ring-1 ring-black/5 dark:ring-white/10"
           role="dialog"
           aria-label="Hỗ trợ TechHome"
         >
-          {/* Header kiểu Messenger */}
           <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shrink-0 shadow-md">
@@ -219,9 +359,7 @@ const SupportChatWidget: React.FC = () => {
 
           {!isAuthenticated && (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-slate-950/40">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Đăng nhập để chat với cửa hàng.
-              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Đăng nhập để chat với cửa hàng.</p>
               <button
                 type="button"
                 onClick={() => navigate('/login', { state: { from: { pathname: '/messages' } } })}
@@ -246,10 +384,17 @@ const SupportChatWidget: React.FC = () => {
 
           {isAuthenticated && meta && !metaLoading && !metaError && peerId && (
             <>
-              {attachProductId != null && (
-                <p className="shrink-0 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/25 px-3 py-1.5 border-b border-emerald-100 dark:border-emerald-900/50">
-                  Tin tiếp theo kèm ngữ cảnh sản phẩm (ID {attachProductId})
-                </p>
+              {composeProductAttachId != null && (
+                <div className="shrink-0 flex items-center justify-between gap-2 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/25 px-3 py-1.5 border-b border-emerald-100 dark:border-emerald-900/50">
+                  <span>Tin tiếp theo kèm sản phẩm (ID {composeProductAttachId})</span>
+                  <button
+                    type="button"
+                    onClick={() => setComposeProductAttachId(null)}
+                    className="shrink-0 font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200 hover:underline"
+                  >
+                    Bỏ kèm
+                  </button>
+                </div>
               )}
 
               <div
@@ -281,7 +426,7 @@ const SupportChatWidget: React.FC = () => {
                                 mine ? 'border-white/25 text-white/90' : 'border-amber-200/80 text-amber-700 dark:text-amber-400'
                               }`}
                             >
-                              Góp ý sản phẩm
+                              Sản phẩm
                               {m.productNameSnapshot ? ` · ${m.productNameSnapshot}` : ''}
                               {m.productId != null ? ` (#${m.productId})` : ''}
                             </div>
@@ -313,34 +458,147 @@ const SupportChatWidget: React.FC = () => {
                 </p>
               )}
 
+              <div className="shrink-0 border-t border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-900/95">
+                <button
+                  type="button"
+                  onClick={() => setAttachPanelOpen((o) => !o)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="material-icons text-primary text-base">inventory_2</span>
+                    Tìm sản phẩm
+                  </span>
+                  <span className="material-icons text-slate-400 text-lg">
+                    {attachPanelOpen ? 'expand_less' : 'chevron_right'}
+                  </span>
+                </button>
+
+                {attachPanelOpen && (
+                  <div className="px-3 pb-2 space-y-2 border-t border-slate-200/80 dark:border-slate-700/80">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 pt-2 leading-snug">
+                      Gõ tên sản phẩm, mã số, hoặc dán link trang chi tiết
+                      ).
+                    </p>
+                    <input
+                      type="text"
+                      value={attachInput}
+                      onChange={(e) => setAttachInput(e.target.value)}
+                      onPaste={(e) => {
+                        const text = e.clipboardData.getData('text');
+                        if (extractProductSlugFromText(text)) {
+                          e.preventDefault();
+                          handlePasteProductLink(text);
+                        }
+                      }}
+                      placeholder="Tìm theo tên, ID, hoặc dán link…"
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/25"
+                      disabled={sending}
+                    />
+                    {attachLoading && <p className="text-[10px] text-slate-500">Đang tìm…</p>}
+                    {attachError && <p className="text-[10px] text-red-600 dark:text-red-400">{attachError}</p>}
+
+                    {searchHits.length > 0 && !previewProduct && (
+                      <ul className="max-h-28 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700">
+                        {searchHits.map((p) => (
+                          <li key={String(p.id)}>
+                            <button
+                              type="button"
+                              className="w-full text-left px-2 py-1.5 text-[11px] text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                              onClick={() => {
+                                setPreviewProduct(p);
+                                setSearchHits([]);
+                                setAttachInput(p.name);
+                                setAttachError(null);
+                              }}
+                            >
+                              <span className="font-semibold line-clamp-1">{p.name}</span>
+                              <span className="text-slate-500 dark:text-slate-400"> · #{p.id}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {previewProduct && (
+                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/80 dark:bg-emerald-950/30 p-2.5 flex gap-2.5">
+                        <div className="w-14 h-14 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 flex items-center justify-center overflow-hidden shrink-0">
+                          {productThumb(previewProduct) ? (
+                            <img
+                              src={productThumb(previewProduct)}
+                              alt=""
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          ) : (
+                            <span className="material-icons text-slate-400">inventory_2</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2">{previewProduct.name}</p>
+                          <p className="text-xs font-semibold text-primary">{formatVND(productDisplayPrice(previewProduct))}</p>
+                          <p className="text-[10px] text-slate-500">ID {previewProduct.id}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {previewProduct && (
+                      <div className="flex flex-wrap gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={applyPreviewAttachment}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700"
+                        >
+                          Áp dụng
+                        </button>
+                        <button
+                          type="button"
+                          onClick={clearPreview}
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        >
+                          Hủy xem trước
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <form
                 onSubmit={handleSend}
-                className="shrink-0 p-2.5 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center gap-2"
+                className="shrink-0 p-2.5 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col gap-2"
               >
-                <div className="flex-1 flex items-center rounded-full border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/80 pl-4 pr-2 py-1.5 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary/40">
-                  <input
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Nhập tin nhắn…"
-                    className="flex-1 min-w-0 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none"
-                    disabled={sending}
-                  />
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center rounded-full border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/80 pl-4 pr-2 py-1.5 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary/40">
+                    <input
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onPaste={(e) => {
+                        const text = e.clipboardData.getData('text');
+                        if (extractProductSlugFromText(text)) {
+                          e.preventDefault();
+                          setAttachPanelOpen(true);
+                          handlePasteProductLink(text);
+                        }
+                      }}
+                      placeholder="Nhập tin nhắn…"
+                      className="flex-1 min-w-0 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none"
+                      disabled={sending}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={sending || !draft.trim()}
+                    className="shrink-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+                    aria-label="Gửi"
+                  >
+                    <span className="material-icons text-xl">send</span>
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={sending || !draft.trim()}
-                  className="shrink-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
-                  aria-label="Gửi"
-                >
-                  <span className="material-icons text-xl">send</span>
-                </button>
               </form>
             </>
           )}
         </div>
       )}
 
-      {/* FAB */}
       <button
         type="button"
         onClick={() => (isOpen ? setIsOpen(false) : handleFabClick())}

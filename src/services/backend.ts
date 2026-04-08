@@ -145,6 +145,24 @@ export async function createAdminCategory(payload: {
   return apiPost<CategoryDto>('/categories', payload, { auth: true });
 }
 
+/** PUT /api/categories/:id (ADMIN) */
+export async function updateAdminCategory(
+  id: number | string,
+  payload: Partial<{
+    name: string;
+    icon: string | null;
+    imageUrl: string | null;
+    parentId: number | null;
+  }>
+): Promise<CategoryDto> {
+  return apiPut<CategoryDto>(`/categories/${id}`, payload, { auth: true });
+}
+
+/** DELETE /api/categories/:id — xóa mềm (ADMIN) */
+export async function deleteAdminCategory(id: number | string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/categories/${id}`, { auth: true });
+}
+
 /** GET /api/products?category=&q=&page=&size=&sort= */
 export async function getProducts(params: ProductsParams = {}): Promise<ProductDto[]> {
   const sp = new URLSearchParams();

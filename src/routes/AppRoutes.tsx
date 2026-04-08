@@ -21,12 +21,12 @@ import NotFoundPage from '@/pages/NotFoundPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
+import AdminCategoriesPage from '@/pages/admin/categories/AdminCategoriesPage';
 import ProductListPage from '@/pages/admin/products/ProductListPage';
 import ProductFormPage from '@/pages/admin/products/ProductFormPage';
 import OrderListPage from '@/pages/admin/orders/OrderListPage';
 import OrderDetailPage from '@/pages/admin/orders/OrderDetailPage';
 import InvoicePage from '@/pages/admin/orders/InvoicePage';
-import SEOSettingsPage from '@/pages/admin/seo/SEOSettingsPage';
 import AdminMessagesInboxPage from '@/pages/admin/AdminMessagesInboxPage';
 import VoucherBuilderPage from '@/pages/admin/vouchers/VoucherBuilderPage';
 import AdminRoute from '@/routes/AdminRoute';
@@ -64,6 +64,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin/messages" element={<AdminMessagesInboxPage />} />
       <Route path="/admin/messages/:customerId" element={<AdminMessagesInboxPage />} />
       <Route path="/admin/vouchers" element={<VoucherBuilderPage />} />
+      <Route path="/admin/categories" element={<AdminCategoriesPage />} />
       <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/products/stock" element={<Navigate to="/admin/products" replace />} />
       <Route path="/admin/products/new" element={<ProductFormPage />} />
@@ -74,7 +75,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/admin/orders" element={<OrderListPage />} />
       <Route path="/admin/orders/:orderId" element={<OrderDetailPage />} />
 
-      <Route path="/admin/seo" element={<SEOSettingsPage />} />
+      <Route path="/admin/seo" element={<Navigate to="/admin/dashboard" replace />} />
     </Route>
     <Route path="/*" element={<NotFoundPage />} />
   </Routes>

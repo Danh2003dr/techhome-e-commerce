@@ -3,10 +3,13 @@ import React, { createContext, useCallback, useContext, useMemo, useState, type 
 export interface SupportChatContextValue {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  /** Mở hộp chat góc màn hình; có thể kèm productId để soạn sẵn tin góp ý sản phẩm */
+  /** Mở hộp chat góc màn hình; có thể kèm productId để soạn sẵn tin (nhãn Sản phẩm) */
   openSupportChat: (opts?: { productId?: number }) => void;
   pendingProductId: number | null;
   clearPendingProduct: () => void;
+  /** Tin nhắn tiếp theo gửi kèm ngữ cảnh sản phẩm (API productId) — dùng từ /messages hoặc widget */
+  composeProductAttachId: number | null;
+  setComposeProductAttachId: (id: number | null) => void;
 }
 
 const SupportChatContext = createContext<SupportChatContextValue | null>(null);
@@ -14,6 +17,7 @@ const SupportChatContext = createContext<SupportChatContextValue | null>(null);
 export function SupportChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingProductId, setPendingProductId] = useState<number | null>(null);
+  const [composeProductAttachId, setComposeProductAttachId] = useState<number | null>(null);
 
   const openSupportChat = useCallback((opts?: { productId?: number }) => {
     if (opts?.productId != null && Number.isFinite(Number(opts.productId))) {
@@ -33,8 +37,10 @@ export function SupportChatProvider({ children }: { children: ReactNode }) {
       openSupportChat,
       pendingProductId,
       clearPendingProduct,
+      composeProductAttachId,
+      setComposeProductAttachId,
     }),
-    [isOpen, openSupportChat, pendingProductId, clearPendingProduct]
+    [isOpen, openSupportChat, pendingProductId, clearPendingProduct, composeProductAttachId]
   );
 
   return <SupportChatContext.Provider value={value}>{children}</SupportChatContext.Provider>;

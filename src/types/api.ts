@@ -13,6 +13,8 @@ export interface CategoryDto {
   icon?: string | null;
   /** URL ảnh đại diện danh mục — tuỳ chọn */
   imageUrl?: string | null;
+  /** Chỉ khi GET có `includeDeleted` — danh mục đã xóa mềm */
+  isDeleted?: boolean;
 }
 
 export interface ProductColorDto {
