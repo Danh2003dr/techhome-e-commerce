@@ -1,26 +1,39 @@
-TechHome E‑commerce
-Dự án gồm frontend (React/Vite) và backend (API) trong cùng một repo.
+# TechHome E-Commerce - Quick Start
+## 1) Tong quan
+TechHome E-Commerce là dự án web thương mại điện tử xây dựng theo mô hình frontend-backend tách rời, tập trung vào trải nghiệm mua sắm trực tuyến và quản trị hệ thống. Mục tiêu của dự án là triển khai đầy đủ luồng người dùng từ duyệt sản phẩm, đăng ký/đăng nhập, quản lý giỏ hàng, đặt hàng đến theo dõi thông tin tài khoản, đồng thời mở rộng dần các chức năng quản trị cho admin.
 
-Cấu trúc
-Thư mục	Mô tả
-Gốc (./)	Frontend: React, Vite, TypeScript. Chạy tại http://localhost:3000.
-backend/	Backend API (ví dụ Spring Boot). Chạy tại http://localhost:8080. Đặt code backend vào đây.
-Chạy dự án
-1. Frontend
-Yêu cầu: Node.js
 
+## 2. Kiến trúc
+Frontend: Ứng dụng web xây bằng React + TypeScript + Vite, đảm nhiệm giao diện người dùng (storefront), điều hướng trang, gọi API và quản lý state phía client.
+Backend: API server đặt ở khối backend_nodejs (REST API), xử lý nghiệp vụ auth, sản phẩm, danh mục, hồ sơ người dùng, giỏ hàng, đơn hàng và phân quyền theo vai trò.
+API Base URL: 
+http://localhost:8080
+
+## 3. Yêu cầu môi trường
+- Node.js: >= 20 
+- npm: >= 10
+- Backend runtime: Node.js
+
+## 4. Chay frontend
+
+```bash
 npm install
 npm run dev
-Mở trình duyệt tại http://localhost:3000. Có thể cấu hình API qua file .env (xem .env.example).
+```
 
-2. Backend
-Vào thư mục backend/ và chạy backend (Maven/Gradle/…). Ví dụ với Spring Boot:
+Frontend chay tai: `http://localhost:3000`
 
+## 5. Chay backend
+
+```bash
 cd backend
-mvn spring-boot:run
-API base URL: http://localhost:8080/api. Frontend mặc định gọi URL này; cần bật CORS cho origin http://localhost:3000 (và 3001 nếu dùng).
+# chay lenh backend theo stack cua ban
+```
 
-Chạy đồng thời
-Terminal 1: cd backend && mvn spring-boot:run
-Terminal 2: npm run dev
-Xem thêm backend/README.md để biết cách đặt code backend vào repo.
+Backend API du kien chay tai: `http://localhost:8080/api`
+
+## 5) Ket noi frontend-backend
+
+- Dat bien moi truong frontend (vi du `VITE_API_URL`) trung voi dia chi backend.
+- Dam bao backend cho phep CORS cho origin frontend.
+- Neu login/cart/order loi, kiem tra URL API va token auth.
